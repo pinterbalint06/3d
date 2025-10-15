@@ -37,15 +37,15 @@ function kirajzol(pontok, indexek, ctx, eredeti) {
     // kamera távolsága
     const D = 1;
     // kamera helye
-    const kameraPont = [64, -64, 20];
+    const kameraPont = [0, 20, -64];
     for (let i = 0; i < pontok.length / 3; i++) {
         // 2Ds canvasra kell kirajzolnunk a 3Ds pontokat
         //x jobbra balra
         //z le fel
         // y mélység
         let x = pontok[i * 3] - kameraPont[0];
-        let y = pontok[i * 3 + 1] - kameraPont[2];
-        let z = pontok[i * 3 + 2] - kameraPont[1];
+        let y = pontok[i * 3 + 1] - kameraPont[1];
+        let z = pontok[i * 3 + 2] - kameraPont[2];
         kivetitettPont.push((((x / (-z) + 1)/2) * 1000)); // x koordináta = x/(z+D) perspektívikus vetítes (perspective divide)
         kivetitettPont.push((((y / (-z) + 1)/2) * 1000)); // y koordináta = y/(z+D) perspektívikus vetítes (perspective divide)
     }
@@ -170,7 +170,7 @@ function fo() {
     canvas.height = 1000;
     // let kozep = (meret - 1) / 2;
     // eltolas(-kozep, pontok);
-    // forgatasYtengelyen(Math.PI / 2, pontok);
+    // forgatasXtengelyen(Math.PI / 2, pontok);
     // eltolas(kozep, pontok);
     kirajzol(pontok, indexek, ctx, eredeti);
 }

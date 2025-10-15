@@ -3,8 +3,8 @@ function pontokKiszamolasa(perlinek, szorzo) {
     for (let y = 0; y < perlinek.length; y++) {
         for (let x = 0; x < perlinek[y].length; x++) {
             pontok.push(x); // x koordináta
-            pontok.push(y); // y koordináta
-            pontok.push(perlinek[y][x] * szorzo); // z koordináta
+            pontok.push(perlinek[y][x] * szorzo); // y koordináta
+            pontok.push(y); // z koordináta
         }
     }
     return pontok;
@@ -32,26 +32,27 @@ function osszekotesekKiszamolasa(meret) {
 }
 
 function kirajzol(pontok, indexek, ctx, eredeti) {
-    ctx.clearRect(0, 0, 1920, 1080);
+    ctx.clearRect(0, 0, 1000, 1000);
     let kivetitettPont = [];
     // kamera távolsága
-    const D = 550;
+    const D = 1;
     // kamera helye
-    const kameraPont = [0, -256, 100];
+    const kameraPont = [64, -64, 20];
     for (let i = 0; i < pontok.length / 3; i++) {
         // 2Ds canvasra kell kirajzolnunk a 3Ds pontokat
         //x jobbra balra
         //z le fel
         // y mélység
         let x = pontok[i * 3] - kameraPont[0];
-        let y = pontok[i * 3 + 1] - kameraPont[1];
-        let z = pontok[i * 3 + 2] - kameraPont[2];
-        kivetitettPont.push(x / (y + D) * 2000 + 1080 / 2); // x koordináta = x/(y+D) perspektívikus vetítes
-        kivetitettPont.push(-z / (y + D) * 2000 + 1080 / 2); // z koordináta = z/(y+D) perspektívikus vetítes
+        let y = pontok[i * 3 + 1] - kameraPont[2];
+        let z = pontok[i * 3 + 2] - kameraPont[1];
+        kivetitettPont.push((((x / (-z) + 1)/2) * 1000)); // x koordináta = x/(z+D) perspektívikus vetítes (perspective divide)
+        kivetitettPont.push((((y / (-z) + 1)/2) * 1000)); // y koordináta = y/(z+D) perspektívikus vetítes (perspective divide)
     }
 
     // kiszámoljuk a háromszög súlypontjának és a kamerának a távolságát
     // majd csökkenő sorrendbe rakjuk így a távoliak lesznek berajzolva elsőnek és a közeliek rájuk rajzolódnak
+    // festő algoritmus
     let tavolsagok = [];
 
     for (let i = 0; i < indexek.length; i += 3) {
@@ -91,7 +92,7 @@ function kirajzol(pontok, indexek, ctx, eredeti) {
         ctx.lineTo(x2, y2);
         ctx.lineTo(x3, y3);
         ctx.closePath();
-        if ((eredeti[i1 * 3 + 2] + eredeti[i2 * 3 + 2] + eredeti[i3 * 3 + 2]) / 3 > 20) {
+        if ((eredeti[i1 * 3 + 1] + eredeti[i2 * 3 + 1] + eredeti[i3 * 3 + 1]) / 3 > 20) {
             ctx.fillStyle = "rgb(128,128,128)";
             ctx.strokeStyle = "rgb(80,80,80)";
         } else {
@@ -157,19 +158,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function fo() {
     let seed = document.getElementById("seed").value;
-    const meret = 512;
-    let perlinErtekek = perlin(1, meret, seed, 1, 9, 2, 2, 0, 2);
+    const meret = 128;
+    let perlinErtekek = perlin(1, meret, seed, 1, 9, 2, 2.2);
     let pontok = pontokKiszamolasa(perlinErtekek, 150);
     let eredeti = [...pontok];
     let indexek = osszekotesekKiszamolasa(meret);
 
     let canvas = document.getElementById("canvas");
     let ctx = canvas.getContext("2d");
-    canvas.width = 1920;
-    canvas.height = 1080;
-    let kozep = (meret - 1) / 2;
+    canvas.width = 1000;
+    canvas.height = 1000;
+    // let kozep = (meret - 1) / 2;
     // eltolas(-kozep, pontok);
-    // forgatasXtengelyen(Math.PI / 12, pontok);
+    // forgatasYtengelyen(Math.PI / 2, pontok);
     // eltolas(kozep, pontok);
     kirajzol(pontok, indexek, ctx, eredeti);
 }

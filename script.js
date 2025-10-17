@@ -4,7 +4,7 @@ function pontokKiszamolasa(perlinek, szorzo) {
         for (let x = 0; x < perlinek[y].length; x++) {
             pontok.push(x); // x koordináta
             pontok.push(perlinek[y][x] * szorzo); // y koordináta
-            pontok.push(y); // z koordináta
+            pontok.push(-y); // z koordináta
         }
     }
     return pontok;
@@ -34,10 +34,9 @@ function osszekotesekKiszamolasa(meret) {
 function kirajzol(pontok, indexek, ctx, eredeti) {
     ctx.clearRect(0, 0, 1000, 1000);
     let kivetitettPont = [];
-    // kamera távolsága
-    const D = 1;
+    let canvasMeret = 2;
     // kamera helye
-    const kameraPont = [100, 40, -100];
+    const kameraPont = [100, 30, -300];
     for (let i = 0; i < pontok.length / 3; i++) {
         // 2Ds canvasra kell kirajzolnunk a 3Ds pontokat
         //x jobbra balra
@@ -46,8 +45,12 @@ function kirajzol(pontok, indexek, ctx, eredeti) {
         let x = pontok[i * 3] - kameraPont[0];
         let y = pontok[i * 3 + 1] - kameraPont[1];
         let z = pontok[i * 3 + 2] - kameraPont[2];
-        kivetitettPont.push((((x / (-z) + 1)/2) * 1000)); // x koordináta = x/(z+D) perspektívikus vetítes (perspective divide)
-        kivetitettPont.push((((y / (-z) + 1)/2) * 1000)); // y koordináta = y/(z+D) perspektívikus vetítes (perspective divide)
+        // x / (-z) -al megkapjuk a screen coordinate system beli koordinátáit a pontnak [-1,1] -  középpontja a canvas közepe - x jobbra nő y felfele nő
+        // x / (-z) + 1)/2 ehhez hozzáadva egyet és osztva kettővel normalizáljuk a koordinátákat és megkapjuk a Normalized Device Coordinates (NDC)-t [0,1] - közzéppontja a kép bal alsó sarka - x jobbra nő y felfele nő
+        // Math.floor(((x / (-z) + 1)/2) * 1000) megszorozzuk a kép (raster) szélességével/magasságával és kerekítjuk így megkapjuk a raster coordinate system beli koordinátáját - középpontja a kép bal felső sarka - x jobbra nő y lefele nő
+        // A js canvasa máshogy működik y-nak elvileg Math.floor(((1-(y / (-z) + 1)/2)) * 1000) - nek kéne lenni.
+        kivetitettPont.push(Math.floor(((x / (-z) + canvasMeret/2)/canvasMeret) * 1000)); // x koordináta = x/(z+D) perspektívikus vetítes (perspective divide)
+        kivetitettPont.push(Math.floor(((y / (-z) + canvasMeret/2)/canvasMeret) * 1000)); // y koordináta = y/(z+D) perspektívikus vetítes (perspective divide)
     }
 
     // kiszámoljuk a háromszög súlypontjának és a kamerának a távolságát
@@ -179,7 +182,7 @@ function fo() {
     let kozep = (meret - 1) / 2;
     eltolas(-kozep, pontok);
     forgatasXtengelyen(Math.PI / -8, pontok);
-    skalazas(1.2, pontok);
-    eltolas(kozep, pontok);
+    skalazas(1.5, pontok);
+    eltolas((meret*1.5 - 1) / 2, pontok);
     kirajzol(pontok, indexek, ctx, eredeti);
 }

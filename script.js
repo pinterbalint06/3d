@@ -166,6 +166,8 @@ function skalazas(mertek, skalazandok) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+    let matrix = [[1, 6, 3], [4, 0, 6], [7, 8, 9]];
+    console.log(invertalas(matrix));
     let sd = document.getElementById("seed");
     sd.value = Math.floor(Math.random() * 10000) + 1;
     sd.nextElementSibling.value = sd.value

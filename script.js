@@ -36,7 +36,7 @@ function kirajzol(pontok, indexek, ctx, eredeti) {
     let kivetitettPont = [];
     let canvasMeret = 2;
     // kamera helye
-    const kameraPont = [100, 30, -300];
+    const kameraPont = [84, 0, -260];
     for (let i = 0; i < pontok.length / 3; i++) {
         // 2Ds canvasra kell kirajzolnunk a 3Ds pontokat
         //x jobbra balra
@@ -49,8 +49,8 @@ function kirajzol(pontok, indexek, ctx, eredeti) {
         // x / (-z) + 1)/2 ehhez hozzáadva egyet és osztva kettővel normalizáljuk a koordinátákat és megkapjuk a Normalized Device Coordinates (NDC)-t [0,1] - közzéppontja a kép bal alsó sarka - x jobbra nő y felfele nő
         // Math.floor(((x / (-z) + 1)/2) * 1000) megszorozzuk a kép (raster) szélességével/magasságával és kerekítjuk így megkapjuk a raster coordinate system beli koordinátáját - középpontja a kép bal felső sarka - x jobbra nő y lefele nő
         // A js canvasa máshogy működik y-nak elvileg Math.floor(((1-(y / (-z) + 1)/2)) * 1000) - nek kéne lenni.
-        kivetitettPont.push(Math.floor(((x / (-z) + canvasMeret/2)/canvasMeret) * 1000)); // x koordináta = x/(z+D) perspektívikus vetítes (perspective divide)
-        kivetitettPont.push(Math.floor(((y / (-z) + canvasMeret/2)/canvasMeret) * 1000)); // y koordináta = y/(z+D) perspektívikus vetítes (perspective divide)
+        kivetitettPont.push(Math.floor(((x / (-z) + canvasMeret / 2) / canvasMeret) * 1000)); // x koordináta = x/(z+D) perspektívikus vetítes (perspective divide)
+        kivetitettPont.push(Math.floor(((y / (-z) + canvasMeret / 2) / canvasMeret) * 1000)); // y koordináta = y/(z+D) perspektívikus vetítes (perspective divide)
     }
 
     // kiszámoljuk a háromszög súlypontjának és a kamerának a távolságát
@@ -107,39 +107,44 @@ function kirajzol(pontok, indexek, ctx, eredeti) {
     }
 }
 
-function forgatasZtengelyen(szog, forgatando) {
-    const cosinus = Math.cos(szog);
-    const sinus = Math.sin(szog);
-    for (let i = 0; i < forgatando.length / 3; i++) {
-        let x = forgatando[i * 3];
-        let y = forgatando[i * 3 + 1];
-
-        forgatando[i * 3] = x * cosinus + y * sinus;
-        forgatando[i * 3 + 1] = y * cosinus - x * sinus;
-    }
-}
-
 function forgatasXtengelyen(szog, forgatando) {
     const cosinus = Math.cos(szog);
     const sinus = Math.sin(szog);
-    for (let i = 0; i < forgatando.length / 3; i++) {
-        let y = forgatando[i * 3 + 1];
-        let z = forgatando[i * 3 + 2];
-
-        forgatando[i * 3 + 1] = y * cosinus + z * sinus;
-        forgatando[i * 3 + 2] = z * cosinus - y * sinus;
-    }
+    const Rx = [[1, 0, 0],
+    [0, cosinus, sinus],
+    [0, -sinus, cosinus]
+    ];
+    forgatas(Rx, forgatando);
 }
 
-function forgatasYtengelyen(szog, forgatando) { 
+function forgatasYtengelyen(szog, forgatando) {
     const cosinus = Math.cos(szog);
     const sinus = Math.sin(szog);
-    for (let i = 0; i < forgatando.length / 3; i++) {
-        let x = forgatando[i * 3];
-        let z = forgatando[i * 3 + 2];
+    const Ry = [[cosinus, 0, -sinus],
+    [0, 1, 0],
+    [sinus, 0, cosinus]
+    ];
+    forgatas(Ry, forgatando);
+}
 
-        forgatando[i * 3] = x * cosinus - z * sinus;
-        forgatando[i * 3 + 2] = x * sinus + z * cosinus;
+function forgatasZtengelyen(szog, forgatando) {
+    const cosinus = Math.cos(szog);
+    const sinus = Math.sin(szog);
+    const Rz = [[cosinus, sinus, 0],
+    [-sinus, cosinus, 0],
+    [0, 0, 1]
+    ];
+    forgatas(Rz, forgatando);
+}
+
+
+function forgatas(Rmatrix, forgatando) {
+    for (let i = 0; i < forgatando.length / 3; i++) {
+        let eredmeny = matrixSzorzas([[forgatando[i * 3],forgatando[i * 3 + 1],forgatando[i * 3 + 2]]],
+        Rmatrix);
+        forgatando[i * 3] = eredmeny[0][0];
+        forgatando[i * 3 + 1] = eredmeny[0][1];
+        forgatando[i * 3 + 2] = eredmeny[0][2];
     }
 }
 
@@ -162,7 +167,7 @@ function skalazas(mertek, skalazandok) {
 
 document.addEventListener("DOMContentLoaded", function () {
     let sd = document.getElementById("seed");
-    sd.value = Math.floor(Math.random()*10000)+1;
+    sd.value = Math.floor(Math.random() * 10000) + 1;
     sd.nextElementSibling.value = sd.value
     fo();
 });
@@ -181,8 +186,8 @@ function fo() {
     canvas.height = 1000;
     let kozep = (meret - 1) / 2;
     eltolas(-kozep, pontok);
-    forgatasXtengelyen(Math.PI / 8, pontok);
-    skalazas(1.5, pontok);
-    eltolas((meret*1.5 - 1) / 2, pontok);
+    forgatasXtengelyen(Math.PI / -8, pontok);
+    eltolas(kozep, pontok);
+    skalazas(1.3, pontok);
     kirajzol(pontok, indexek, ctx, eredeti);
 }

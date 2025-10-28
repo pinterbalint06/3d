@@ -54,6 +54,7 @@ function osszekotesekKiszamolasa(meret) {
             indexe = sor * meret + oszlop;
             // A három indexnek a pontjait (pontok[index] pontot ad meg) összekötjük háromszögekre
             // A négyzet
+            // Óra járással megegyező irányban vannak az összekötések
             indexek.push(indexe); // bal felső pontja
             indexek.push(indexe + 1); // jobb felső pontja
             indexek.push(indexe + meret); // bal alsó pontja
@@ -67,6 +68,96 @@ function osszekotesekKiszamolasa(meret) {
     return indexek;
 }
 
+/**
+ * Edge function. E(x,y) = (x-X) dY - (y-Y) dX.
+ * P1(X, Y) és P2(x1, y1) egy vonalat hátoroznak meg.
+ * A függvény P0(x0, y0) pontrol dönti el, hogy a vonal melyik "oldalán" van.
+ * Az A vektor P1->P0 => (x0-X, y0-Y, 0).
+ * A B vektor P1->P2 => (x1-X, y1-Y, 0).
+ * Vektoriális szorzatuk Z koordinátája 0, ha a két vektor párhuzamos vagyis a P0 pont a vonalon van.
+ * Z>0, ha a vonal jobb oldalán van P0 és Z<0, ha a vonal bal oldalán van P0.
+ * 
+ * @param {number} X A vonalat meghatározó első pont X koordinátája
+ * @param {number} Y A vonalat meghatározó első pont Y koordinátája
+ * @param {number} x1 A vonalat meghatározó második pont X koordinátája
+ * @param {number} y1 A vonalat meghatározó második pont Y koordinátája
+ * @param {number} x0 A vizsgált pont X koordinátája
+ * @param {number} y0 A vizsgált pont Y koordinátája
+ * @returns {number} Vektoriális szorzatuk Z koordinátája. Z=0 vonalon. Z>0 jobbra. Z<0 balra.
+ */
+function edgeFunction(X, Y, x1, y1, x0, y0) {
+    return (x0 - X) * (y1 - Y) - (y0 - Y) * (x1 - X);
+}
+
+/**
+ * Az Edge Function-t használva megállapítja, hogy a háromszögben van-e a pont.
+ * A pontokat órajárással megegyező irányban kell megadni!
+ * 
+ * @param {number} v0 A háromszög egy pontja
+ * @param {number} v1 A háromszög egy pontja
+ * @param {number} v2 A háromszög egy pontja
+ * @param {number} p A vizsgálandó pont
+ * @returns {boolean} Igaz, ha benne van, hamis a nincs benne.
+ */
+function haromszogbenVanE(v0, v1, v2, p) {
+    return edgeFunction(v0[0], v0[1], v1[0], v1[1], p[0], p[1]) >= 0 &&
+        edgeFunction(v1[0], v1[1], v2[0], v2[1], p[0], p[1]) >= 0 &&
+        edgeFunction(v2[0], v2[1], v0[0], v0[1], p[0], p[1]) >= 0;
+}
+
+/**
+ * Az Edge Function-t használva megállapítja, hogy a háromszögben van-e a pont.
+ * A pontokat órajárással megegyező irányban kell megadni!
+ * 
+ * @param {number} v0 A háromszög egy pontja
+ * @param {number} v1 A háromszög egy pontja
+ * @param {number} v2 A háromszög egy pontja
+ * @param {number} p A vizsgálandó pont
+ * @returns {boolean} Ha a háromszögben van akkor visszaadja a barycentrikus koordinátáit egyébként null.
+ */
+function haromszogbenVanEBarycentrikus(v0, v1, v2, p) {
+    let w0 = edgeFunction(v1[0], v1[1], v2[0], v2[1], p[0], p[1]);
+    let w1 = edgeFunction(v2[0], v2[1], v0[0], v0[1], p[0], p[1]);
+    let w2 = edgeFunction(v0[0], v0[1], v1[0], v1[1], p[0], p[1]);
+    let vissza = null;
+
+    if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
+        let haromszogterulet = edgeFunction(v0[0], v0[1], v1[0], v1[1], v2[0], v2[1]);
+        vissza = [w0 / haromszogterulet, w1 / haromszogterulet, w2 / haromszogterulet];
+    }
+    return vissza;
+}
+
+function rajtaVanEAPixelAHaromszogon(v0, v1, v2, p) {
+    let w0 = edgeFunction(v1[0], v1[1], v2[0], v2[1], p[0], p[1]);
+    let w1 = edgeFunction(v2[0], v2[1], v0[0], v0[1], p[0], p[1]);
+    let w2 = edgeFunction(v0[0], v0[1], v1[0], v1[1], p[0], p[1]);
+
+    let oldal0 = [v2[0] - v1[0], v2[1] - v1[1]];
+    let oldal1 = [v0[0] - v2[0], v0[1] - v2[1]];
+    let oldal2 = [v1[0] - v0[0], v1[1] - v0[1]];
+
+    let rajtaVan = true;
+    // top-left rule alapján, ha w = 0 akkor a vonalon van, ilyenkor csak akkor fedi ha bal oldali vagy fenti oldal
+    // bal oldali ha növekvő az oldal vagyis y > 0
+    // fenti az oldal ha vízsszintes tehát y = 0 és x > 0
+    rajtaVan &= (w0 == 0 ? (oldal0[1] == 0 && oldal0[0] > 0) || oldal0[1] > 0 : w0 > 0);
+    rajtaVan &= (w1 == 0 ? (oldal1[1] == 0 && oldal1[0] > 0) || oldal1[1] > 0 : w1 > 0);
+    rajtaVan &= (w2 == 0 ? (oldal2[1] == 0 && oldal2[0] > 0) || oldal2[1] > 0 : w2 > 0);
+
+    return rajtaVan == 1;
+}
+
+function zBufferInit(zbuffer) {
+    for (let j = 0; j < jsCanvasMagassag * jsCanvasSzelesseg; j++) {
+        zbuffer.push(2000);
+    }
+}
+
+function pontKivetitese(pont) {
+    return
+}
+
 function kirajzol(pontok, indexek, ctx, eredeti) {
     ctx.clearRect(0, 0, 1000, 1000);
     let kivetitettPont = [];
@@ -78,81 +169,28 @@ function kirajzol(pontok, indexek, ctx, eredeti) {
         [-120, -200, 470, 1]
     ];
     kameraMatrix = matrixSzorzas(kameraMatrix, forgatasXMatrix4x4(Math.PI / -5.2));
-    for (let i = 0; i < pontok.length / 3; i++) {
-        // 2Ds canvasra kell kirajzolnunk a 3Ds pontokat
-        // x jobbra balra
-        // y le fel
-        // z mélység
+    let zbuffer = [];
+    zBufferInit(zbuffer);
+    for (let i = 0; i < indexek.length / 3; i++) {
         // A pont a kamera koordináta rendszerébe átírva
-        let pontKamera = matrixSzorzas(
-            [[pontok[i * 3], pontok[i * 3 + 1], pontok[i * 3 + 2], 1]],
-            kameraMatrix
-        );
-        let x = pontKamera[0][0];
-        let y = pontKamera[0][1];
-        let z = pontKamera[0][2];
+        let v0 = matrixSzorzas([[indexek[i * 3], indexek[i * 3], indexek[i * 3], 1]], kameraMatrix)[0];
+        let v1 = matrixSzorzas([[indexek[i * 3 + 1], indexek[i * 3 + 1], indexek[i * 3 + 1], 1]], kameraMatrix)[0];
+        let v2 = matrixSzorzas([[indexek[i * 3 + 2], indexek[i * 3 + 2], indexek[i * 3 + 2], 1]], kameraMatrix)[0];
+        
         // x / (-z) * kozelVagasiSikZ -al megkapjuk a screen coordinate system beli koordinátáit a pontnak [-1,1] -  középpontja a canvas közepe - x jobbra nő y felfele nő
         // eddig a kozelVagasiSikZ egynek felteteleztuk ha nem egy akkor be kell szorozni vele az arany P'.y/Zkozel=P.y/P.z, P'.y=P.y/P.z*Zkozel
         // RÉGI --- x / (-z) + 1)/2 ehhez hozzáadva egyet és osztva kettővel normalizáljuk a koordinátákat és megkapjuk a Normalized Device Coordinates (NDC)-t [0,1] - közzéppontja a kép bal alsó sarka - x jobbra nő y felfele nő
         // A videókártyák NDC [-1;1] intervallum l < x < r levezethezjük hogy -1 < 2x / (r-l) - (r+l) / (r-l) < 1
         // Math.floor(((x / (-z) + 1)/2) * jsCanvasSzelesseg) megszorozzuk a kép (raster) szélességével/magasságával és kerekítjuk így megkapjuk a raster coordinate system beli koordinátáját - középpontja a kép bal felső sarka - x jobbra nő y lefele nő
-        // A js canvasa máshogy működik y-nak elvileg Math.floor(((1-(y / (-z) + 1)/2)) * jsCanvasMagassag) - nek kéne lenni.
-        kivetitettPont.push(Math.floor(((2*((x / (-z)) * kozelVagasiSikZ) / (r - l) - (r + l) / (r - l))+1)/2 * jsCanvasSzelesseg)); // x koordináta = x/(z+D) perspektívikus vetítes (perspective divide)
-        kivetitettPont.push(Math.floor(((2*((y / (-z)) * kozelVagasiSikZ) / (t - b) - (t + b) / (t - b))+1)/2 * jsCanvasMagassag)); // y koordináta = y/(z+D) perspektívikus vetítes (perspective divide)
-        kivetitettPont.push(-pontok[i*3+2]); // eltároljuk az eredeti pont z koordinátáját és majd a z buffereléshez
+        kivetitettPont.push(((2 * ((x / (-z)) * kozelVagasiSikZ) / (r - l) - (r + l) / (r - l)) + 1) / 2 * jsCanvasSzelesseg); // x koordináta = x/(z+D) perspektívikus vetítes (perspective divide)
+        kivetitettPont.push((1 - (2 * ((y / (-z)) * kozelVagasiSikZ) / (t - b) - (t + b) / (t - b))) / 2 * jsCanvasMagassag); // y koordináta = y/(z+D) perspektívikus vetítes (perspective divide)
+        kivetitettPont.push(-pontok[i * 3 + 2]); // eltároljuk az eredeti pont z koordinátáját és majd a z buffereléshez
     }
-
-    // kiszámoljuk a háromszög súlypontjának és a kamerának a távolságát
-    // majd csökkenő sorrendbe rakjuk így a távoliak lesznek berajzolva elsőnek és a közeliek rájuk rajzolódnak
-    // festő algoritmus
-    let tavolsagok = [];
-
-    for (let i = 0; i < indexek.length; i += 3) {
-        let i1 = indexek[i];
-        let i2 = indexek[i + 1];
-        let i3 = indexek[i + 2];
-        let tavolsag = (pontok[i1 * 3 + 2] + pontok[i2 * 3 + 2] + pontok[i3 * 3 + 2]) / 3;
-
-        tavolsagok.push([tavolsag, i, i + 1, i + 2]);
-    }
-
-    tavolsagok.sort((a, b) => {
-        return b[0] - a[0];
-    });
-
-    // kirajzolas
-    // tavolsag szerint csokkenon végig megyünk
-    for (let i = 0; i < tavolsagok.length; i++) {
-        // megkapjuk a pontok indexeit
-        let i1 = indexek[tavolsagok[i][1]];
-        let i2 = indexek[tavolsagok[i][2]];
-        let i3 = indexek[tavolsagok[i][3]];
-
-        // a 2Ds pontokat megkapjuk
-        let x1 = kivetitettPont[i1 * 3];
-        let y1 = kivetitettPont[i1 * 3 + 1];
-
-        let x2 = kivetitettPont[i2 * 3];
-        let y2 = kivetitettPont[i2 * 3 + 1];
-
-        let x3 = kivetitettPont[i3 * 3];
-        let y3 = kivetitettPont[i3 * 3 + 1];
-
-        // kirajzoljuk a háromszöget
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.lineTo(x3, y3);
-        ctx.closePath();
-        if ((eredeti[i1 * 3 + 1] + eredeti[i2 * 3 + 1] + eredeti[i3 * 3 + 1]) / 3 > 20) {
-            ctx.fillStyle = "rgb(128,128,128)";
-            ctx.strokeStyle = "rgb(80,80,80)";
-        } else {
-            ctx.fillStyle = "#32CD32";
-            ctx.strokeStyle = "#195c19ff";
+    const imageData = ctx.getImageData(0, 0, jsCanvasSzelesseg, jsCanvasMagassag);
+    const data = imageData.data;
+    for (let j = 0; j < jsCanvasMagassag; j++) {
+        for (let i = 0; i < jsCanvasSzelesseg; i++) {
         }
-        ctx.fill();
-        ctx.stroke();
     }
 }
 
@@ -254,5 +292,5 @@ function fo() {
     canvas.height = jsCanvasMagassag;
     kirajzol(pontok, indexek, ctx, eredeti);
 
-    console.log(performance.now()-eleje);
+    console.log(performance.now() - eleje);
 }

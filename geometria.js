@@ -37,7 +37,6 @@ function transpose(m) {
     return transposed;
 }
 
-
 // Gauss-Jordan Method
 // A mátrix és inverzének szorzata egyenlő az egységmátrixal
 // a mátrixunkat augmentáljuk egy egységmátrixal (a mátrixunkon végzett műveleteket elvégezzük az egységmátrixon is)

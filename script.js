@@ -27,12 +27,12 @@ if (filmNyilasSzelesseg / filmNyilasMagassag > jsCanvasSzelesseg / jsCanvasMagas
 
 // gyorsabban. kiszamoljuk a felso szélét ennek ellentettje az also
 // a jobb oldalit megkapjuk ha a felsőt megszorozzuk a képaránnyal
-const canvasFelsoHatar = ((filmNyilasMagassag * inchToMm / 2) / fokuszTavolsag * kozelVagasiSikZ) * yKitoltes;
-const canvasJobbSzel = canvasFelsoHatar * (filmNyilasSzelesseg / filmNyilasMagassag) * xKitoltes;
-const canvasAlsoHatar = -canvasFelsoHatar;
-const canvasBalSzel = -canvasJobbSzel;
-const canvasSzelesseg = canvasJobbSzel * 2;
-const canvasMagassag = canvasFelsoHatar * 2;
+const t = ((filmNyilasMagassag * inchToMm / 2) / fokuszTavolsag * kozelVagasiSikZ) * yKitoltes;
+const r = t * (filmNyilasSzelesseg / filmNyilasMagassag) * xKitoltes;
+const b = -t;
+const l = -r;
+const canvasSzelesseg = r * 2;
+const canvasMagassag = t * 2;
 
 function pontokKiszamolasa(perlinek, szorzo) {
     let pontok = [];
@@ -75,14 +75,14 @@ function kirajzol(pontok, indexek, ctx, eredeti) {
         [1, 0, 0, 0],
         [0, 1, 0, 0],
         [0, 0, 1, 0],
-        [-85, -140, 350, 1]
+        [-120, -200, 470, 1]
     ];
-    kameraMatrix = matrixSzorzas(kameraMatrix, forgatasXMatrix4x4(Math.PI / -6.2));
+    kameraMatrix = matrixSzorzas(kameraMatrix, forgatasXMatrix4x4(Math.PI / -5.2));
     for (let i = 0; i < pontok.length / 3; i++) {
         // 2Ds canvasra kell kirajzolnunk a 3Ds pontokat
-        //x jobbra balra
-        //z le fel
-        // y mélység
+        // x jobbra balra
+        // y le fel
+        // z mélység
         // A pont a kamera koordináta rendszerébe átírva
         let pontKamera = matrixSzorzas(
             [[pontok[i * 3], pontok[i * 3 + 1], pontok[i * 3 + 2], 1]],
@@ -93,11 +93,12 @@ function kirajzol(pontok, indexek, ctx, eredeti) {
         let z = pontKamera[0][2];
         // x / (-z) * kozelVagasiSikZ -al megkapjuk a screen coordinate system beli koordinátáit a pontnak [-1,1] -  középpontja a canvas közepe - x jobbra nő y felfele nő
         // eddig a kozelVagasiSikZ egynek felteteleztuk ha nem egy akkor be kell szorozni vele az arany P'.y/Zkozel=P.y/P.z, P'.y=P.y/P.z*Zkozel
-        // x / (-z) + 1)/2 ehhez hozzáadva egyet és osztva kettővel normalizáljuk a koordinátákat és megkapjuk a Normalized Device Coordinates (NDC)-t [0,1] - közzéppontja a kép bal alsó sarka - x jobbra nő y felfele nő
+        // RÉGI --- x / (-z) + 1)/2 ehhez hozzáadva egyet és osztva kettővel normalizáljuk a koordinátákat és megkapjuk a Normalized Device Coordinates (NDC)-t [0,1] - közzéppontja a kép bal alsó sarka - x jobbra nő y felfele nő
+        // A videókártyák NDC [-1;1] intervallum l < x < r levezethezjük hogy -1 < 2x / (r-l) - (r+l) / (r-l) < 1
         // Math.floor(((x / (-z) + 1)/2) * jsCanvasSzelesseg) megszorozzuk a kép (raster) szélességével/magasságával és kerekítjuk így megkapjuk a raster coordinate system beli koordinátáját - középpontja a kép bal felső sarka - x jobbra nő y lefele nő
         // A js canvasa máshogy működik y-nak elvileg Math.floor(((1-(y / (-z) + 1)/2)) * jsCanvasMagassag) - nek kéne lenni.
-        kivetitettPont.push(Math.floor((((x / (-z)) * kozelVagasiSikZ + canvasSzelesseg / 2) / canvasSzelesseg) * jsCanvasSzelesseg)); // x koordináta = x/(z+D) perspektívikus vetítes (perspective divide)
-        kivetitettPont.push(Math.floor((((y / (-z)) * kozelVagasiSikZ + canvasMagassag / 2) / canvasMagassag) * jsCanvasMagassag)); // y koordináta = y/(z+D) perspektívikus vetítes (perspective divide)
+        kivetitettPont.push(Math.floor(((2*((x / (-z)) * kozelVagasiSikZ) / (r - l) - (r + l) / (r - l))+1)/2 * jsCanvasSzelesseg)); // x koordináta = x/(z+D) perspektívikus vetítes (perspective divide)
+        kivetitettPont.push(Math.floor(((2*((y / (-z)) * kozelVagasiSikZ) / (t - b) - (t + b) / (t - b))+1)/2 * jsCanvasMagassag)); // y koordináta = y/(z+D) perspektívikus vetítes (perspective divide)
     }
 
     // kiszámoljuk a háromszög súlypontjának és a kamerának a távolságát
@@ -237,8 +238,10 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function fo() {
+    let eleje = performance.now()
+
     let seed = document.getElementById("seed").value;
-    const meret = 128;
+    const meret = 256;
     let perlinErtekek = perlin(1, meret, seed, 2, 9, 2, 2.2);
     let pontok = pontokKiszamolasa(perlinErtekek, 150);
     let eredeti = [...pontok];
@@ -248,6 +251,7 @@ function fo() {
     let ctx = canvas.getContext("2d");
     canvas.width = jsCanvasSzelesseg;
     canvas.height = jsCanvasMagassag;
-    skalazas(1.3, pontok);
     kirajzol(pontok, indexek, ctx, eredeti);
+
+    console.log(performance.now()-eleje);
 }

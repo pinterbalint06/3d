@@ -44,7 +44,7 @@ function transpose(m) {
 // Négyzetmátrixnak kell lennie és determinánsa nem 0
 // row-major
 function invertalas(matrix) {
-    m = JSON.parse(JSON.stringify(matrix));
+    let m = JSON.parse(JSON.stringify(matrix));
     if (m.length == m[0].length) {
         // inverz alapból egyenlő az egységmátrixal
         let inverze = [];

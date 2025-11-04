@@ -139,7 +139,7 @@ function pontKivetitese(pont) {
     return [
         (kameraHelybolNDCHelybeX(pont[0], pont[2]) + 1) / 2 * jsCanvasSzelesseg,
         (1 - kameraHelybolNDCHelybeY(pont[1], pont[2])) / 2 * jsCanvasMagassag,
-        -pont[2]
+        pont[2]
     ]
 }
 
@@ -164,9 +164,9 @@ function kirajzol(pontok, indexek, ctx) {
         [1, 0, 0, 0],
         [0, 1, 0, 0],
         [0, 0, 1, 0],
-        [-127, -100, -100, 1]
+        [-pontok[rndszm * 3], -pontok[rndszm * 3 + 1] + 15, -pontok[rndszm * 3 + 2], 1]
     ];
-    kameraMatrix = matrixSzorzas(kameraMatrix, forgatasXMatrix4x4(Math.PI / 8.2));
+    kameraMatrix = matrixSzorzas(kameraMatrix, forgatasYMatrix4x4(Math.PI * forgas));
     let zbuffer = [];
     zBufferInit(zbuffer);
     let kivetitettPontok;
@@ -178,49 +178,60 @@ function kirajzol(pontok, indexek, ctx) {
     let img = ctx.createImageData(jsCanvasSzelesseg, jsCanvasMagassag);
     let data = img.data;
     let baricentrikus;
+    let kameraKoordinatak;
     for (let i = 0; i < indexek.length; i += 3) {
         htminx = 2000;
         htminy = 2000;
         htmaxx = -2000;
         htmaxy = -2000;
         // A pontokat átírjuk mátrix szorzással a kamera koordináta rendszerébe majd kivetetítjük őket
-        kivetitettPontok = [
-            pontKivetitese(matrixSzorzas([[pontok[indexek[i] * 3], pontok[indexek[i] * 3 + 1], pontok[indexek[i] * 3 + 2], 1]], kameraMatrix)[0]),
-            pontKivetitese(matrixSzorzas([[pontok[indexek[i + 1] * 3], pontok[indexek[i + 1] * 3 + 1], pontok[indexek[i + 1] * 3 + 2], 1]], kameraMatrix)[0]),
-            pontKivetitese(matrixSzorzas([[pontok[indexek[i + 2] * 3], pontok[indexek[i + 2] * 3 + 1], pontok[indexek[i + 2] * 3 + 2], 1]], kameraMatrix)[0])
-        ]
-        // A háromszöget határolókeret pontjainak kiszámolása
-        for (let k = 0; k < kivetitettPontok.length; k++) {
-            if (kivetitettPontok[k][0] < htminx) {
-                htminx = kivetitettPontok[k][0];
+        kameraKoordinatak = [
+            matrixSzorzas([[pontok[indexek[i] * 3], pontok[indexek[i] * 3 + 1], pontok[indexek[i] * 3 + 2], 1]], kameraMatrix)[0],
+            matrixSzorzas([[pontok[indexek[i + 1] * 3], pontok[indexek[i + 1] * 3 + 1], pontok[indexek[i + 1] * 3 + 2], 1]], kameraMatrix)[0],
+            matrixSzorzas([[pontok[indexek[i + 2] * 3], pontok[indexek[i + 2] * 3 + 1], pontok[indexek[i + 2] * 3 + 2], 1]], kameraMatrix)[0]
+        ];
+        if (kozelVagasiSikZ < kameraKoordinatak[0][2] && kameraKoordinatak[0][2] < tavollVagasiSikZ &&
+            kozelVagasiSikZ < kameraKoordinatak[1][2] && kameraKoordinatak[1][2] < tavollVagasiSikZ &&
+            kozelVagasiSikZ < kameraKoordinatak[2][2] && kameraKoordinatak[2][2] < tavollVagasiSikZ
+        ) {
+            kivetitettPontok = [
+                pontKivetitese(kameraKoordinatak[0]),
+                pontKivetitese(kameraKoordinatak[1]),
+                pontKivetitese(kameraKoordinatak[2])
+            ]
+            // A háromszöget határolókeret pontjainak kiszámolása
+            for (let k = 0; k < kivetitettPontok.length; k++) {
+                if (kivetitettPontok[k][0] < htminx) {
+                    htminx = kivetitettPontok[k][0];
+                }
+                if (kivetitettPontok[k][0] > htmaxx) {
+                    htmaxx = kivetitettPontok[k][0];
+                }
+                if (kivetitettPontok[k][1] < htminy) {
+                    htminy = kivetitettPontok[k][1];
+                }
+                if (kivetitettPontok[k][1] > htmaxy) {
+                    htmaxy = kivetitettPontok[k][1];
+                }
             }
-            if (kivetitettPontok[k][0] > htmaxx) {
-                htmaxx = kivetitettPontok[k][0];
-            }
-            if (kivetitettPontok[k][1] < htminy) {
-                htminy = kivetitettPontok[k][1];
-            }
-            if (kivetitettPontok[k][1] > htmaxy) {
-                htmaxy = kivetitettPontok[k][1];
-            }
-        }
-        htminx = Math.max(0, Math.min(jsCanvasSzelesseg - 1, Math.floor(htminx)));
-        htminy = Math.max(0, Math.min(jsCanvasMagassag - 1, Math.floor(htminy)));
-        htmaxx = Math.max(0, Math.min(jsCanvasSzelesseg - 1, Math.ceil(htmaxx)));
-        htmaxy = Math.max(0, Math.min(jsCanvasMagassag - 1, Math.ceil(htmaxy)));
-        for (let y = htminy; y <= htmaxy; y++) {
-            for (let x = htminx; x <= htmaxx; x++) {
-                // A pixel közepe rajta van-e a kivetitett pontok altal meghatarozott haromszogon
-                baricentrikus = rajtaVanEAPixelAHaromszogon(kivetitettPontok[0], kivetitettPontok[1], kivetitettPontok[2], [x + 0.5, y + 0.5]);
-                if (baricentrikus !== null) {
-                    zMelyseg = 1 / (1 / kivetitettPontok[0][2] * baricentrikus[0] + 1 / kivetitettPontok[1][2] * baricentrikus[1] + 1 / kivetitettPontok[2][2] * baricentrikus[2]);
-                    if (zMelyseg < zbuffer[y * jsCanvasSzelesseg + x]) {
-                        zbuffer[y * jsCanvasSzelesseg + x] = zMelyseg;
-                        kepIndex = (y * jsCanvasSzelesseg + x) * 4;
-                        data[kepIndex] = 255 / kivetitettPontok[0][2] * baricentrikus[0] * zMelyseg;
-                        data[kepIndex + 1] = 255 / kivetitettPontok[1][2] * baricentrikus[1] * zMelyseg;
-                        data[kepIndex + 2] = 255 / kivetitettPontok[2][2] * baricentrikus[2] * zMelyseg;
-                        data[kepIndex + 3] = 255;
+            htminx = Math.max(0, Math.min(jsCanvasSzelesseg - 1, Math.floor(htminx)));
+            htminy = Math.max(0, Math.min(jsCanvasMagassag - 1, Math.floor(htminy)));
+            htmaxx = Math.max(0, Math.min(jsCanvasSzelesseg - 1, Math.ceil(htmaxx)));
+            htmaxy = Math.max(0, Math.min(jsCanvasMagassag - 1, Math.ceil(htmaxy)));
+            for (let y = htminy; y <= htmaxy; y++) {
+                for (let x = htminx; x <= htmaxx; x++) {
+                    // A pixel közepe rajta van-e a kivetitett pontok altal meghatarozott haromszogon
+                    baricentrikus = rajtaVanEAPixelAHaromszogon(kivetitettPontok[0], kivetitettPontok[1], kivetitettPontok[2], [x + 0.5, y + 0.5]);
+                    if (baricentrikus !== null) {
+                        zMelyseg = 1 / ((1 / kivetitettPontok[0][2]) * baricentrikus[0] + (1 / kivetitettPontok[1][2]) * baricentrikus[1] + (1 / kivetitettPontok[2][2]) * baricentrikus[2]);
+                        if (zMelyseg < zbuffer[y * jsCanvasSzelesseg + x]) {
+                            zbuffer[y * jsCanvasSzelesseg + x] = zMelyseg;
+                            kepIndex = (y * jsCanvasSzelesseg + x) * 4;
+                            data[kepIndex] = 255 / kivetitettPontok[0][2] * baricentrikus[0] * zMelyseg;
+                            data[kepIndex + 1] = 255 / kivetitettPontok[1][2] * baricentrikus[1] * zMelyseg;
+                            data[kepIndex + 2] = 255 / kivetitettPontok[2][2] * baricentrikus[2] * zMelyseg;
+                            data[kepIndex + 3] = 255;
+                        }
                     }
                 }
             }
@@ -236,6 +247,17 @@ function forgatasXMatrix4x4(szog) {
         [1, 0, 0, 0],
         [0, cosinus, sinus, 0],
         [0, -sinus, cosinus, 0],
+        [0, 0, 0, 1]
+    ];
+}
+
+function forgatasYMatrix4x4(szog) {
+    const cosinus = Math.cos(szog);
+    const sinus = Math.sin(szog);
+    return [
+        [cosinus, 0, -sinus, 0],
+        [0, 1, 0, 0],
+        [sinus, 0, cosinus, 0],
         [0, 0, 0, 1]
     ];
 }
@@ -257,9 +279,10 @@ function forgatasXtengelyen(szog, forgatando) {
 function forgatasYtengelyen(szog, forgatando) {
     const cosinus = Math.cos(szog);
     const sinus = Math.sin(szog);
-    const Ry = [[cosinus, 0, -sinus],
-    [0, 1, 0],
-    [sinus, 0, cosinus]
+    const Ry = [
+        [cosinus, 0, -sinus],
+        [0, 1, 0],
+        [sinus, 0, cosinus]
     ];
     forgatas(Ry, forgatando);
 }
@@ -308,15 +331,29 @@ document.addEventListener("DOMContentLoaded", function () {
     let sd = document.getElementById("seed");
     sd.value = Math.floor(Math.random() * 10000) + 1;
     sd.nextElementSibling.value = sd.value
+    rndszm = Math.round(Math.random() * meret * meret);
     fo();
 });
+
+let forgas = 0;
+let rndszm;
+const meret = 256;
+
+function forgasTovab() {
+    forgas += 0.1;
+    fo();
+}
+
+function ujhely() {
+    rndszm = Math.round(Math.random() * meret * meret);
+    fo();
+}
 
 function fo() {
     let eleje = performance.now()
 
     let seed = document.getElementById("seed").value;
-    const meret = 256;
-    let perlinErtekek = perlin(1, meret, seed , 2, 9, 2, 2.2);
+    let perlinErtekek = perlin(1, meret, seed, 2, 9, 2, 2.2);
     let pontok = pontokKiszamolasa(perlinErtekek, 150);
     let indexek = osszekotesekKiszamolasa(meret);
 

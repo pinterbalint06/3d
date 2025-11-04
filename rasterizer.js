@@ -55,12 +55,12 @@ function osszekotesekKiszamolasa(meret) {
             // A három indexnek a pontjait (pontok[index] pontot ad meg) összekötjük háromszögekre
             // A négyzet
             indexek.push(indexe + 1); // jobb felső pontja
-            indexek.push(indexe); // bal felső pontja
             indexek.push(indexe + meret); // bal alsó pontja
+            indexek.push(indexe); // bal felső pontja
 
             indexek.push(indexe + 1); // jobb felső pontja
-            indexek.push(indexe + meret); // bal alsó pontja
             indexek.push(indexe + meret + 1); // jobb alsó pontja
+            indexek.push(indexe + meret); // bal alsó pontja
             // a négyzetet felosztottuk két háromszögre
         }
     }
@@ -164,9 +164,9 @@ function kirajzol(pontok, indexek, ctx) {
         [1, 0, 0, 0],
         [0, 1, 0, 0],
         [0, 0, 1, 0],
-        [-120, -200, 470, 1]
+        [-127, -100, -100, 1]
     ];
-    kameraMatrix = matrixSzorzas(kameraMatrix, forgatasXMatrix4x4(Math.PI / -5.2));
+    kameraMatrix = matrixSzorzas(kameraMatrix, forgatasXMatrix4x4(Math.PI / 8.2));
     let zbuffer = [];
     zBufferInit(zbuffer);
     let kivetitettPontok;
@@ -316,7 +316,7 @@ function fo() {
 
     let seed = document.getElementById("seed").value;
     const meret = 256;
-    let perlinErtekek = perlin(1, meret, seed, 2, 9, 2, 2.2);
+    let perlinErtekek = perlin(1, meret, seed , 2, 9, 2, 2.2);
     let pontok = pontokKiszamolasa(perlinErtekek, 150);
     let indexek = osszekotesekKiszamolasa(meret);
 

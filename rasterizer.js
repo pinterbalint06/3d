@@ -34,33 +34,31 @@ const l = -r;
 const canvasSzelesseg = r * 2;
 const canvasMagassag = t * 2;
 
-function pontokKiszamolasa(perlinek, szorzo) {
-    let pontok = [];
+function pontokKiszamolasa(pontok, perlinek, szorzo) {
     for (let y = 0; y < perlinek.length; y++) {
         for (let x = 0; x < perlinek[y].length; x++) {
-            pontok.push(x); // x koordináta
-            pontok.push(perlinek[y][x] * szorzo); // y koordináta
-            pontok.push(-y); // z koordináta
+            pontok[(y * perlinek.length + x)*3] = x; // x koordináta
+            pontok[(y * perlinek.length + x)*3 + 1] = perlinek[y][x] * szorzo; // y koordináta
+            pontok[(y * perlinek.length + x)*3 + 2] = -y; // z koordináta
         }
     }
     return pontok;
 }
 
-function osszekotesekKiszamolasa(meret) {
+function osszekotesekKiszamolasa(indexek, meret) {
     let indexe;
-    let indexek = [];
     for (let sor = 0; sor < meret - 1; sor++) {
         for (let oszlop = 0; oszlop < meret - 1; oszlop++) {
             indexe = sor * meret + oszlop;
             // A három indexnek a pontjait (pontok[index] pontot ad meg) összekötjük háromszögekre
             // A négyzet
-            indexek.push(indexe + 1); // jobb felső pontja
-            indexek.push(indexe + meret); // bal alsó pontja
-            indexek.push(indexe); // bal felső pontja
+            indexek[indexe*6] = indexe + 1; // jobb felső pontja
+            indexek[indexe*6 + 1] = indexe + meret; // bal alsó pontja
+            indexek[indexe*6 + 2] = indexe; // bal felső pontja
 
-            indexek.push(indexe + 1); // jobb felső pontja
-            indexek.push(indexe + meret + 1); // jobb alsó pontja
-            indexek.push(indexe + meret); // bal alsó pontja
+            indexek[indexe*6 + 3] = indexe + 1; // jobb felső pontja
+            indexek[indexe*6 + 4] = indexe + meret + 1; // jobb alsó pontja
+            indexek[indexe*6 + 5] = indexe + meret; // bal alsó pontja
             // a négyzetet felosztottuk két háromszögre
         }
     }
@@ -157,7 +155,7 @@ function kameraHelybolNDCHelybeY(y, z) {
     return (2 * ((y / (-z)) * kozelVagasiSikZ) / (t - b) - (t + b) / (t - b));
 }
 
-function kirajzol(pontok, indexek, ctx, forgasx, forgasy) {
+function kirajzol(pontok, indexek, ctx, forgasx, forgasy, antialias) {
     ctx.clearRect(0, 0, jsCanvasSzelesseg, jsCanvasMagassag);
     // kamera helye
     let kameraMatrix = [
@@ -172,8 +170,8 @@ function kirajzol(pontok, indexek, ctx, forgasx, forgasy) {
     if (forgasx != 0) {
         kameraMatrix = matrixSzorzas(kameraMatrix, forgatasXMatrix4x4(Math.PI * forgasx));
     }
-    let zbuffer = [];
-    zBufferInit(zbuffer);
+    let zbuffer = new Float32Array(jsCanvasMagassag * jsCanvasSzelesseg);
+    zbuffer.fill(tavollVagasiSikZ);
     let kivetitettPontok;
     // a háromszög határolókeretje
     let htminx, htminy, htmaxx, htmaxy;
@@ -366,14 +364,16 @@ function fo() {
 
     let seed = document.getElementById("seed").value;
     let perlinErtekek = perlin(1, meret, seed, 2, 9, 2, 2.2);
-    let pontok = pontokKiszamolasa(perlinErtekek, 150);
-    let indexek = osszekotesekKiszamolasa(meret);
+    let pontok = new Float32Array(meret * meret * 3);
+    pontokKiszamolasa(pontok, perlinErtekek, 150);
+    let indexek = new Float32Array((meret-1)*(meret-1)*6);
+    osszekotesekKiszamolasa(indexek, meret)
 
     let canvas = document.getElementById("canvas");
     let ctx = canvas.getContext("2d");
     canvas.width = jsCanvasSzelesseg;
     canvas.height = jsCanvasMagassag;
-    kirajzol(pontok, indexek, ctx, xforgas, yforgas);
+    kirajzol(pontok, indexek, ctx, xforgas, yforgas, 1);
 
     console.log(performance.now() - eleje);
 }

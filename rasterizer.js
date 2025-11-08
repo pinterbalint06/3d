@@ -37,9 +37,9 @@ const canvasMagassag = t * 2;
 function pontokKiszamolasa(pontok, perlinek, szorzo) {
     for (let y = 0; y < perlinek.length; y++) {
         for (let x = 0; x < perlinek[y].length; x++) {
-            pontok[(y * perlinek.length + x)*3] = x; // x koordináta
-            pontok[(y * perlinek.length + x)*3 + 1] = perlinek[y][x] * szorzo; // y koordináta
-            pontok[(y * perlinek.length + x)*3 + 2] = -y; // z koordináta
+            pontok[(y * perlinek.length + x) * 3] = x; // x koordináta
+            pontok[(y * perlinek.length + x) * 3 + 1] = perlinek[y][x] * szorzo; // y koordináta
+            pontok[(y * perlinek.length + x) * 3 + 2] = -y; // z koordináta
         }
     }
     return pontok;
@@ -52,13 +52,13 @@ function osszekotesekKiszamolasa(indexek, meret) {
             indexe = sor * meret + oszlop;
             // A három indexnek a pontjait (pontok[index] pontot ad meg) összekötjük háromszögekre
             // A négyzet
-            indexek[indexe*6] = indexe + 1; // jobb felső pontja
-            indexek[indexe*6 + 1] = indexe + meret; // bal alsó pontja
-            indexek[indexe*6 + 2] = indexe; // bal felső pontja
+            indexek[indexe * 6] = indexe + 1; // jobb felső pontja
+            indexek[indexe * 6 + 1] = indexe + meret; // bal alsó pontja
+            indexek[indexe * 6 + 2] = indexe; // bal felső pontja
 
-            indexek[indexe*6 + 3] = indexe + 1; // jobb felső pontja
-            indexek[indexe*6 + 4] = indexe + meret + 1; // jobb alsó pontja
-            indexek[indexe*6 + 5] = indexe + meret; // bal alsó pontja
+            indexek[indexe * 6 + 3] = indexe + 1; // jobb felső pontja
+            indexek[indexe * 6 + 4] = indexe + meret + 1; // jobb alsó pontja
+            indexek[indexe * 6 + 5] = indexe + meret; // bal alsó pontja
             // a négyzetet felosztottuk két háromszögre
         }
     }
@@ -155,7 +155,10 @@ function kameraHelybolNDCHelybeY(y, z) {
     return (2 * ((y / (-z)) * kozelVagasiSikZ) / (t - b) - (t + b) / (t - b));
 }
 
-function kirajzol(canvasId, antialias) {
+function kirajzol(canvasId, antialias = 1) {
+    if (!negyzetSzamE(antialias)) {
+        throw "Nem megfelelő élsimítás";
+    }
     let ctx = document.getElementById(canvasId).getContext("2d");
     ctx.clearRect(0, 0, jsCanvasSzelesseg, jsCanvasMagassag);
     // kamera helye
@@ -171,18 +174,20 @@ function kirajzol(canvasId, antialias) {
     if (xforgas != 0) {
         kameraMatrix = matrixSzorzas(kameraMatrix, forgatasXMatrix4x4(Math.PI * xforgas));
     }
-    let zbuffer = new Float32Array(jsCanvasMagassag * jsCanvasSzelesseg);
+    // jsCanvasMagassag * gyokElsmitas * jsCanvasSzelesseg * gyokElsimitas = jsCanvasMagassag * jsCanvasSzelesseg * antialias
+    let zbuffer = new Float32Array(jsCanvasMagassag * jsCanvasSzelesseg * antialias);
     zbuffer.fill(tavollVagasiSikZ);
     let kivetitettPontok;
     // a háromszög határolókeretje
     let htminx, htminy, htmaxx, htmaxy;
     let zMelyseg;
     let kepIndex;
-
-    let img = ctx.createImageData(jsCanvasSzelesseg, jsCanvasMagassag);
-    let data = img.data;
-    let baricentrikus;
+    // jsCanvasMagassag * gyokElsmitas * jsCanvasSzelesseg * gyokElsimitas = jsCanvasMagassag * jsCanvasSzelesseg * antialias
+    let image = new Float32Array(jsCanvasMagassag * jsCanvasSzelesseg * antialias * 3);
+    let baricentrikus, bufferIndex;
     let kameraKoordinatak;
+    let gyokElsimitas = Math.sqrt(antialias);
+    let gyokElsimitasReciprok = 1 / Math.sqrt(antialias);
     for (let i = 0; i < indexek.length; i += 3) {
         htminx = 2000;
         htminy = 2000;
@@ -224,25 +229,65 @@ function kirajzol(canvasId, antialias) {
             htmaxy = Math.max(0, Math.min(jsCanvasMagassag - 1, Math.ceil(htmaxy)));
             for (let y = htminy; y <= htmaxy; y++) {
                 for (let x = htminx; x <= htmaxx; x++) {
-                    // A pixel közepe rajta van-e a kivetitett pontok altal meghatarozott haromszogon
-                    baricentrikus = rajtaVanEAPixelAHaromszogon(kivetitettPontok[0], kivetitettPontok[1], kivetitettPontok[2], [x + 0.5, y + 0.5]);
-                    if (baricentrikus !== null) {
-                        zMelyseg = 1 / ((1 / kivetitettPontok[0][2]) * baricentrikus[0] + (1 / kivetitettPontok[1][2]) * baricentrikus[1] + (1 / kivetitettPontok[2][2]) * baricentrikus[2]);
-                        if (zMelyseg < zbuffer[y * jsCanvasSzelesseg + x]) {
-                            zbuffer[y * jsCanvasSzelesseg + x] = zMelyseg;
-                            kepIndex = (y * jsCanvasSzelesseg + x) * 4;
-                            data[kepIndex] = 255 / kivetitettPontok[0][2] * baricentrikus[0] * zMelyseg;
-                            data[kepIndex + 1] = 255 / kivetitettPontok[1][2] * baricentrikus[1] * zMelyseg;
-                            data[kepIndex + 2] = 255 / kivetitettPontok[2][2] * baricentrikus[2] * zMelyseg;
-                            data[kepIndex + 3] = 255;
+                    for (let ya = 0; ya < gyokElsimitas; ya++) {
+                        for (let xa = 0; xa < gyokElsimitas; xa++) {
+                            // A pixel közepe rajta van-e a kivetitett pontok altal meghatarozott haromszogon
+                            // kis pixelek közepének kiszámolása:
+                            // x a pixelünk kezdete
+                            // legyen egy pixel egy egység hosszú ezt felosztjuk gyokElsimitas kis pixelre egy kis pixel hossza 1/gyokElsimitas tehat gyokelSimitasReciprok
+                            // a kis pixel közepe kell úgy hogy kell a kis pixel hosszának fele ami = (1/gyokElsimitas)/2 = gyokElsimitasReciprok*0.5
+                            // ehhez még hozzá kell adni azt hogy hanyadik kis pixelben vagyunk ez xa-szor a kis pixel hossza tehát xa*gyokElsimitasReciprok
+                            // a teljes koordináta x+gyokElsimitasReciprok*0.5+xa*gyokElsimitasReciprok. kiemelve gyokElsimitasReciprok-ot. x+(xa + 0.5) * gyokElsimitasReciprok
+                            baricentrikus = rajtaVanEAPixelAHaromszogon(kivetitettPontok[0], kivetitettPontok[1], kivetitettPontok[2], [x + (xa + 0.5) * gyokElsimitasReciprok, y + (ya + 0.5) * gyokElsimitasReciprok]);
+                            if (baricentrikus !== null) {
+                                zMelyseg = 1 / ((1 / kivetitettPontok[0][2]) * baricentrikus[0] + (1 / kivetitettPontok[1][2]) * baricentrikus[1] + (1 / kivetitettPontok[2][2]) * baricentrikus[2]);
+                                bufferIndex = (y * jsCanvasSzelesseg + x) * antialias + ya * gyokElsimitas + xa;
+                                if (zMelyseg < zbuffer[bufferIndex]) {
+                                    zbuffer[(y * jsCanvasSzelesseg + x) * antialias + ya * gyokElsimitas + xa] = zMelyseg;
+                                    kepIndex = bufferIndex * 3;
+                                    image[kepIndex] = 255 / kivetitettPontok[0][2] * baricentrikus[0] * zMelyseg;
+                                    image[kepIndex + 1] = 255 / kivetitettPontok[1][2] * baricentrikus[1] * zMelyseg;
+                                    image[kepIndex + 2] = 255 / kivetitettPontok[2][2] * baricentrikus[2] * zMelyseg;
+                                }
+                            }
                         }
                     }
                 }
             }
         }
     }
+    let img = ctx.createImageData(jsCanvasSzelesseg, jsCanvasMagassag);
+    let data = img.data;
+    let r, g, b;
+    let altalanosIndex, imageIndex, dataIndex, subImageIndex;
+    for (let y = 0; y < jsCanvasMagassag; y++) {
+        for (let x = 0; x < jsCanvasSzelesseg; x++) {
+            altalanosIndex = (y * jsCanvasSzelesseg + x);
+            imageIndex = altalanosIndex * antialias;
+            dataIndex = altalanosIndex * 4;
+            r = 0;
+            g = 0;
+            b = 0;
+            for (let k = 0; k < antialias; k++) {
+                subImageIndex = (imageIndex + k) * 3;
+                r += image[subImageIndex];
+                g += image[subImageIndex + 1];
+                b += image[subImageIndex + 2];
+            }
+            data[dataIndex] = r / antialias;
+            data[dataIndex + 1] = g / antialias;
+            data[dataIndex + 2] = b / antialias;
+            data[dataIndex + 3] = 255;
+        }
+    }
     ctx.putImageData(img, 0, 0);
 }
+
+function negyzetSzamE(x) {
+    let gyok = Math.sqrt(x);
+    return gyok == parseInt(gyok);
+}
+
 
 function forgatasXMatrix4x4(szog) {
     const cosinus = Math.cos(szog);
@@ -338,9 +383,8 @@ document.addEventListener("DOMContentLoaded", function () {
     seed = Math.floor(Math.random() * 10000) + 1;
     sd.value = seed;
     sd.nextElementSibling.value = sd.value
-    ujTerkep();
     ujhely();
-    rendereles();
+    ujTerkep();
 });
 
 let yforgas = 0;
@@ -361,9 +405,9 @@ function ujTerkep() {
     perlinErtekek = perlin(1, meret, seed, 2, 9, 2, 2.2);
     pontok = new Float32Array(meret * meret * 3);
     pontokKiszamolasa(pontok, perlinErtekek, 150);
-    indexek = new Float32Array((meret-1)*(meret-1)*6);
+    indexek = new Float32Array((meret - 1) * (meret - 1) * 6);
     osszekotesekKiszamolasa(indexek, meret)
-    console.log("Új térkép idő:",performance.now() - eleje);
+    console.log("Új térkép idő:", performance.now() - eleje);
     rendereles();
 }
 
@@ -379,6 +423,8 @@ function irany(x, y) {
 
 function rendereles() {
     let eleje = performance.now()
-    kirajzol("canvas", 1);
-    console.log("Renderelés idő:",performance.now() - eleje);
+    let elsimitas = parseInt(document.getElementById("antialias").value);
+    console.log(elsimitas);
+    kirajzol("canvas", elsimitas);
+    console.log("Renderelés idő:", performance.now() - eleje);
 }

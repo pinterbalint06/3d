@@ -12,6 +12,7 @@
 </head>
 
 <body>
+    <p>Hely:</p>
     <label for="seed">Seed:</label>
     <input type="range" id="seed" min="1" max="1000000000"
         oninput="this.nextElementSibling.value = this.value; ujhely();ujTerkep();">
@@ -24,6 +25,18 @@
     <button type="button" onclick="irany(0, 1);">Hátra</button>
     <button type="button" onclick="irany(0, 0.5);">Jobbra</button>
     <button type="button" onclick="irany(0, -0.5);">Balra</button>
+    <br>
+    <p>Renderelés:</p>
+    <label for="antialias">Élsimítás:</label>
+    <select name="antialias" id="antialias" onchange="rendereles();">
+        <option value="1" selected>1x</option>
+        <option value="4">4x</option>
+        <option value="9">9x</option>
+        <option value="16">16x</option>
+        <option value="25">25x</option>
+        <option value="36">36x</option>
+        <option value="100">100x</option>
+    </select>
     <br>
     <canvas id="canvas"></canvas>
 </body>

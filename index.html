@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="styles.css">
     <script src="../utils/random.js"></script>
     <script src="../utils/perlin.js"></script>
     <script src="geometria.js"></script>
@@ -12,33 +13,39 @@
 </head>
 
 <body>
-    <p>Hely:</p>
-    <label for="seed">Seed:</label>
-    <input type="range" id="seed" min="1" max="1000000000"
-        oninput="this.nextElementSibling.value = this.value; ujhely();ujTerkep();">
-    <output>40</output>
-    <button type="button" onclick="ujhely();rendereles();">Új hely</button>
-    <button type="button" onclick="forgasTovab();">Forgás</button>
-    <button type="button" onclick="irany(0.5, 0);">Le</button>
-    <button type="button" onclick="irany(-0.5, 0);">Fel</button>
-    <button type="button" onclick="irany(0, 0);">Előre</button>
-    <button type="button" onclick="irany(0, 1);">Hátra</button>
-    <button type="button" onclick="irany(0, 0.5);">Jobbra</button>
-    <button type="button" onclick="irany(0, -0.5);">Balra</button>
-    <br>
-    <p>Renderelés:</p>
-    <label for="antialias">Élsimítás:</label>
-    <select name="antialias" id="antialias" onchange="rendereles();">
-        <option value="1" selected>1x</option>
-        <option value="4">4x</option>
-        <option value="9">9x</option>
-        <option value="16">16x</option>
-        <option value="25">25x</option>
-        <option value="36">36x</option>
-        <option value="100">100x</option>
-    </select>
-    <br>
-    <canvas id="canvas"></canvas>
+    <div class="row w100 around">
+        <div class="col gap">
+            <p>Hely:</p>
+            <label for="seed">Seed:</label>
+            <input type="range" id="seed" min="1" max="1000000000"
+                oninput="this.nextElementSibling.value = this.value; ujhely();ujTerkep();">
+            <output>40</output>
+            <button type="button" onclick="ujhely();rendereles();">Új hely</button>
+            <button type="button" onclick="forgasTovab();">Forgás</button>
+            <button type="button" onclick="irany(0.5, 0);">Le</button>
+            <button type="button" onclick="irany(-0.5, 0);">Fel</button>
+            <button type="button" onclick="irany(0, 0);">Előre</button>
+            <button type="button" onclick="irany(0, 1);">Hátra</button>
+            <button type="button" onclick="irany(0, 0.5);">Jobbra</button>
+            <button type="button" onclick="irany(0, -0.5);">Balra</button>
+            <br>
+            <p>Renderelés:</p>
+            <label for="antialias">Élsimítás:</label>
+            <select name="antialias" id="antialias" onchange="rendereles();">
+                <option value="1" selected>1x</option>
+                <option value="4">4x</option>
+                <option value="9">9x</option>
+                <option value="16">16x</option>
+                <option value="25">25x</option>
+                <option value="36">36x</option>
+                <option value="100">100x</option>
+            </select>
+            <br>
+        </div>
+        <div class="col">
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
 </body>
 
 </html>

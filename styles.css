@@ -1,0 +1,21 @@
+.row {
+    display: flex;
+    flex-direction: row;
+}
+
+.col {
+    display: flex;
+    flex-direction: column;
+}
+
+.w100 {
+    width: 100%;
+}
+
+.around {
+    justify-content: space-around;
+}
+
+.gap {
+    gap: 0.5rem;
+}

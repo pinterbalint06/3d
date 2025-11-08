@@ -156,6 +156,11 @@ function kameraHelybolNDCHelybeY(y, z) {
 }
 
 function kirajzol(canvasId, antialias = 1) {
+    console.log("Renderelés ", antialias, "x élsimítással");
+    let eleje = performance.now()
+    let pontKivetitesIdo = 0;
+    let pixelTesztIdo = 0;
+    let ido = 0;
     if (!negyzetSzamE(antialias)) {
         throw "Nem megfelelő élsimítás";
     }
@@ -174,6 +179,7 @@ function kirajzol(canvasId, antialias = 1) {
     if (xforgas != 0) {
         kameraMatrix = matrixSzorzas(kameraMatrix, forgatasXMatrix4x4(Math.PI * xforgas));
     }
+    ido = performance.now();
     // jsCanvasMagassag * gyokElsmitas * jsCanvasSzelesseg * gyokElsimitas = jsCanvasMagassag * jsCanvasSzelesseg * antialias
     let zbuffer = new Float32Array(jsCanvasMagassag * jsCanvasSzelesseg * antialias);
     zbuffer.fill(tavollVagasiSikZ);
@@ -188,26 +194,32 @@ function kirajzol(canvasId, antialias = 1) {
     let kameraKoordinatak;
     let gyokElsimitas = Math.sqrt(antialias);
     let gyokElsimitasReciprok = 1 / Math.sqrt(antialias);
+    console.log("Bufferek létrehozása, előszámítások:", performance.now() - ido, "ms");
     for (let i = 0; i < indexek.length; i += 3) {
         htminx = 2000;
         htminy = 2000;
         htmaxx = -2000;
         htmaxy = -2000;
         // A pontokat átírjuk mátrix szorzással a kamera koordináta rendszerébe majd kivetetítjük őket
+        ido = performance.now();
         kameraKoordinatak = [
             matrixSzorzas([[pontok[indexek[i] * 3], pontok[indexek[i] * 3 + 1], pontok[indexek[i] * 3 + 2], 1]], kameraMatrix)[0],
             matrixSzorzas([[pontok[indexek[i + 1] * 3], pontok[indexek[i + 1] * 3 + 1], pontok[indexek[i + 1] * 3 + 2], 1]], kameraMatrix)[0],
             matrixSzorzas([[pontok[indexek[i + 2] * 3], pontok[indexek[i + 2] * 3 + 1], pontok[indexek[i + 2] * 3 + 2], 1]], kameraMatrix)[0]
         ];
+        pontKivetitesIdo += performance.now() - ido;
         if (kozelVagasiSikZ < kameraKoordinatak[0][2] && kameraKoordinatak[0][2] < tavollVagasiSikZ &&
             kozelVagasiSikZ < kameraKoordinatak[1][2] && kameraKoordinatak[1][2] < tavollVagasiSikZ &&
             kozelVagasiSikZ < kameraKoordinatak[2][2] && kameraKoordinatak[2][2] < tavollVagasiSikZ
         ) {
+            ido = performance.now();
             kivetitettPontok = [
                 pontKivetitese(kameraKoordinatak[0]),
                 pontKivetitese(kameraKoordinatak[1]),
                 pontKivetitese(kameraKoordinatak[2])
             ]
+            pontKivetitesIdo += performance.now() - ido;
+            ido = performance.now();
             // A háromszöget határolókeret pontjainak kiszámolása
             for (let k = 0; k < kivetitettPontok.length; k++) {
                 if (kivetitettPontok[k][0] < htminx) {
@@ -254,8 +266,12 @@ function kirajzol(canvasId, antialias = 1) {
                     }
                 }
             }
+            pixelTesztIdo += performance.now() - ido;
         }
     }
+    console.log("Pontok kivetítése: ", pontKivetitesIdo, "ms");
+    console.log("Pixel teszt idő: ", pixelTesztIdo, "ms");
+    ido = performance.now();
     let img = ctx.createImageData(jsCanvasSzelesseg, jsCanvasMagassag);
     let data = img.data;
     let r, g, b;
@@ -281,6 +297,9 @@ function kirajzol(canvasId, antialias = 1) {
         }
     }
     ctx.putImageData(img, 0, 0);
+    console.log("Kép létrhozása:", performance.now() - ido, "ms");
+    console.log("Teljes renderelés idő:", performance.now() - eleje, "ms");
+    console.log("------------------------------");
 }
 
 function negyzetSzamE(x) {
@@ -390,7 +409,7 @@ document.addEventListener("DOMContentLoaded", function () {
 let yforgas = 0;
 let xforgas = 0;
 let rndszm;
-const meret = 256;
+const meret = 512;
 let seed;
 // listak
 let perlinErtekek, pontok, indexek;
@@ -402,7 +421,7 @@ function forgasTovab() {
 
 function ujTerkep() {
     let eleje = performance.now()
-    perlinErtekek = perlin(1, meret, seed, 2, 9, 2, 2.2);
+    perlinErtekek = perlin(1, meret, seed, 2, 9, 2, 2, 0, 1.5);
     pontok = new Float32Array(meret * meret * 3);
     pontokKiszamolasa(pontok, perlinErtekek, 150);
     indexek = new Float32Array((meret - 1) * (meret - 1) * 6);
@@ -422,9 +441,6 @@ function irany(x, y) {
 }
 
 function rendereles() {
-    let eleje = performance.now()
     let elsimitas = parseInt(document.getElementById("antialias").value);
-    console.log(elsimitas);
     kirajzol("canvas", elsimitas);
-    console.log("Renderelés idő:", performance.now() - eleje);
 }

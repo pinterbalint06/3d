@@ -1,0 +1,157 @@
+\documentclass[fontsize,12pt]{article}
+\usepackage{mathtools,amssymb, amsthm}
+\usepackage[margin=1in]{geometry}
+\title{Perspective Projection Matrix}
+\author{Pintér Bálint}
+\begin{document}
+\maketitle
+
+\newpage
+
+\section{Perspective Projection Matrix}
+Mátrix szorzással átkonvertálja a kamera térből clipping space-be a
+koordinátákat. Majd a homogén koordinátákból Descartes-koordinátákká való
+átalakításnál történik a perspective divide és ezzel együtt a koordináták
+NDC-térbe kerülése. \textbf{N}ormalized \textbf{D}evice \textbf{C}oordinate
+térben az origó a kép közepén van, és a koordináták:
+\begin{align*}
+    x,y & \subset[-1;1] \\
+    z   & \subset[0;1]
+\end{align*}
+\\ Kezdjük az egységmátrixszal:
+\[
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & 1
+    \end{bmatrix}
+    \qquad
+    \begin{bmatrix}
+        m_{00} & m_{01} & m_{02} & m_{03} \\
+        m_{10} & m_{11} & m_{12} & m_{13} \\
+        m_{20} & m_{21} & m_{22} & m_{23} \\
+        m_{30} & m_{31} & m_{32} & m_{33} \\
+    \end{bmatrix}
+\]
+Mivel a perspective divide-ot a homogén koordinátákból a
+Descartes-koordinátákká való átalakításánál végezzük, ezért az $\omega$-nak
+$-z$-vel kell egyenlőnek lennie:
+\[
+    \begin{bmatrix}
+        1 & 0 & 0 & 0  \\
+        0 & 1 & 0 & 0  \\
+        0 & 0 & 1 & -1 \\
+        0 & 0 & 0 & 0
+    \end{bmatrix}
+\]
+A $z$ koordinátáinkat normalizálni kell a $[0;1]$ intervallumra a
+következőképpen: \\ Ha $z=-n$, akkor $z'=0$. \\ Ha $z=-f$, akkor $z'=1$.\\ A
+$z'$ kiszámolása:
+\[z'= \frac{x\times m_{02} + y\times m_{12} + z\times m_{22} + \omega\times m_{32}}{-z}\]
+Tehát $z=-n$ esetén:
+\begin{align*}
+    0                         & = \frac{-n \times m_{22} + m_{32}}{n} \quad\text{/ }\times n \\
+    -n \times m_{22} + m_{32} & = 0                                                          \\
+\end{align*}
+$z=-f$ esetén:
+\begin{align*}
+    1                         & = \frac{-f \times m_{22} + m_{32}}{f} \quad\text{/ }\times f \\
+    -f \times m_{22} + m_{32} & = f
+\end{align*}
+Ezekből egy egyenletrendszert kapunk:
+\[
+    \begin{cases}
+        \begin{aligned}
+            -n \times m_{22} + m_{32} & = 0 \\
+            -f \times m_{22} + m_{32} & = f
+        \end{aligned}
+    \end{cases}
+\]
+Az első egyenletből $m_{32}$-t kifejezve:
+\begin{align*}
+    -n \times m_{22} + m_{32} & = 0 \quad\text{/ }+(n \times m_{22}) \\
+    m_{32}                    & = n \times m_{22}
+\end{align*}
+\[
+\]
+Ezt behelyettesítve a második egyenletbe:
+\begin{alignat*}{2}
+    -f \times m_{22} + m_{32}          & = f             & \quad & \text{/ } m_{32}                     = n \times m_{22} \\
+    -f \times m_{22} + n \times m_{22} & = f             & \quad & \text{/ Kiemelve } m_{22}\text{-t}                     \\
+    m_{22}\times (n-f)                 & = f             & \quad & \text{/ }\div(n-f)                                     \\
+    m_{22}                             & = \frac{f}{n-f} &       &
+\end{alignat*}
+Az első egyenletből kifejezett $m_{32}$-be helyettesítsük be $m_{22}$-t:
+\begin{alignat*}{2}
+    m_{32} & = n \times m_{22} & \quad & \text{/ } m_{22}=\frac{f}{n-f} \\
+    m_{32} & = n \frac{f}{n-f} & \quad &                                \\
+    m_{32} & = \frac{nf}{n-f}
+\end{alignat*}
+Így a mátrixunk:
+\[
+    \begin{bmatrix}
+        1 & 0 & 0              & 0  \\
+        0 & 1 & 0              & 0  \\
+        0 & 0 & \frac{f}{n-f}  & -1 \\
+        0 & 0 & \frac{nf}{n-f} & 0
+    \end{bmatrix}
+\]
+Az x és y koordinátákat normalizálni kell $[-1;1]$ intervallumra.
+\begin{itemize}
+    \item l \text{-} a bal széle a vászonnak
+    \item r \text{-} a jobb széle a vászonnak
+\end{itemize}
+Az $x'$ eredetileg a $[l;r]$ intervallumban van, és ezt kell standardizálni a $[-1;1]$ intervallumra.
+\begin{align*}
+    l  & \leq x' \leq r                                                           & \text{/ } & -l               \\
+    0  & \leq x'-l \leq r-l                                                       & \text{/ } & \div (r-l)       \\
+    0  & \leq \frac{x'-l}{r-l} \leq 1                                             & \text{/ } & \times 2         \\
+    0  & \leq 2\frac{x'-l}{r-l} \leq 2                                            & \text{/ } & -1               \\
+    -1 & \leq 2\frac{x'-l}{r-l}-1 \leq 1                                          &           &                  \\
+    -1 & \leq \frac{2x'-2l}{r-l}-\frac{r-l}{r-l} \leq 1                           &           &                  \\
+    -1 & \leq \frac{2x'-2l-(r-l)}{r-l} \leq 1                                     &           &                  \\
+    -1 & \leq \frac{2x'-l-r}{r-l} \leq 1                                          &           &                  \\
+    -1 & \leq \frac{2x'-(r+l)}{r-l} \leq 1                                        &           &                  \\
+    -1 & \leq x'\frac{2}{r-l}-\frac{r+l}{r-l} \leq 1                              & \text{/ } & x'=\frac{xn}{-z} \\
+    -1 & \leq \frac{xn}{-z}\times\frac{2}{r-l}-\frac{r+l}{r-l} \leq 1             &           &                  \\
+    -1 & \leq \frac{x\times\frac{2n}{r-l}}{-z}-\frac{r+l}{r-l} \leq 1             &           &                  \\
+    -1 & \leq \frac{x\times\frac{2n}{r-l}}{-z}+\frac{z\frac{r+l}{r-l}}{-z} \leq 1 &           &                  \\
+    -1 & \leq \frac{x\times\frac{2n}{r-l}+z\times\frac{r+l}{r-l}}{-z} \leq 1      &           &                  \\
+\end{align*}
+A $-z$-val való osztás a perspective divide, így a clip space-beli koordináta a számláló.
+\[
+    x\times\frac{2n}{r-l}+z\times\frac{r+l}{r-l}
+\]
+A mátrixszorzásnál:
+\[
+    x'= x\times m_{00}+y\times m_{10}+z\times m_{20}+\omega\times m_{30}
+\]
+Így az előző két egyenletből látható:
+\begin{align*}
+    m_{00}=\frac{2n}{r-l}  \\
+    m_{20}=\frac{r+l}{r-l} \\
+\end{align*}
+Az y koordináta határai:
+\[
+    b \leq y' \leq t
+\]
+\begin{itemize}
+    \item b \text{-} az alja a vászonnak
+    \item t \text{-} a teteje a vászonnak
+\end{itemize}
+Az $y'$ együtthatóinak levezetése megegyezik az $x'$ koordináta együtthatóinak levezetésével így:
+\begin{align*}
+    m_{11}=\frac{2n}{t-b}  \\
+    m_{21}=\frac{t+b}{t-b} \\
+\end{align*}
+Így a végleges perspective projection matrix-unk:
+\[
+    \begin{bmatrix}
+        \frac{2n}{r-l}  & 0               & 0              & 0  \\
+        0               & \frac{2n}{t-b}  & 0              & 0  \\
+        \frac{r+l}{r-l} & \frac{t+b}{t-b} & \frac{f}{n-f}  & -1 \\
+        0               & 0               & \frac{nf}{n-f} & 0
+    \end{bmatrix}
+\]
+\end{document}

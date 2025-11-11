@@ -137,7 +137,7 @@ function vektorHossza(vektor) {
 /**
  * Normalizálja a vektort
  * 
- * @param {numnber[]} vektor - A vektor [x, y, z] formában
+ * @param {number[]} vektor - A vektor [x, y, z] formában
  * @returns A normalizált vektor
  */
 function vektorNormalizal(vektor) {

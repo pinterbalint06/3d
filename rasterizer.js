@@ -1,38 +1,46 @@
 // kamera tulajdonsagai
 const fokuszTavolsag = 12.7; // mm focalLength
-const filmNyilasSzelesseg = 1;
-const filmNyilasMagassag = 1;
-const jsCanvasSzelesseg = 1200;
-const jsCanvasMagassag = 1200;
-const inchToMm = 25.4;
-const kozelVagasiSikZ = 0.1;
-const tavollVagasiSikZ = 1000;
+const filmSzel = 25.4;
+const filmMag = 25.4;
+const jsCanvasSzelesseg = 1000;
+const jsCanvasMagassag = 1000;
+// near clipping plane - kozel vagasi sik
+const n = 1;
+// far clipping plane - tavol vagasi sik
+const f = 1000;
 let xKitoltes = 1;
 let yKitoltes = 1;
 // a filmAspectRatiot lekicsinyítjük a resolutionGateAspectRatiora a képünk képarányára
-if (filmNyilasSzelesseg / filmNyilasMagassag > jsCanvasSzelesseg / jsCanvasMagassag) {
-    xKitoltes = (jsCanvasSzelesseg / jsCanvasMagassag) / (filmNyilasSzelesseg / filmNyilasMagassag);
+if (filmSzel / filmMag > jsCanvasSzelesseg / jsCanvasMagassag) {
+    xKitoltes = (jsCanvasSzelesseg / jsCanvasMagassag) / (filmSzel / filmMag);
 } else {
-    yKitoltes = (filmNyilasSzelesseg / filmNyilasMagassag) / (jsCanvasSzelesseg / jsCanvasMagassag);
+    yKitoltes = (filmSzel / filmMag) / (jsCanvasSzelesseg / jsCanvasMagassag);
 }
 // derekszogu haromszog latoszoggel szembeni oldal a filmnyilas szelessegenek fele melette levo oldal a fokusztavolsag
-// const fovHorizontalis = 2*Math.atan((filmNyilasSzelesseg*inchToMm/2)/fokuszTavolsag);
-// const canvasJobbSzel = Math.tan(fovHorizontalis/2) * kozelVagasiSikZ;
+// const fovHorizontalis = 2*Math.atan((filmSzel/2)/fokuszTavolsag);
+// const canvasJobbSzel = Math.tan(fovHorizontalis/2) * n;
 // const canvasBalSzel = -canvasJobbSzel;
-// const fovVertikalis = 2*Math.atan((filmNyilasMagassag*inchToMm/2)/fokuszTavolsag);
-// const canvasFelsoSzel = Math.tan(fovVertikalis/2) * kozelVagasiSikZ;
+// const fovVertikalis = 2*Math.atan((filmMag/2)/fokuszTavolsag);
+// const canvasFelsoSzel = Math.tan(fovVertikalis/2) * n;
 // const canvasAlsoSzel = -canvasFelsoSzel;
 // const canvasTavolsag = 1;
 // let canvasMeret = 2 * Math.tan(fov/2) * canvasTavolsag;
 
 // gyorsabban. kiszamoljuk a felso szélét ennek ellentettje az also
 // a jobb oldalit megkapjuk ha a felsőt megszorozzuk a képaránnyal  
-const t = ((filmNyilasMagassag * inchToMm / 2) / fokuszTavolsag * kozelVagasiSikZ) * yKitoltes;
-const r = t * (filmNyilasSzelesseg / filmNyilasMagassag) * xKitoltes;
+const t = ((filmMag / 2) / fokuszTavolsag * n) * yKitoltes;
+const r = t * (filmSzel / filmMag) * xKitoltes;
 const b = -t;
 const l = -r;
 const canvasSzelesseg = r * 2;
 const canvasMagassag = t * 2;
+const s = (filmSzel / 2) / fokuszTavolsag;
+const P = [
+    [2 * n / (r - l), 0, 0, 0],
+    [0, 2 * n / (t - b), 0, 0],
+    [(r + l) / (r - l), (t + b) / (t - b), f / (n - f), -1],
+    [0, 0, n * f / (n - f), 0]
+];
 
 function pontokKiszamolasa(pontok, perlinek, szorzo) {
     for (let y = 0; y < perlinek.length; y++) {
@@ -124,12 +132,6 @@ function rajtaVanEAPixelAHaromszogon(v0, v1, v2, p) {
     return vissza;
 }
 
-function zBufferInit(zbuffer) {
-    for (let j = 0; j < jsCanvasMagassag * jsCanvasSzelesseg; j++) {
-        zbuffer.push(2000);
-    }
-}
-
 function pontKivetitese(pont) {
     // eltároljuk az eredeti pont z koordinátáját is a z buffereléshez
     // x: ((NDC + 1)/2) * jsCanvasSzelesseg) és y: ((1-NDC)/2) * jsCanvasMagassag) 
@@ -137,22 +139,37 @@ function pontKivetitese(pont) {
     return [
         (kameraHelybolNDCHelybeX(pont[0], pont[2]) + 1) / 2 * jsCanvasSzelesseg,
         (1 - kameraHelybolNDCHelybeY(pont[1], pont[2])) / 2 * jsCanvasMagassag,
-        pont[2]
+        -pont[2]
     ]
 }
 
 function kameraHelybolNDCHelybeX(x, z) {
-    // x / (-z) * kozelVagasiSikZ -al megkapjuk a screen coordinate system beli koordinátáit a pontnak -  középpontja a canvas közepe - x jobbra nő
-    // eddig a kozelVagasiSikZ egynek felteteleztuk ha nem egy akkor be kell szorozni vele az arany P'.y/Zkozel=P.y/P.z, P'.y=P.y/P.z*Zkozel
+    // x / (-z) * n -al megkapjuk a screen coordinate system beli koordinátáit a pontnak -  középpontja a canvas közepe - x jobbra nő
+    // eddig a n egynek felteteleztuk ha nem egy akkor be kell szorozni vele az arany P'.y/Zkozel=P.y/P.z, P'.y=P.y/P.z*Zkozel
     // A videókártyák NDC [-1;1] intervallum l < x < r levezethezjük hogy -1 < 2x / (r-l) - (r+l) / (r-l) < 1
-    return (2 * ((x / (-z)) * kozelVagasiSikZ) / (r - l) - (r + l) / (r - l));
+    return (2 * ((x / (-z)) * n) / (r - l) - (r + l) / (r - l));
 }
 
 function kameraHelybolNDCHelybeY(y, z) {
-    // y / (-z) * kozelVagasiSikZ -al megkapjuk a screen coordinate system beli koordinátáit a pontnak -  középpontja a canvas közepe - y felfele nő
-    // eddig a kozelVagasiSikZ egynek felteteleztuk ha nem egy akkor be kell szorozni vele az arany P'.y/Zkozel=P.y/P.z, P'.y=P.y/P.z*Zkozel
+    // y / (-z) * n -al megkapjuk a screen coordinate system beli koordinátáit a pontnak -  középpontja a canvas közepe - y felfele nő
+    // eddig a n egynek felteteleztuk ha nem egy akkor be kell szorozni vele az arany P'.y/Zkozel=P.y/P.z, P'.y=P.y/P.z*Zkozel
     // A videókártyák NDC [-1;1] intervallum b < y < t levezethezjük hogy -1 < 2y / (t-b) - (t+b) / (t-b) < 1
-    return (2 * ((y / (-z)) * kozelVagasiSikZ) / (t - b) - (t + b) / (t - b));
+    return (2 * ((y / (-z)) * n) / (t - b) - (t + b) / (t - b));
+}
+
+function pontMatrixSzorzas(pont, matrix) {
+    let eredmeny = matrixSzorzas([[pont[0], pont[1], pont[2], 1]], matrix)[0];
+    if (eredmeny[3] != 1) {
+        eredmeny[0] = eredmeny[0] / eredmeny[3];
+        eredmeny[1] = eredmeny[1] / eredmeny[3];
+        eredmeny[2] = eredmeny[2] / eredmeny[3];
+    }
+    return [eredmeny[0], eredmeny[1], eredmeny[2]];
+}
+
+function pontvet(pont, P) {
+    let er = pontMatrixSzorzas(pont, P);
+    return [(er[0] + 1) * 0.5 * jsCanvasSzelesseg, (1 - er[1]) * 0.5 * jsCanvasMagassag, er[2]]
 }
 
 function kirajzol(canvasId, antialias = 1) {
@@ -171,7 +188,7 @@ function kirajzol(canvasId, antialias = 1) {
         [1, 0, 0, 0],
         [0, 1, 0, 0],
         [0, 0, 1, 0],
-        [-pontok[rndszm * 3], -pontok[rndszm * 3 + 1] + 15, -pontok[rndszm * 3 + 2], 1]
+        [-pontok[rndszm * 3], -pontok[rndszm * 3 + 1] - 15, -pontok[rndszm * 3 + 2], 1]
     ];
     if (yforgas != 0) {
         kameraMatrix = matrixSzorzas(kameraMatrix, forgatasYMatrix4x4(Math.PI * yforgas));
@@ -182,7 +199,7 @@ function kirajzol(canvasId, antialias = 1) {
     ido = performance.now();
     // jsCanvasMagassag * gyokElsmitas * jsCanvasSzelesseg * gyokElsimitas = jsCanvasMagassag * jsCanvasSzelesseg * antialias
     let zbuffer = new Float32Array(jsCanvasMagassag * jsCanvasSzelesseg * antialias);
-    zbuffer.fill(tavollVagasiSikZ);
+    zbuffer.fill(f);
     let kivetitettPontok;
     // a háromszög határolókeretje
     let htminx, htminy, htmaxx, htmaxy;
@@ -203,21 +220,21 @@ function kirajzol(canvasId, antialias = 1) {
         // A pontokat átírjuk mátrix szorzással a kamera koordináta rendszerébe majd kivetetítjük őket
         ido = performance.now();
         kameraKoordinatak = [
-            matrixSzorzas([[pontok[indexek[i] * 3], pontok[indexek[i] * 3 + 1], pontok[indexek[i] * 3 + 2], 1]], kameraMatrix)[0],
-            matrixSzorzas([[pontok[indexek[i + 1] * 3], pontok[indexek[i + 1] * 3 + 1], pontok[indexek[i + 1] * 3 + 2], 1]], kameraMatrix)[0],
-            matrixSzorzas([[pontok[indexek[i + 2] * 3], pontok[indexek[i + 2] * 3 + 1], pontok[indexek[i + 2] * 3 + 2], 1]], kameraMatrix)[0]
+            pontMatrixSzorzas([pontok[indexek[i] * 3], pontok[indexek[i] * 3 + 1], pontok[indexek[i] * 3 + 2]], kameraMatrix),
+            pontMatrixSzorzas([pontok[indexek[i + 1] * 3], pontok[indexek[i + 1] * 3 + 1], pontok[indexek[i + 1] * 3 + 2]], kameraMatrix),
+            pontMatrixSzorzas([pontok[indexek[i + 2] * 3], pontok[indexek[i + 2] * 3 + 1], pontok[indexek[i + 2] * 3 + 2]], kameraMatrix)
         ];
         pontKivetitesIdo += performance.now() - ido;
-        if (kozelVagasiSikZ < kameraKoordinatak[0][2] && kameraKoordinatak[0][2] < tavollVagasiSikZ &&
-            kozelVagasiSikZ < kameraKoordinatak[1][2] && kameraKoordinatak[1][2] < tavollVagasiSikZ &&
-            kozelVagasiSikZ < kameraKoordinatak[2][2] && kameraKoordinatak[2][2] < tavollVagasiSikZ
+        if (-n >= kameraKoordinatak[0][2] && kameraKoordinatak[0][2] >= -f &&
+            -n >= kameraKoordinatak[1][2] && kameraKoordinatak[1][2] >= -f &&
+            -n >= kameraKoordinatak[2][2] && kameraKoordinatak[2][2] >= -f
         ) {
             ido = performance.now();
             kivetitettPontok = [
-                pontKivetitese(kameraKoordinatak[0]),
-                pontKivetitese(kameraKoordinatak[1]),
-                pontKivetitese(kameraKoordinatak[2])
-            ]
+                pontvet(kameraKoordinatak[0], P),
+                pontvet(kameraKoordinatak[1], P),
+                pontvet(kameraKoordinatak[2], P),
+            ];
             pontKivetitesIdo += performance.now() - ido;
             ido = performance.now();
             // A háromszöget határolókeret pontjainak kiszámolása
@@ -409,7 +426,7 @@ document.addEventListener("DOMContentLoaded", function () {
 let yforgas = 0;
 let xforgas = 0;
 let rndszm;
-const meret = 512;
+const meret = 256;
 let seed;
 // listak
 let perlinErtekek, pontok, indexek;
@@ -421,7 +438,7 @@ function forgasTovab() {
 
 function ujTerkep() {
     let eleje = performance.now()
-    perlinErtekek = perlin(1, meret, seed, 2, 9, 2, 2, 0, 1.5);
+    perlinErtekek = perlin(1, meret, seed, 2, 9, 2, 2.2);
     pontok = new Float32Array(meret * meret * 3);
     pontokKiszamolasa(pontok, perlinErtekek, 150);
     indexek = new Float32Array((meret - 1) * (meret - 1) * 6);

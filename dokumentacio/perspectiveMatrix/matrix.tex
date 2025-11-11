@@ -1,11 +1,14 @@
-\documentclass[fontsize,12pt]{article}
+\documentclass[12pt]{report}
 \usepackage{mathtools,amssymb, amsthm}
 \usepackage[margin=1in]{geometry}
 \title{Perspective Projection Matrix}
 \author{Pintér Bálint}
+\renewcommand{\contentsname}{Tartalomjegyzék}
+\setcounter{chapter}{1}
+
 \begin{document}
 \maketitle
-
+\tableofcontents
 \newpage
 
 \section{Perspective Projection Matrix}
@@ -18,7 +21,9 @@ térben az origó a kép közepén van, és a koordináták:
     x,y & \subset[-1;1] \\
     z   & \subset[0;1]
 \end{align*}
-\\ Kezdjük az egységmátrixszal:
+
+\section{Perspective divide}
+Kezdjük az egységmátrixszal:
 \[
     \begin{bmatrix}
         1 & 0 & 0 & 0 \\
@@ -45,6 +50,8 @@ $-z$-vel kell egyenlőnek lennie:
         0 & 0 & 0 & 0
     \end{bmatrix}
 \]
+
+\section{Z-koordináta együtthatói}
 A $z$ koordinátáinkat normalizálni kell a $[0;1]$ intervallumra a
 következőképpen: \\ Ha $z=-n$, akkor $z'=0$. \\ Ha $z=-f$, akkor $z'=1$.\\ A
 $z'$ kiszámolása:
@@ -97,6 +104,8 @@ Az első egyenletből kifejezett $m_{32}$-be helyettesítsük be $m_{22}$-t:
         0 & 0 & \frac{nf}{n-f} & 0
     \end{bmatrix}
 \]
+
+\section{X és Y-koordináta együtthatói}
 Az x és y koordinátákat normalizálni kell $[-1;1]$ intervallumra.
 \begin{itemize}
     \item l \text{-} a bal széle a vászonnak

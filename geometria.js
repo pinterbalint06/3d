@@ -107,7 +107,7 @@ function invertalas(matrix) {
         // az j oszlopnál az j sort vesszük
         // Az egyre hozás miatt az j sornál az j oszlop a főátló vagyis 1 és ha ennek a sornak a -elem ét hozzáadjuk akkor az elem nulla lesz (hozzáadjuk ellentettét)
         // A már 0 elemeket ez nem változtatja meg mert a 0 * (bármi) = 0 vagyis marad 0
-        for (let sor = 0; sor < m.length-1; sor++) {
+        for (let sor = 0; sor < m.length - 1; sor++) {
             // sor+1-től kezdődnek az átló feletti együtthatók
             for (let oszlop = sor + 1; oszlop < m.length; oszlop++) {
                 let szorzoa = m[sor][oszlop];
@@ -131,7 +131,7 @@ function invertalas(matrix) {
  * @returns {number} A vektor hossza
 */
 function vektorHossza(vektor) {
-    return Math.sqrt(vektor[0]*vektor[0] + vektor[1]*vektor[1] + vektor[2]*vektor[2]);
+    return Math.sqrt(vektor[0] * vektor[0] + vektor[1] * vektor[1] + vektor[2] * vektor[2]);
 }
 
 /**
@@ -182,4 +182,89 @@ function gombTheta(vektor) {
 function gombPhi(vektor) {
     let phi = Math.atan2(vektor[1], vektor[0]);
     return phi < 0 ? phi + 2 * Math.PI : phi;
+}
+
+function forgatasXMatrix4x4(szog) {
+    const cosinus = Math.cos(szog);
+    const sinus = Math.sin(szog);
+    return [
+        [1, 0, 0, 0],
+        [0, cosinus, sinus, 0],
+        [0, -sinus, cosinus, 0],
+        [0, 0, 0, 1]
+    ];
+}
+
+function forgatasYMatrix4x4(szog) {
+    const cosinus = Math.cos(szog);
+    const sinus = Math.sin(szog);
+    return [
+        [cosinus, 0, -sinus, 0],
+        [0, 1, 0, 0],
+        [sinus, 0, cosinus, 0],
+        [0, 0, 0, 1]
+    ];
+}
+
+function forgatasXMatrix(szog) {
+    const cosinus = Math.cos(szog);
+    const sinus = Math.sin(szog);
+    return [
+        [1, 0, 0],
+        [0, cosinus, sinus],
+        [0, -sinus, cosinus]
+    ];
+}
+
+function forgatasXtengelyen(szog, forgatando) {
+    forgatas(forgatasXMatrix(szog), forgatando);
+}
+
+function forgatasYtengelyen(szog, forgatando) {
+    const cosinus = Math.cos(szog);
+    const sinus = Math.sin(szog);
+    const Ry = [
+        [cosinus, 0, -sinus],
+        [0, 1, 0],
+        [sinus, 0, cosinus]
+    ];
+    forgatas(Ry, forgatando);
+}
+
+function forgatasZtengelyen(szog, forgatando) {
+    const cosinus = Math.cos(szog);
+    const sinus = Math.sin(szog);
+    const Rz = [[cosinus, sinus, 0],
+    [-sinus, cosinus, 0],
+    [0, 0, 1]
+    ];
+    forgatas(Rz, forgatando);
+}
+
+
+function forgatas(Rmatrix, forgatando) {
+    for (let i = 0; i < forgatando.length / 3; i++) {
+        let eredmeny = matrixSzorzas([[forgatando[i * 3], forgatando[i * 3 + 1], forgatando[i * 3 + 2]]],
+            Rmatrix);
+        forgatando[i * 3] = eredmeny[0][0];
+        forgatando[i * 3 + 1] = eredmeny[0][1];
+        forgatando[i * 3 + 2] = eredmeny[0][2];
+    }
+}
+
+function eltolas(mertek, eltolandok) {
+    for (let i = 0; i < eltolandok.length / 3; i++) {
+        // csak x-et és z-t kell eltolni
+        // y eltolása megváltoztatná a magasságot
+        eltolandok[i * 3] += mertek;
+        eltolandok[i * 3 + 2] += mertek;
+    }
+}
+
+function skalazas(mertek, skalazandok) {
+    for (let i = 0; i < skalazandok.length / 3; i++) {
+        // csak x-et és z-t kell skalazni
+        skalazandok[i * 3] *= mertek;
+        skalazandok[i * 3 + 2] *= mertek;
+    }
 }

@@ -132,31 +132,6 @@ function rajtaVanEAPixelAHaromszogon(v0, v1, v2, p) {
     return vissza;
 }
 
-function pontKivetitese(pont) {
-    // eltároljuk az eredeti pont z koordinátáját is a z buffereléshez
-    // x: ((NDC + 1)/2) * jsCanvasSzelesseg) és y: ((1-NDC)/2) * jsCanvasMagassag) 
-    // megszorozzuk a kép (raster) szélességével/magasságával így megkapjuk a raster coordinate system beli koordinátáját - középpontja a kép bal felső sarka - x jobbra nő y lefele nő
-    return [
-        (kameraHelybolNDCHelybeX(pont[0], pont[2]) + 1) / 2 * jsCanvasSzelesseg,
-        (1 - kameraHelybolNDCHelybeY(pont[1], pont[2])) / 2 * jsCanvasMagassag,
-        -pont[2]
-    ]
-}
-
-function kameraHelybolNDCHelybeX(x, z) {
-    // x / (-z) * n -al megkapjuk a screen coordinate system beli koordinátáit a pontnak -  középpontja a canvas közepe - x jobbra nő
-    // eddig a n egynek felteteleztuk ha nem egy akkor be kell szorozni vele az arany P'.y/Zkozel=P.y/P.z, P'.y=P.y/P.z*Zkozel
-    // A videókártyák NDC [-1;1] intervallum l < x < r levezethezjük hogy -1 < 2x / (r-l) - (r+l) / (r-l) < 1
-    return (2 * ((x / (-z)) * n) / (r - l) - (r + l) / (r - l));
-}
-
-function kameraHelybolNDCHelybeY(y, z) {
-    // y / (-z) * n -al megkapjuk a screen coordinate system beli koordinátáit a pontnak -  középpontja a canvas közepe - y felfele nő
-    // eddig a n egynek felteteleztuk ha nem egy akkor be kell szorozni vele az arany P'.y/Zkozel=P.y/P.z, P'.y=P.y/P.z*Zkozel
-    // A videókártyák NDC [-1;1] intervallum b < y < t levezethezjük hogy -1 < 2y / (t-b) - (t+b) / (t-b) < 1
-    return (2 * ((y / (-z)) * n) / (t - b) - (t + b) / (t - b));
-}
-
 function pontMatrixSzorzas(pont, matrix) {
     let eredmeny = matrixSzorzas([[pont[0], pont[1], pont[2], 1]], matrix)[0];
     if (eredmeny[3] != 1) {
@@ -167,7 +142,15 @@ function pontMatrixSzorzas(pont, matrix) {
     return [eredmeny[0], eredmeny[1], eredmeny[2]];
 }
 
-function pontvet(pont, P) {
+function kameraTerbe(x0, y0, z0, x1, y1, z1, x2, y2, z2, Mkamera) {
+    return [
+        matrixSzorzas([[x0, y0, z0, 1]], Mkamera)[0],
+        matrixSzorzas([[x1, y1, z1, 1]], Mkamera)[0],
+        matrixSzorzas([[x2, y2, z2, 1]], Mkamera)[0]
+    ];
+}
+
+function pontKivetitese(pont, P) {
     let er = pontMatrixSzorzas(pont, P);
     return [(er[0] + 1) * 0.5 * jsCanvasSzelesseg, (1 - er[1]) * 0.5 * jsCanvasMagassag, er[2]]
 }
@@ -219,11 +202,12 @@ function kirajzol(canvasId, antialias = 1) {
         htmaxy = -2000;
         // A pontokat átírjuk mátrix szorzással a kamera koordináta rendszerébe majd kivetetítjük őket
         ido = performance.now();
-        kameraKoordinatak = [
-            pontMatrixSzorzas([pontok[indexek[i] * 3], pontok[indexek[i] * 3 + 1], pontok[indexek[i] * 3 + 2]], kameraMatrix),
-            pontMatrixSzorzas([pontok[indexek[i + 1] * 3], pontok[indexek[i + 1] * 3 + 1], pontok[indexek[i + 1] * 3 + 2]], kameraMatrix),
-            pontMatrixSzorzas([pontok[indexek[i + 2] * 3], pontok[indexek[i + 2] * 3 + 1], pontok[indexek[i + 2] * 3 + 2]], kameraMatrix)
-        ];
+        kameraKoordinatak = kameraTerbe(
+            pontok[indexek[i] * 3], pontok[indexek[i] * 3 + 1], pontok[indexek[i] * 3 + 2],
+            pontok[indexek[i + 1] * 3], pontok[indexek[i + 1] * 3 + 1], pontok[indexek[i + 1] * 3 + 2],
+            pontok[indexek[i + 2] * 3], pontok[indexek[i + 2] * 3 + 1], pontok[indexek[i + 2] * 3 + 2],
+            kameraMatrix
+        );
         pontKivetitesIdo += performance.now() - ido;
         if (-n >= kameraKoordinatak[0][2] && kameraKoordinatak[0][2] >= -f &&
             -n >= kameraKoordinatak[1][2] && kameraKoordinatak[1][2] >= -f &&
@@ -231,9 +215,9 @@ function kirajzol(canvasId, antialias = 1) {
         ) {
             ido = performance.now();
             kivetitettPontok = [
-                pontvet(kameraKoordinatak[0], P),
-                pontvet(kameraKoordinatak[1], P),
-                pontvet(kameraKoordinatak[2], P),
+                pontKivetitese(kameraKoordinatak[0], P),
+                pontKivetitese(kameraKoordinatak[1], P),
+                pontKivetitese(kameraKoordinatak[2], P),
             ];
             pontKivetitesIdo += performance.now() - ido;
             ido = performance.now();
@@ -322,92 +306,6 @@ function kirajzol(canvasId, antialias = 1) {
 function negyzetSzamE(x) {
     let gyok = Math.sqrt(x);
     return gyok == parseInt(gyok);
-}
-
-
-function forgatasXMatrix4x4(szog) {
-    const cosinus = Math.cos(szog);
-    const sinus = Math.sin(szog);
-    return [
-        [1, 0, 0, 0],
-        [0, cosinus, sinus, 0],
-        [0, -sinus, cosinus, 0],
-        [0, 0, 0, 1]
-    ];
-}
-
-function forgatasYMatrix4x4(szog) {
-    const cosinus = Math.cos(szog);
-    const sinus = Math.sin(szog);
-    return [
-        [cosinus, 0, -sinus, 0],
-        [0, 1, 0, 0],
-        [sinus, 0, cosinus, 0],
-        [0, 0, 0, 1]
-    ];
-}
-
-function forgatasXMatrix(szog) {
-    const cosinus = Math.cos(szog);
-    const sinus = Math.sin(szog);
-    return [
-        [1, 0, 0],
-        [0, cosinus, sinus],
-        [0, -sinus, cosinus]
-    ];
-}
-
-function forgatasXtengelyen(szog, forgatando) {
-    forgatas(forgatasXMatrix(szog), forgatando);
-}
-
-function forgatasYtengelyen(szog, forgatando) {
-    const cosinus = Math.cos(szog);
-    const sinus = Math.sin(szog);
-    const Ry = [
-        [cosinus, 0, -sinus],
-        [0, 1, 0],
-        [sinus, 0, cosinus]
-    ];
-    forgatas(Ry, forgatando);
-}
-
-function forgatasZtengelyen(szog, forgatando) {
-    const cosinus = Math.cos(szog);
-    const sinus = Math.sin(szog);
-    const Rz = [[cosinus, sinus, 0],
-    [-sinus, cosinus, 0],
-    [0, 0, 1]
-    ];
-    forgatas(Rz, forgatando);
-}
-
-
-function forgatas(Rmatrix, forgatando) {
-    for (let i = 0; i < forgatando.length / 3; i++) {
-        let eredmeny = matrixSzorzas([[forgatando[i * 3], forgatando[i * 3 + 1], forgatando[i * 3 + 2]]],
-            Rmatrix);
-        forgatando[i * 3] = eredmeny[0][0];
-        forgatando[i * 3 + 1] = eredmeny[0][1];
-        forgatando[i * 3 + 2] = eredmeny[0][2];
-    }
-}
-
-function eltolas(mertek, eltolandok) {
-    for (let i = 0; i < eltolandok.length / 3; i++) {
-        // csak x-et és z-t kell eltolni
-        // y eltolása megváltoztatná a magasságot
-        eltolandok[i * 3] += mertek;
-        eltolandok[i * 3 + 2] += mertek;
-    }
-}
-
-function skalazas(mertek, skalazandok) {
-    for (let i = 0; i < skalazandok.length / 3; i++) {
-        // csak x-et és z-t kell skalazni
-        skalazandok[i * 3] *= mertek;
-        skalazandok[i * 3 + 2] *= mertek;
-    }
 }
 
 document.addEventListener("DOMContentLoaded", function () {

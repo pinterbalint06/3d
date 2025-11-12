@@ -436,6 +436,18 @@ function forgasTovab() {
     rendereles();
 }
 
+// mennyi idő lenne lerenderelni a cubemapet
+function teszt() {
+    let most = performance.now();
+    irany(0.5, 0);
+    irany(-0.5, 0);
+    irany(0, 0);
+    irany(0, 1);
+    irany(0, 0.5);
+    irany(0, -0.5);
+    document.getElementById("ido").innerText = Math.round(performance.now() - most);
+}
+
 function ujTerkep() {
     let eleje = performance.now()
     perlinErtekek = perlin(1, meret, seed, 2, 9, 2, 2.2);

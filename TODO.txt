@@ -1,1 +1,2 @@
-1. Pixel teszt, edge function optimalizálása. https://www.cs.drexel.edu/~deb39/Classes/Papers/comp175-06-pineda.pdf
+1. Pixel teszt, edge function optimalizálása. https://www.cs.drexel.edu/~deb39/Classes/Papers/comp175-06-pineda.pdf. Jobb bejárása.
+2. WebAssembly

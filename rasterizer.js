@@ -61,6 +61,11 @@ const sikok = [
     3, 2, 1   // w + z
 ];
 
+let matrixEredmenyhely;
+let kameraMatrixHely;
+let m1Hely;
+let m2Hely;
+
 /**
  * Edge function. E(x,y) = (x-X) dY - (y-Y) dX.
  * P1(X, Y) és P2(x1, y1) egy vonalat hátoroznak meg.
@@ -83,7 +88,7 @@ function edgeFunction(X, Y, dX, dY, x, y) {
 }
 
 function pontokKivetitese(x0, y0, z0, x1, y1, z1, x2, y2, z2, Mkamera) {
-    let MVP = matrixSzorzas4x4(Mkamera, P);
+    let MVP = matrixSzorzas4x4(Mkamera, P, matrixEredmenyhely);
     let p0t = pontMatrix([x0, y0, z0], MVP);
     let p1t = pontMatrix([x1, y1, z1], MVP);
     let p2t = pontMatrix([x2, y2, z2], MVP);
@@ -166,10 +171,10 @@ function kirajzol(canvasId, antialias = 1) {
         -pontok[rndszm * 3], -pontok[rndszm * 3 + 1] - 20, -pontok[rndszm * 3 + 2], 1
     ];
     if (yforgas != 0) {
-        kameraMatrix = matrixSzorzas4x4(kameraMatrix, forgatasYMatrix4x4(Math.PI * yforgas));
+        kameraMatrix = matrixSzorzas4x4(kameraMatrix, forgatasYMatrix4x4(Math.PI * yforgas), kameraMatrixHely);
     }
     if (xforgas != 0) {
-        kameraMatrix = matrixSzorzas4x4(kameraMatrix, forgatasXMatrix4x4(Math.PI * xforgas));
+        kameraMatrix = matrixSzorzas4x4(kameraMatrix, forgatasXMatrix4x4(Math.PI * xforgas), kameraMatrixHely);
     }
     // jsCanvasMagassag * gyokElsmitas * jsCanvasSzelesseg * gyokElsimitas = jsCanvasMagassag * jsCanvasSzelesseg * antialias
     let zbuffer = new Float32Array(jsCanvasMagassag * jsCanvasSzelesseg * antialias);
@@ -348,6 +353,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     ujhely();
     Module.onRuntimeInitialized = function () {
         Module._meretBeallit(meret);
+        kameraMatrixHely = Module._allocate4x4Matrix();
+        matrixEredmenyhely = Module._allocate4x4Matrix();
+        m1Hely = Module._allocate4x4Matrix();
+        m2Hely = Module._allocate4x4Matrix();
         ujTerkep();
     };
 });

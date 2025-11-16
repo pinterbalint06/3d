@@ -1558,6 +1558,8 @@ var _allocateIndexek = Module['_allocateIndexek'] = makeInvalidEarlyAccess('_all
 var _allocatePerlin = Module['_allocatePerlin'] = makeInvalidEarlyAccess('_allocatePerlin');
 var _pontokKiszamolasa = Module['_pontokKiszamolasa'] = makeInvalidEarlyAccess('_pontokKiszamolasa');
 var _osszekotesekKiszamolasa = Module['_osszekotesekKiszamolasa'] = makeInvalidEarlyAccess('_osszekotesekKiszamolasa');
+var _matrixSzorzas4x4 = Module['_matrixSzorzas4x4'] = makeInvalidEarlyAccess('_matrixSzorzas4x4');
+var _allocate4x4Matrix = Module['_allocate4x4Matrix'] = makeInvalidEarlyAccess('_allocate4x4Matrix');
 var _fflush = makeInvalidEarlyAccess('_fflush');
 var _strerror = makeInvalidEarlyAccess('_strerror');
 var _emscripten_stack_get_end = makeInvalidEarlyAccess('_emscripten_stack_get_end');
@@ -1582,6 +1584,10 @@ function assignWasmExports(wasmExports) {
   _pontokKiszamolasa = Module['_pontokKiszamolasa'] = createExportWrapper('pontokKiszamolasa', 1);
   assert(typeof wasmExports['osszekotesekKiszamolasa'] != 'undefined', 'missing Wasm export: osszekotesekKiszamolasa');
   _osszekotesekKiszamolasa = Module['_osszekotesekKiszamolasa'] = createExportWrapper('osszekotesekKiszamolasa', 0);
+  assert(typeof wasmExports['matrixSzorzas4x4'] != 'undefined', 'missing Wasm export: matrixSzorzas4x4');
+  _matrixSzorzas4x4 = Module['_matrixSzorzas4x4'] = createExportWrapper('matrixSzorzas4x4', 3);
+  assert(typeof wasmExports['allocate4x4Matrix'] != 'undefined', 'missing Wasm export: allocate4x4Matrix');
+  _allocate4x4Matrix = Module['_allocate4x4Matrix'] = createExportWrapper('allocate4x4Matrix', 0);
   assert(typeof wasmExports['fflush'] != 'undefined', 'missing Wasm export: fflush');
   _fflush = createExportWrapper('fflush', 1);
   assert(typeof wasmExports['strerror'] != 'undefined', 'missing Wasm export: strerror');

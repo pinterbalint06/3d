@@ -108,4 +108,25 @@ extern "C"
             }
         }
     }
+
+    void matrixSzorzas4x4(float *m1, float *m2, float *eredmeny)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                eredmeny[i*4+j] = m1[i * 4] * m2[j] + m1[i * 4 + 1] * m2[4 + j] + m1[i * 4 + 2] * m2[8 + j] + m1[i * 4 + 3] * m2[12 + j];
+            }
+        }
+    }
+
+    int allocate4x4Matrix()
+    {
+        float *matrix = (float *)malloc(16 * sizeof(float));
+        if (matrix)
+        {
+            return (int)matrix;
+        }
+        return 0;
+    }
 }

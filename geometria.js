@@ -22,13 +22,27 @@ function matrixSzorzas(m1, m2) {
 }
 
 // row-major
-function matrixSzorzas4x4(m1, m2) {
-    let eredmeny = new Float32Array(16);
-    for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 4; j++) {
-            eredmeny[i * 4 + j] = m1[i * 4] * m2[j] + m1[i * 4 + 1] * m2[4 + j] + m1[i * 4 + 2] * m2[8 + j] + m1[i * 4 + 3] * m2[12 + j];
-        }
+function matrixSzorzas4x4(m1, m2, erHely) {
+    let m1t = new Float32Array(
+        wasmMemory.buffer,
+        m1Hely,
+        16
+    );
+    let m2t = new Float32Array(
+        wasmMemory.buffer,
+        m2Hely,
+        16
+    );
+    for (let i = 0; i < 16; i++) {
+        m1t[i] = m1[i];
+        m2t[i] = m2[i];
     }
+    let eredmeny = new Float32Array(
+        wasmMemory.buffer,
+        erHely,
+        16
+    );
+    Module._matrixSzorzas4x4(m1Hely, m2Hely, erHely);
     return eredmeny;
 }
 

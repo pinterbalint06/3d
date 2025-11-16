@@ -51,12 +51,6 @@ P[9] = (t + b) / (t - b);
 P[10] = f / (n - f);
 P[11] = -1;
 P[14] = n * f / (n - f);
-let module;
-const wasmMemory = new WebAssembly.Memory({
-    initial: 256,
-    maximum: 256,
-});
-const dw = new DataView(wasmMemory.buffer);
 
 const sikok = [
     3, 0, -1, // w - x
@@ -71,7 +65,7 @@ function pontokKiszamolasa(pontok, perlinek, szorzo) {
     for (let y = 0; y < meret; y++) {
         for (let x = 0; x < meret; x++) {
             pontok[(y * meret + x) * 3] = x; // x koordináta
-            pontok[(y * meret + x) * 3 + 1] = perlinek[y*meret+x] * szorzo; // y koordináta
+            pontok[(y * meret + x) * 3 + 1] = perlinek[y * meret + x] * szorzo; // y koordináta
             pontok[(y * meret + x) * 3 + 2] = -y; // z koordináta
         }
     }
@@ -374,13 +368,6 @@ function negyzetSzamE(x) {
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
-    let wasm = await fetch("rasterizer.wasm");
-    module = await WebAssembly.instantiateStreaming(wasm, {
-        env: {
-            memory: wasmMemory
-        }
-    });
-    console.log(module);
     let canvas = document.getElementById("canvas");
     canvas.get
     canvas.width = jsCanvasSzelesseg;
@@ -388,9 +375,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     let sd = document.getElementById("seed");
     seed = Math.floor(Math.random() * 10000) + 1;
     sd.value = seed;
-    sd.nextElementSibling.value = sd.value
+    sd.nextElementSibling.value = sd.value;
     ujhely();
-    ujTerkep();
+    Module.onRuntimeInitialized = function () {
+        ujTerkep();
+    };
 });
 
 let yforgas = 0;
@@ -421,16 +410,24 @@ function teszt() {
 function ujTerkep() {
     // 45-75ms
     let eleje = performance.now()
-    perlinErtekek = perlin(1, meret, seed, 2, 9, 2, 2.2);
+    let perlinHelye = Module._allocatePerlin(meret * meret);
+    perlinErtekek = new Float32Array(
+        wasmMemory.buffer,
+        perlinHelye,
+        meret * meret * 3
+    );
+    perlin(perlinErtekek, 1, meret, seed, 2, 9, 2, 2.2);
+    let pontokHelye = Module._allocatePontok(meret * meret * 3);
     pontok = new Float32Array(
         wasmMemory.buffer,
-        0,
+        pontokHelye,
         meret * meret * 3
     );
     pontokKiszamolasa(pontok, perlinErtekek, 150);
+    let indexekHelye = Module._allocateIndexek((meret - 1) * (meret - 1) * 6);
     indexek = new Float32Array(
         wasmMemory.buffer,
-        pontok.byteLength,
+        indexekHelye,
         (meret - 1) * (meret - 1) * 6
     );
     osszekotesekKiszamolasa(indexek, meret)

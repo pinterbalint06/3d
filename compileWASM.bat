@@ -1,1 +1,1 @@
-emcc .\rasterizer.cpp -o temp.js -s IMPORTED_MEMORY=1 && DEL temp.js && MOVE /y temp.wasm rasterizer.wasm
+emcc .\rasterizer.cpp -o webassembly.js -s IMPORTED_MEMORY=1 -s EXPORTED_FUNCTIONS="['_allocatePontok', '_allocateIndexek', '_allocatePerlin']"

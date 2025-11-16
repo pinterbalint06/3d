@@ -17,8 +17,7 @@ function randomVektor(rand) {
     return [Math.cos(angle), Math.sin(angle)];
 }
 
-function perlin(frekvencia, max, seed, amplitudum, oktavok, reszletessegArany=2, erossegArany=2, zajEltolas=0, zajMeret=1) {
-    let ertekek = new Float32Array(max*max);
+function perlin(ertekek, frekvencia, max, seed, amplitudum, oktavok, reszletessegArany=2, erossegArany=2, zajEltolas=0, zajMeret=1) {
     let ciklusAmplitudum = amplitudum;
     let gridSizeCiklus = max / frekvencia;
     let osszAmplitudum = 0;
@@ -65,5 +64,4 @@ function perlin(frekvencia, max, seed, amplitudum, oktavok, reszletessegArany=2,
             ertekek[y*max+x] = ((ertekek[y*max+x] / osszAmplitudum) * zajMeret) + zajEltolas;
         }
     }
-    return ertekek;
 }

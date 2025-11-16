@@ -7,7 +7,7 @@ extern "C"
 {
     static float *pontok = NULL;
     static int pontokMeret = 0;
-    static float *indexek = NULL;
+    static int32_t *indexek = NULL;
     static int indexekMeret = 0;
     static float *perlin = NULL;
     static int perlinMeret = 0;
@@ -45,7 +45,7 @@ extern "C"
         }
 
         // Memória lefoglalása a listának
-        indexek = (float *)malloc(indexekSzam * sizeof(float));
+        indexek = (int32_t *)malloc(indexekSzam * sizeof(int32_t));
         if (indexek)
         {
             indexekMeret = indexekSzam;
@@ -83,6 +83,28 @@ extern "C"
                 pontok[i * 3] = x;
                 pontok[i * 3 + 1] = perlin[i] * szorzo;
                 pontok[i * 3 + 2] = -y;
+            }
+        }
+    }
+
+    void osszekotesekKiszamolasa()
+    {
+        int i;
+        for (int y = 0; y < meret - 1; y++)
+        {
+            for (int x = 0; x < meret - 1; x++)
+            {
+                i = y * meret + x;
+                // A három indexnek a pontjait (pontok[index] pontot ad meg) összekötjük háromszögekre
+                // A négyzet
+                indexek[i * 6] = i + 1;         // jobb felső pontja
+                indexek[i * 6 + 1] = i + meret; // bal alsó pontja
+                indexek[i * 6 + 2] = i;         // bal felső pontja
+
+                indexek[i * 6 + 3] = i + 1;         // jobb felső pontja
+                indexek[i * 6 + 4] = i + meret + 1; // jobb alsó pontja
+                indexek[i * 6 + 5] = i + meret;     // bal alsó pontja
+                // a négyzetet felosztottuk két háromszögre
             }
         }
     }

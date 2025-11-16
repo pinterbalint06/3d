@@ -1557,6 +1557,7 @@ var _allocatePontok = Module['_allocatePontok'] = makeInvalidEarlyAccess('_alloc
 var _allocateIndexek = Module['_allocateIndexek'] = makeInvalidEarlyAccess('_allocateIndexek');
 var _allocatePerlin = Module['_allocatePerlin'] = makeInvalidEarlyAccess('_allocatePerlin');
 var _pontokKiszamolasa = Module['_pontokKiszamolasa'] = makeInvalidEarlyAccess('_pontokKiszamolasa');
+var _osszekotesekKiszamolasa = Module['_osszekotesekKiszamolasa'] = makeInvalidEarlyAccess('_osszekotesekKiszamolasa');
 var _fflush = makeInvalidEarlyAccess('_fflush');
 var _strerror = makeInvalidEarlyAccess('_strerror');
 var _emscripten_stack_get_end = makeInvalidEarlyAccess('_emscripten_stack_get_end');
@@ -1579,6 +1580,8 @@ function assignWasmExports(wasmExports) {
   _allocatePerlin = Module['_allocatePerlin'] = createExportWrapper('allocatePerlin', 1);
   assert(typeof wasmExports['pontokKiszamolasa'] != 'undefined', 'missing Wasm export: pontokKiszamolasa');
   _pontokKiszamolasa = Module['_pontokKiszamolasa'] = createExportWrapper('pontokKiszamolasa', 1);
+  assert(typeof wasmExports['osszekotesekKiszamolasa'] != 'undefined', 'missing Wasm export: osszekotesekKiszamolasa');
+  _osszekotesekKiszamolasa = Module['_osszekotesekKiszamolasa'] = createExportWrapper('osszekotesekKiszamolasa', 0);
   assert(typeof wasmExports['fflush'] != 'undefined', 'missing Wasm export: fflush');
   _fflush = createExportWrapper('fflush', 1);
   assert(typeof wasmExports['strerror'] != 'undefined', 'missing Wasm export: strerror');

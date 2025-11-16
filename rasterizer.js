@@ -61,35 +61,6 @@ const sikok = [
     3, 2, 1   // w + z
 ];
 
-function pontokKiszamolasa(szorzo) {
-    for (let y = 0; y < meret; y++) {
-        for (let x = 0; x < meret; x++) {
-            pontok[(y * meret + x) * 3] = x; // x koordináta
-            pontok[(y * meret + x) * 3 + 1] = perlinErtekek[y * meret + x] * szorzo; // y koordináta
-            pontok[(y * meret + x) * 3 + 2] = -y; // z koordináta
-        }
-    }
-}
-
-function osszekotesekKiszamolasa(indexek, meret) {
-    let indexe;
-    for (let sor = 0; sor < meret - 1; sor++) {
-        for (let oszlop = 0; oszlop < meret - 1; oszlop++) {
-            indexe = sor * meret + oszlop;
-            // A három indexnek a pontjait (pontok[index] pontot ad meg) összekötjük háromszögekre
-            // A négyzet
-            indexek[indexe * 6] = indexe + 1; // jobb felső pontja
-            indexek[indexe * 6 + 1] = indexe + meret; // bal alsó pontja
-            indexek[indexe * 6 + 2] = indexe; // bal felső pontja
-
-            indexek[indexe * 6 + 3] = indexe + 1; // jobb felső pontja
-            indexek[indexe * 6 + 4] = indexe + meret + 1; // jobb alsó pontja
-            indexek[indexe * 6 + 5] = indexe + meret; // bal alsó pontja
-            // a négyzetet felosztottuk két háromszögre
-        }
-    }
-}
-
 /**
  * Edge function. E(x,y) = (x-X) dY - (y-Y) dX.
  * P1(X, Y) és P2(x1, y1) egy vonalat hátoroznak meg.
@@ -422,14 +393,14 @@ function ujTerkep() {
         pontokHelye,
         meret * meret * 3
     );
-    Module._pontokKiszamolasa(150);
     let indexekHelye = Module._allocateIndexek((meret - 1) * (meret - 1) * 6);
-    indexek = new Float32Array(
+    indexek = new Int32Array(
         wasmMemory.buffer,
         indexekHelye,
         (meret - 1) * (meret - 1) * 6
     );
-    osszekotesekKiszamolasa(indexek, meret)
+    Module._pontokKiszamolasa(150);
+    Module._osszekotesekKiszamolasa();
     console.log("Új térkép idő:", performance.now() - eleje);
     rendereles();
 }

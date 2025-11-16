@@ -1,1 +1,1 @@
-emcc .\rasterizer.cpp -o webassembly.js -s IMPORTED_MEMORY=1 -s EXPORTED_FUNCTIONS="['_allocatePontok', '_allocateIndexek', '_allocatePerlin', '_meretBeallit', '_pontokKiszamolasa']"
+emcc .\rasterizer.cpp -o webassembly.js -s IMPORTED_MEMORY=1 -s EXPORTED_FUNCTIONS="['_allocatePontok', '_allocateIndexek', '_allocatePerlin', '_meretBeallit', '_pontokKiszamolasa', '_osszekotesekKiszamolasa']"

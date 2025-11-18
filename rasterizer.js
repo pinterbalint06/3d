@@ -125,7 +125,6 @@ function SutherlandHodgman(p0, p1, p2) {
     for (let k = 0; k < 6; k++) {
         bemenet = kimenet;
         kimenet = new Array();
-        elozoPontIndex = bemenet.length - 4;
         for (let i = 0; i < bemenet.length; i += 4) {
             tavolsag = bemenet[i + sikok[k * 3]] + bemenet[i + sikok[k * 3 + 1]] * sikok[k * 3 + 2];
             elozoTavolsag = bemenet[elozoPontIndex + sikok[k * 3]] + bemenet[elozoPontIndex + sikok[k * 3 + 1]] * sikok[k * 3 + 2];
@@ -337,6 +336,7 @@ function kirajzol(canvasId, antialias = 1) {
             data[dataIndex + 3] = 255;
         }
     }
+    Module.freeImageBuffer();
     ctx.putImageData(img, 0, 0);
 }
 
@@ -357,6 +357,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     Module.onRuntimeInitialized = function () {
         Module.init();
         Module.meretBeallit(meret);
+        Module.setFrustum(fokuszTavolsag, filmSzel, filmMag, jsCanvasSzelesseg, jsCanvasMagassag, n, f);
         ujTerkep();
     };
 });
@@ -419,6 +420,7 @@ function ujTerkep() {
 function ujhely() {
     rndszm = Math.round(Math.random() * meret * meret);
     Module.ujHely();
+    rendereles();
 }
 
 function irany(x, y) {
@@ -428,8 +430,7 @@ function irany(x, y) {
 }
 
 function ujKirajzol(canvasId, antialias = 1) {
-    Module.setFrustum(fokuszTavolsag, filmSzel, filmMag, jsCanvasSzelesseg, jsCanvasMagassag, n, f);
-    console.log(Module);
+    Module.setAntialias(9);
     let imageBufferHely = Module.render();
     let imageBufferMeret = Module.imageBufferSize();
     let imageBuffer = new Float32Array(
@@ -451,7 +452,10 @@ function ujKirajzol(canvasId, antialias = 1) {
     ctx.putImageData(img, 0, 0);
 }
 
-function rendereles() {
+
+async function rendereles() {
     let elsimitas = parseInt(document.getElementById("antialias").value);
+    let ido = performance.now();
     ujKirajzol("canvas", elsimitas);
+    console.log("Renderelés: ", performance.now()-ido, "ms");
 }

@@ -2673,8 +2673,8 @@ function checkIncomingModuleAPI() {
 }
 
 // Imports from the Wasm binary.
-var _free = makeInvalidEarlyAccess('_free');
 var _malloc = makeInvalidEarlyAccess('_malloc');
+var _free = makeInvalidEarlyAccess('_free');
 var ___getTypeName = makeInvalidEarlyAccess('___getTypeName');
 var _fflush = makeInvalidEarlyAccess('_fflush');
 var _emscripten_stack_get_end = makeInvalidEarlyAccess('_emscripten_stack_get_end');
@@ -2689,10 +2689,10 @@ var __indirect_function_table = makeInvalidEarlyAccess('__indirect_function_tabl
 var wasmTable = makeInvalidEarlyAccess('wasmTable');
 
 function assignWasmExports(wasmExports) {
-  assert(typeof wasmExports['free'] != 'undefined', 'missing Wasm export: free');
-  _free = createExportWrapper('free', 1);
   assert(typeof wasmExports['malloc'] != 'undefined', 'missing Wasm export: malloc');
   _malloc = createExportWrapper('malloc', 1);
+  assert(typeof wasmExports['free'] != 'undefined', 'missing Wasm export: free');
+  _free = createExportWrapper('free', 1);
   assert(typeof wasmExports['__getTypeName'] != 'undefined', 'missing Wasm export: __getTypeName');
   ___getTypeName = createExportWrapper('__getTypeName', 1);
   assert(typeof wasmExports['fflush'] != 'undefined', 'missing Wasm export: fflush');

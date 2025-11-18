@@ -11,18 +11,6 @@
 #include <math.h>
 #include <string>
 
-static float *P;
-// Camera Matrix
-static float *MCamera;
-// Model View Projection Matrix
-static float *MVP;
-static float *pontok = NULL;
-static int pontokMeret = 0;
-static int32_t *indexek = NULL;
-static int indexekMeret = 0;
-static float *perlin = NULL;
-static int perlinMeret = 0;
-float *zBuffer;
 int t, b, r, l;
 int meret;
 int rndSzm;
@@ -30,21 +18,34 @@ int antialias;
 int imageWidth;
 int imageHeight;
 int zBufferMeret;
+int perlinMeret = 0;
+int indexekMeret = 0;
+int pontokMeret = 0;
+int bemenetMeret;
+int projectedTrianglesMeret;
+int clippedMeret;
+int imageAntiBufferLength;
+int imageBufferLength;
+float yforgas;
+
+float *P;
+// Camera Matrix
+float *MCamera;
+// Model View Projection Matrix
+float *MVP;
+float *pontok = NULL;
+int32_t *indexek = NULL;
+float *perlin = NULL;
+float *zBuffer;
 float *p0;
 float *p1;
 float *p2;
 float *bemenet;
-int bemenetMeret;
 float *clipped;
 float *projectedTriangles;
-int projectedTrianglesMeret;
-int clippedMeret;
 int *sikok;
 float *imageAntiBuffer;
-int imageAntiBufferLength;
 float *imageBuffer;
-int imageBufferLength;
-float yforgas;
 
 void matrixSzorzas4x4(float *m1, float *m2, float *eredmeny)
 {
@@ -63,7 +64,6 @@ void ujHely()
     MCamera[12] = -pontok[rndSzm * 3];
     MCamera[13] = -pontok[rndSzm * 3 + 1] - 20;
     MCamera[14] = -pontok[rndSzm * 3 + 2];
-    matrixSzorzas4x4(MCamera, P, MVP);
 }
 
 int getRandomHely()
@@ -98,14 +98,13 @@ void SutherlandHodgman(float *pont0, float *pont1, float *pont2)
         clipped[i + 8] = pont2[i];
     }
     clippedMeret = 12;
-    int elozoPontIndex, dTav;
-    float tavolsag, elozoTavolsag;
+    int elozoPontIndex = 8;
+    float tavolsag, elozoTavolsag, dTav;
     for (int k = 0; k < 6; k++)
     {
-        bemenetMeret = 12;
+        bemenetMeret = clippedMeret;
         copy(clipped, clippedMeret, bemenet);
         clippedMeret = 0;
-        elozoPontIndex = bemenetMeret - 4;
         for (int i = 0; i < bemenetMeret; i += 4)
         {
             tavolsag = bemenet[i + sikok[k * 3]] + bemenet[i + sikok[k * 3 + 1]] * sikok[k * 3 + 2];
@@ -115,27 +114,25 @@ void SutherlandHodgman(float *pont0, float *pont1, float *pont2)
                 if (elozoTavolsag < 0)
                 {
                     dTav = elozoTavolsag / (elozoTavolsag - tavolsag);
-                    clipped[clippedMeret] = linearis_interpolacio(bemenet[elozoPontIndex], bemenet[i], dTav);
-                    clipped[clippedMeret + 1] = linearis_interpolacio(bemenet[elozoPontIndex + 1], bemenet[i + 1], dTav);
-                    clipped[clippedMeret + 2] = linearis_interpolacio(bemenet[elozoPontIndex + 2], bemenet[i + 2], dTav);
-                    clipped[clippedMeret + 3] = linearis_interpolacio(bemenet[elozoPontIndex + 3], bemenet[i + 3], dTav);
-                    clippedMeret += 4;
+                    clipped[clippedMeret++] = linearis_interpolacio(bemenet[elozoPontIndex], bemenet[i], dTav);
+                    clipped[clippedMeret++] = linearis_interpolacio(bemenet[elozoPontIndex + 1], bemenet[i + 1], dTav);
+                    clipped[clippedMeret++] = linearis_interpolacio(bemenet[elozoPontIndex + 2], bemenet[i + 2], dTav);
+                    clipped[clippedMeret++] = linearis_interpolacio(bemenet[elozoPontIndex + 3], bemenet[i + 3], dTav);
                 }
-                clipped[clippedMeret] = bemenet[i];
-                clipped[clippedMeret + 1] = bemenet[i + 1];
-                clipped[clippedMeret + 2] = bemenet[i + 2];
-                clipped[clippedMeret + 3] = bemenet[i + 3];
-                clippedMeret += 4;
+                clipped[clippedMeret++] = bemenet[i];
+                clipped[clippedMeret++] = bemenet[i + 1];
+                clipped[clippedMeret++] = bemenet[i + 2];
+                clipped[clippedMeret++] = bemenet[i + 3];
             }
             else
             {
                 if (elozoTavolsag >= 0)
                 {
-                    clipped[clippedMeret] = linearis_interpolacio(bemenet[elozoPontIndex], bemenet[i], dTav);
-                    clipped[clippedMeret + 1] = linearis_interpolacio(bemenet[elozoPontIndex + 1], bemenet[i + 1], dTav);
-                    clipped[clippedMeret + 2] = linearis_interpolacio(bemenet[elozoPontIndex + 2], bemenet[i + 2], dTav);
-                    clipped[clippedMeret + 3] = linearis_interpolacio(bemenet[elozoPontIndex + 3], bemenet[i + 3], dTav);
-                    clippedMeret += 4;
+                    dTav = elozoTavolsag / (elozoTavolsag - tavolsag);
+                    clipped[clippedMeret++] = linearis_interpolacio(bemenet[elozoPontIndex], bemenet[i], dTav);
+                    clipped[clippedMeret++] = linearis_interpolacio(bemenet[elozoPontIndex + 1], bemenet[i + 1], dTav);
+                    clipped[clippedMeret++] = linearis_interpolacio(bemenet[elozoPontIndex + 2], bemenet[i + 2], dTav);
+                    clipped[clippedMeret++] = linearis_interpolacio(bemenet[elozoPontIndex + 3], bemenet[i + 3], dTav);
                 }
             }
             elozoPontIndex = i;
@@ -143,7 +140,7 @@ void SutherlandHodgman(float *pont0, float *pont1, float *pont2)
     }
 }
 
-void pontMVPSzorzas(int ind, float *pont)
+void pontMVPSzorzas(const int &ind, float *pont)
 {
     for (int i = 0; i < 4; i++)
     {
@@ -151,7 +148,7 @@ void pontMVPSzorzas(int ind, float *pont)
     }
 }
 
-void pontokVetitese(int i0, int i1, int i2)
+void pontokVetitese(const int &i0, const int &i1, const int &i2)
 {
     pontMVPSzorzas(i0, p0);
     pontMVPSzorzas(i1, p1);
@@ -163,8 +160,8 @@ void pontokVetitese(int i0, int i1, int i2)
     for (int i = 0; i < clippedMeret / 4 - 2; i++)
     {
         wRec = 1.0f / clipped[3];
-        projectedTriangles[projectedTrianglesMeret++] = (clipped[0] * wRec) * 0.5 * imageWidth;
-        projectedTriangles[projectedTrianglesMeret++] = (1 - clipped[1] * wRec) * 0.5 * imageHeight;
+        projectedTriangles[projectedTrianglesMeret++] = (clipped[0] * wRec) * 0.5f * (float)imageWidth;
+        projectedTriangles[projectedTrianglesMeret++] = (1 - clipped[1] * wRec) * 0.5f * (float)imageHeight;
         projectedTriangles[projectedTrianglesMeret++] = clipped[2] * wRec;
         for (int j = 1; j <= 2; j++)
         {
@@ -183,18 +180,19 @@ float edgeFunction(float X, float Y, float dX, float dY, float x, float y)
 
 int render()
 {
-    zBuffer = (float *)calloc(zBufferMeret, sizeof(float));
-    imageAntiBufferLength = imageWidth * imageHeight * antialias * 3;
-    imageAntiBuffer = (float *)calloc(imageAntiBufferLength, sizeof(float));
-    imageBufferLength = imageWidth * imageHeight * 3;
-    imageBuffer = (float *)calloc(imageBufferLength, sizeof(float));
+    zBufferMeret = imageWidth * imageHeight * antialias;
+    zBuffer = (float *)malloc(zBufferMeret * sizeof(float));
     for (int i = 0; i < zBufferMeret; i++)
     {
         zBuffer[i] = 1;
     }
+    imageAntiBufferLength = imageWidth * imageHeight * antialias * 3;
+    imageAntiBuffer = (float *)calloc(imageAntiBufferLength, sizeof(float));
+    imageBufferLength = imageWidth * imageHeight * 3;
+    imageBuffer = (float *)calloc(imageBufferLength, sizeof(float));
     float sqrAntialias = sqrt(antialias);
     float sqrAntialiasRec = 1.0f / sqrt(antialias);
-    float inc = sqrAntialiasRec * 0.5;
+    float inc = sqrAntialiasRec * 0.5f;
     float htminx, htmaxx, htminy, htmaxy;
     projectedTriangles = (float *)calloc(indexekMeret * 7, sizeof(float));
     float dX0, dY0, dX1, dY1, dX2, dY2, w0, w1, w2, z0Rec, z1Rec, z2Rec, jobbraKicsiPixel0, jobbraKicsiPixel1, jobbraKicsiPixel2;
@@ -204,6 +202,7 @@ int render()
     float haromszogTerulet, haromszogTeruletRec;
     float zMelyseg;
     int bufferIndex, kepIndex;
+    matrixSzorzas4x4(MCamera, P, MVP);
     for (int i = 0; i < indexekMeret; i += 3)
     {
         pontokVetitese(indexek[i], indexek[i + 1], indexek[i + 2]);
@@ -260,14 +259,9 @@ int render()
             sorEleje2 = dY2 * (htmaxx - htminx + 1);
             haromszogTerulet = 1.0f / edgeFunction(
                                           projectedTriangles[j], projectedTriangles[j + 1],
-                                          projectedTriangles[j + 3] - projectedTriangles[j],
-                                          projectedTriangles[j + 4] - projectedTriangles[j + 1],
+                                          dX2,
+                                          dY2,
                                           projectedTriangles[j + 6], projectedTriangles[j + 7]);
-
-            if (haromszogTerulet <= 0)
-                continue; // backface or degenerate
-
-            haromszogTeruletRec = 1.0f / haromszogTerulet;
 
             for (int y = htminy; y <= htmaxy; y++)
             {
@@ -285,18 +279,18 @@ int render()
                         {
                             if (w0 >= 0 && w1 >= 0 && w2 >= 0)
                             {
-                                lambda0 = w0 * haromszogTeruletRec;
-                                lambda1 = w1 * haromszogTeruletRec;
-                                lambda2 = w2 * haromszogTeruletRec;
+                                lambda0 = w0 * haromszogTerulet;
+                                lambda1 = w1 * haromszogTerulet;
+                                lambda2 = w2 * haromszogTerulet;
                                 zMelyseg = 1.0f / (z0Rec * lambda0 + z1Rec * lambda1 + z2Rec * lambda2);
                                 bufferIndex = (y * imageWidth + x) * antialias + ya * sqrAntialias + xa;
                                 if (zMelyseg < zBuffer[bufferIndex])
                                 {
                                     zBuffer[bufferIndex] = zMelyseg;
                                     kepIndex = bufferIndex * 3;
-                                    imageAntiBuffer[kepIndex] = 0;
-                                    imageAntiBuffer[kepIndex + 1] = 255;
-                                    imageAntiBuffer[kepIndex + 2] = 0;
+                                    imageAntiBuffer[kepIndex] = 255.0f / projectedTriangles[i + 2] * lambda0 * zMelyseg;
+                                    imageAntiBuffer[kepIndex + 1] = 255.0f / projectedTriangles[i + 5] * lambda1 * zMelyseg;
+                                    imageAntiBuffer[kepIndex + 2] = 255.0f / projectedTriangles[i + 8] * lambda2 * zMelyseg;
                                 }
                             }
                             w0 += jobbraKicsiPixel0;
@@ -332,9 +326,9 @@ int render()
             altalanosIndex = (y * imageWidth + x);
             imageAntiIndex = altalanosIndex * antialias;
             imageBufferIndex = altalanosIndex * 3;
-            r = 0;
-            g = 0;
-            b = 0;
+            r = 0.0f;
+            g = 0.0f;
+            b = 0.0f;
             for (int k = 0; k < antialias; k++)
             {
                 subImageIndex = (imageAntiIndex + k) * 3;
@@ -347,7 +341,15 @@ int render()
             imageBuffer[imageBufferIndex + 2] = b * antiRec;
         }
     }
+    free(projectedTriangles);
+    free(zBuffer);
+    free(imageAntiBuffer);
     return (int)imageBuffer;
+}
+
+void freeImageBuffer()
+{
+    free(imageBuffer);
 }
 
 int imageBufferSize()
@@ -357,11 +359,10 @@ int imageBufferSize()
 
 void setFrustum(float focal, float filmW, float filmH, int imageW, int imageH, int n, int f)
 {
-    float xKitoltes = 1;
-    float yKitoltes = 1;
+    float xKitoltes = 1.0f;
+    float yKitoltes = 1.0f;
     imageWidth = imageW;
     imageHeight = imageH;
-    zBufferMeret = imageWidth * imageH * antialias;
     // Ha a film képaránya más mint a kép képaránya
     if (filmW / filmH > imageW / imageH)
     {
@@ -371,16 +372,16 @@ void setFrustum(float focal, float filmW, float filmH, int imageW, int imageH, i
     {
         yKitoltes = (filmW / filmH) / (imageW / imageH);
     }
-    t = ((filmH / 2) / focal * n) * yKitoltes;
+    t = ((filmH / 2.0f) / focal * n) * yKitoltes;
     r = t * (filmW / filmH) * xKitoltes;
     b = -t;
     l = -r;
-    P[0] = 2 * n / (r - l);
-    P[5] = 2 * n / (t - b);
+    P[0] = 2.0f * n / (r - l);
+    P[5] = 2.0f * n / (t - b);
     P[8] = (r + l) / (r - l);
     P[9] = (t + b) / (t - b);
     P[10] = f / (n - f);
-    P[11] = -1;
+    P[11] = -1.0f;
     P[14] = n * f / (n - f);
 }
 
@@ -405,6 +406,11 @@ int allocatePontok(int szamokSzama)
         return (int)pontok;
     }
     return 0;
+}
+
+void setAntialias(int anti)
+{
+    antialias = anti;
 }
 
 int allocateIndexek(int indexekSzam)
@@ -492,8 +498,10 @@ int allocate4x4Matrix()
 
 void forgas()
 {
-    yforgas += 0.1;
-    float *forgasMatrix = (float *)calloc(16, sizeof(float));   
+    yforgas += 0.1f;
+    if (yforgas >= 6.2831853f)
+        yforgas -= 6.2831853f;
+    float *forgasMatrix = (float *)calloc(16, sizeof(float));
     float sine = sinf(yforgas);
     float cosine = cosf(yforgas);
     forgasMatrix[0] = cosine;
@@ -502,10 +510,10 @@ void forgas()
     forgasMatrix[8] = sine;
     forgasMatrix[10] = cosine;
     forgasMatrix[15] = 1;
-    float temp[16];
+    float *temp = (float *)calloc(16, sizeof(float));
     matrixSzorzas4x4(MCamera, forgasMatrix, temp);
     memcpy(MCamera, temp, 16 * sizeof(float));
-    matrixSzorzas4x4(MCamera, P, MVP);
+    free(temp);
     free(forgasMatrix);
 }
 
@@ -525,12 +533,16 @@ void init()
     sikok[3] = 3;
     sikok[5] = 1;
     sikok[6] = 3;
+    sikok[7] = 1;
     sikok[8] = -1;
     sikok[9] = 3;
+    sikok[10] = 1;
     sikok[11] = 1;
     sikok[12] = 3;
+    sikok[13] = 2;
     sikok[14] = -1;
     sikok[15] = 3;
+    sikok[16] = 2;
     sikok[17] = 1;
     MCamera[0] = 1;
     MCamera[5] = 1;
@@ -541,8 +553,8 @@ void init()
     MVP[10] = 1;
     MVP[15] = 1;
     rndSzm = 0;
-    antialias = 1;
-    yforgas = 0;
+    antialias = 4;
+    yforgas = 0.0f;
 }
 
 EMSCRIPTEN_BINDINGS(raw_pointers)
@@ -564,4 +576,6 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("meretBeallit", &meretBeallit);
     emscripten::function("setFrustum", &setFrustum);
     emscripten::function("forgas", &forgas);
+    emscripten::function("freeImageBuffer", &freeImageBuffer);
+    emscripten::function("setAntialias", &setAntialias);
 }

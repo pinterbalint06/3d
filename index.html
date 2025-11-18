@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="webassembly.js"></script>
     <script src="./utils/random.js"></script>
     <script src="./utils/perlin.js"></script>
     <script src="geometria.js"></script>
     <script src="rasterizer.js"></script>
+    <script src="webassembly.js"></script>
 </head>
 
 <body>
@@ -21,7 +21,7 @@
             <input type="range" id="seed" min="1" max="1000000000"
                 oninput="this.nextElementSibling.value = this.value; ujhely();ujTerkep();">
             <output>40</output>
-            <button type="button" onclick="ujhely();rendereles();">Új hely</button>
+            <button type="button" onclick="ujhely();">Új hely</button>
             <button type="button" onclick="forgasTovab();">Forgás</button>
             <button type="button" onclick="irany(0.5, 0);">Le</button>
             <button type="button" onclick="irany(-0.5, 0);">Fel</button>

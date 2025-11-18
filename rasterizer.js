@@ -87,11 +87,10 @@ function edgeFunction(X, Y, dX, dY, x, y) {
     return (x - X) * dY - (y - Y) * dX;
 }
 
-function pontokKivetitese(x0, y0, z0, x1, y1, z1, x2, y2, z2, Mkamera) {
-    let MVP = matrixSzorzas4x4(Mkamera, P, matrixEredmenyhely);
-    let p0t = pontMatrix([x0, y0, z0], MVP);
-    let p1t = pontMatrix([x1, y1, z1], MVP);
-    let p2t = pontMatrix([x2, y2, z2], MVP);
+function pontokKivetitese(x0, y0, z0, x1, y1, z1, x2, y2, z2, mvp) {
+    let p0t = pontMatrix([x0, y0, z0], mvp);
+    let p1t = pontMatrix([x1, y1, z1], mvp);
+    let p2t = pontMatrix([x2, y2, z2], mvp);
 
     let clipped = SutherlandHodgman(p0t, p1t, p2t);
     let vissza = [];
@@ -190,6 +189,7 @@ function kirajzol(canvasId, antialias = 1) {
     let gyokElsimitas = Math.sqrt(antialias);
     let gyokElsimitasReciprok = 1 / Math.sqrt(antialias);
     let inc = gyokElsimitasReciprok * 0.5;
+    let MVP = matrixSzorzas4x4(kameraMatrix, P, matrixEredmenyhely);
     for (let i = 0; i < indexek.length; i += 3) {
         htminx = jsCanvasSzelesseg;
         htminy = jsCanvasMagassag;
@@ -200,7 +200,7 @@ function kirajzol(canvasId, antialias = 1) {
             pontok[indexek[i] * 3], pontok[indexek[i] * 3 + 1], pontok[indexek[i] * 3 + 2],
             pontok[indexek[i + 1] * 3], pontok[indexek[i + 1] * 3 + 1], pontok[indexek[i + 1] * 3 + 2],
             pontok[indexek[i + 2] * 3], pontok[indexek[i + 2] * 3 + 1], pontok[indexek[i + 2] * 3 + 2],
-            kameraMatrix
+            MVP
         );
         for (let i = 0; i < kivetitettHaromszogek.length; i += 9) {
             // A háromszöget határolókeret pontjainak kiszámolása
@@ -247,7 +247,11 @@ function kirajzol(canvasId, antialias = 1) {
             let sorEleje1 = dY1 * (htmaxx - htminx + 1);
             let sorEleje2 = dY2 * (htmaxx - htminx + 1);
             let lambda0, lambda1, lambda2;
-            let haromszogterulet = 1 / edgeFunction(kivetitettHaromszogek[i], kivetitettHaromszogek[i + 1], kivetitettHaromszogek[i + 3] - kivetitettHaromszogek[i], kivetitettHaromszogek[i + 4] - kivetitettHaromszogek[i + 1], kivetitettHaromszogek[i + 6], kivetitettHaromszogek[i + 7]);
+            let haromszogterulet = 1 / edgeFunction(
+                kivetitettHaromszogek[i], kivetitettHaromszogek[i + 1],
+                kivetitettHaromszogek[i + 3] - kivetitettHaromszogek[i],
+                kivetitettHaromszogek[i + 4] - kivetitettHaromszogek[i + 1],
+                kivetitettHaromszogek[i + 6], kivetitettHaromszogek[i + 7]);
             for (let y = htminy; y <= htmaxy; y++) {
                 // Ei(x, y+1) = Ei(x, y) - dXi
                 // letoljuk egy pixellel
@@ -350,13 +354,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     seed = Math.floor(Math.random() * 10000) + 1;
     sd.value = seed;
     sd.nextElementSibling.value = sd.value;
-    ujhely();
     Module.onRuntimeInitialized = function () {
-        Module._meretBeallit(meret);
-        kameraMatrixHely = Module._allocate4x4Matrix();
-        matrixEredmenyhely = Module._allocate4x4Matrix();
-        m1Hely = Module._allocate4x4Matrix();
-        m2Hely = Module._allocate4x4Matrix();
+        Module.init();
+        Module.meretBeallit(meret);
         ujTerkep();
     };
 });
@@ -371,6 +371,7 @@ let perlinErtekek, pontok, indexek;
 
 function forgasTovab() {
     yforgas += 0.1;
+    Module.forgas();
     rendereles();
 }
 
@@ -389,33 +390,35 @@ function teszt() {
 function ujTerkep() {
     // 45-75ms
     let eleje = performance.now()
-    let perlinHelye = Module._allocatePerlin(meret * meret);
+    let perlinHelye = Module.allocatePerlin(meret * meret);
     perlinErtekek = new Float32Array(
         wasmMemory.buffer,
         perlinHelye,
         meret * meret * 3
     );
     perlin(perlinErtekek, 1, meret, seed, 2, 9, 2, 2.2);
-    let pontokHelye = Module._allocatePontok(meret * meret * 3);
+    let pontokHelye = Module.allocatePontok(meret * meret * 3);
     pontok = new Float32Array(
         wasmMemory.buffer,
         pontokHelye,
         meret * meret * 3
     );
-    let indexekHelye = Module._allocateIndexek((meret - 1) * (meret - 1) * 6);
+    let indexekHelye = Module.allocateIndexek((meret - 1) * (meret - 1) * 6);
     indexek = new Int32Array(
         wasmMemory.buffer,
         indexekHelye,
         (meret - 1) * (meret - 1) * 6
     );
-    Module._pontokKiszamolasa(150);
-    Module._osszekotesekKiszamolasa();
-    console.log("Új térkép idő:", performance.now() - eleje);
+    Module.pontokKiszamolasa(150);
+    Module.osszekotesekKiszamolasa();
+    console.log("Új térkép idő:", performance.now() - eleje)
+    Module.ujHely();
     rendereles();
 }
 
 function ujhely() {
     rndszm = Math.round(Math.random() * meret * meret);
+    Module.ujHely();
 }
 
 function irany(x, y) {
@@ -424,7 +427,31 @@ function irany(x, y) {
     rendereles();
 }
 
+function ujKirajzol(canvasId, antialias = 1) {
+    Module.setFrustum(fokuszTavolsag, filmSzel, filmMag, jsCanvasSzelesseg, jsCanvasMagassag, n, f);
+    console.log(Module);
+    let imageBufferHely = Module.render();
+    let imageBufferMeret = Module.imageBufferSize();
+    let imageBuffer = new Float32Array(
+        wasmMemory.buffer,
+        imageBufferHely,
+        imageBufferMeret
+    )
+    let ctx = document.getElementById(canvasId).getContext("2d");
+    ctx.clearRect(0, 0, jsCanvasSzelesseg, jsCanvasMagassag);
+
+    let img = ctx.createImageData(jsCanvasSzelesseg, jsCanvasMagassag);
+    let data = img.data;
+    for (let i = 0; i < imageBufferMeret / 3; i++) {
+        data[i * 4] = imageBuffer[i * 3];
+        data[i * 4 + 1] = imageBuffer[i * 3 + 1];
+        data[i * 4 + 2] = imageBuffer[i * 3 + 2];
+        data[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+}
+
 function rendereles() {
     let elsimitas = parseInt(document.getElementById("antialias").value);
-    kirajzol("canvas", elsimitas);
+    ujKirajzol("canvas", elsimitas);
 }

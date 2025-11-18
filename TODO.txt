@@ -1,3 +1,4 @@
 1. WebAssembly
 2. Edge Function dokumentálása
+3. Webassembly SIMD
 2. Sutherland-Hodgman algoritmus dokumentálása

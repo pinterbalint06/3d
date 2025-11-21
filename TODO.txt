@@ -4,3 +4,4 @@
 4. Perlin-zaj átírása webassemblybe
 5. Shading
 6. Texturing
+7. Edge function további optimalizálása

@@ -1,5 +1,7 @@
 \documentclass[12pt]{article}
 \usepackage{mathtools,amssymb, amsthm, tikz}
+\usepackage{tikz-3dplot}
+\usetikzlibrary{angles, quotes}
 \usetikzlibrary{patterns}
 \usepackage[margin=1in]{geometry}
 \usepackage{url}
@@ -13,6 +15,7 @@
 \author{Pintér Bálint}
 \renewcommand{\contentsname}{Tartalomjegyzék}
 \renewcommand{\bibsection}{\section*{Források}}
+\tdplotsetmaincoords{60}{130}
 
 \begin{document}
 \maketitle
@@ -108,7 +111,7 @@ A 2. ábra szemlélteti, hogy a háromszög 'belseje' a három oldalhoz tartozó
           \end{itemize}
 \end{itemize}
 Az edge function lényegében egy 'keresztszorzat'. Kettő két dimenziós vektor
-'keresztszorzata' a rájuk merőleges vektor $Z$ koordinátáját adja meg.
+'keresztszorzata' a rájuk merőleges vektor $Z$ koordinátáját, hosszát adja meg.
 \begin{align*}
     \vec{u}\times\vec{x}=\det
     \begin{bmatrix}
@@ -119,10 +122,10 @@ Az edge function lényegében egy 'keresztszorzat'. Kettő két dimenziós vekto
 \end{align*}
 Helyettesítsuk be az értékeinket:
 \begin{align*}
-    u_{x} &= x - X \\
-    u_{y} &= y - Y \\
-    v_{x} &= dX \\
-    v_{y} &= dY \\
+    u_{x} & = x - X \\
+    u_{y} & = y - Y \\
+    v_{x} & = dX    \\
+    v_{y} & = dY    \\
 \end{align*}
 A végeredmény:
 \begin{align*}
@@ -130,6 +133,104 @@ A végeredmény:
 \end{align*}
 \newpage
 \section{Edge function működési elve}
+A kapott $Z$ koordináta előjele a két vektor forgásától függ a geometriai
+jobbkéz-szabály szerint.
+
+\begin{center}
+    % --- ROW 1: Figures 1 and 2 ---
+    \begin{minipage}[t]{0.48\textwidth} % Figure 1: Alpha = 0
+        \centering
+        \begin{tikzpicture}[tdplot_main_coords,scale=1.5, line cap=round]
+            \begin{scope}[canvas is xy plane at z=0]
+                \draw[step=0.5, gray!30, very thin] (-1.5,-1.5) grid (1.5,1.5);
+                \draw[thick] (-1.5,0) -- (1.5,0);
+                \draw[thick] (0,-1.5) -- (0,1.5);
+            \end{scope}
+            \coordinate (O) at (0,0,0);
+            \coordinate (A) at (1,0,0);
+            \tdplotsetcoord{B}{1}{90}{0}
+            \pgfmathsetmacro{\Cz}{-sin(0)}
+            \coordinate (C) at (0, 0,\Cz);
+            \draw[->, red, ultra thick] (O) -- (A) node[anchor=north east] {$\vec{v}$};
+            \draw[->, blue, ultra thick] (O) -- (B) node[anchor=south west] {$\vec{u}$};
+            \draw[->, green!80!black, ultra thick] (O) -- (C) node[anchor=south west] {$\mathbf{z}$};
+            \draw pic [opacity=0, angle radius=0.65cm] {angle = A--O--B};
+        \end{tikzpicture}
+        \vspace{0.5ex}
+        % SHIFTED RIGHT: Adjusting the text position
+        \hspace*{4mm}$\alpha = 0^\circ$
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth} % Figure 2: Alpha = 90
+        \centering
+        \begin{tikzpicture}[tdplot_main_coords,scale=1.5, line cap=round]
+            \begin{scope}[canvas is xy plane at z=0]
+                \draw[step=0.5, gray!30, very thin] (-1.5,-1.5) grid (1.5,1.5);
+                \draw[thick] (-1.5,0) -- (1.5,0);
+                \draw[thick] (0,-1.5) -- (0,1.5);
+            \end{scope}
+            \coordinate (O) at (0,0,0);
+            \coordinate (A) at (1,0,0);
+            \tdplotsetcoord{B}{1}{90}{90}
+            \pgfmathsetmacro{\Cz}{-sin(90)}
+            \coordinate (C) at (0, 0,\Cz);
+            \draw[->, red, ultra thick] (O) -- (A) node[anchor=north east] {$\vec{v}$};
+            \draw[->, blue, ultra thick] (O) -- (B) node[anchor=south west] {$\vec{u}$};
+            \draw[->, green!80!black, ultra thick] (O) -- (C) node[anchor=south west] {$\mathbf{z}$};
+            \draw pic ["$\alpha$", draw=black, angle radius=0.65cm] {angle = A--O--B};
+        \end{tikzpicture}
+        \vspace{0.5ex}
+        % SHIFTED RIGHT: Adjusting the text position
+        \hspace*{4mm}$\alpha = 90^\circ$
+    \end{minipage}
+
+    \vspace{1cm} % Vertical space between the two rows
+
+    % --- ROW 2: Figures 3 and 4 (No change needed) ---
+    \begin{minipage}[t]{0.48\textwidth} % Figure 3: Alpha = 180
+        \centering
+        \begin{tikzpicture}[tdplot_main_coords,scale=1.5, line cap=round]
+            \begin{scope}[canvas is xy plane at z=0]
+                \draw[step=0.5, gray!30, very thin] (-1.5,-1.5) grid (1.5,1.5);
+                \draw[thick] (-1.5,0) -- (1.5,0);
+                \draw[thick] (0,-1.5) -- (0,1.5);
+            \end{scope}
+            \coordinate (O) at (0,0,0);
+            \coordinate (A) at (1,0,0);
+            \tdplotsetcoord{B}{1}{90}{180}
+            \pgfmathsetmacro{\Cz}{-sin(180)}
+            \coordinate (C) at (0, 0,\Cz);
+            \draw[->, red, ultra thick] (O) -- (A) node[anchor=north east] {$\vec{v}$};
+            \draw[->, blue, ultra thick] (O) -- (B) node[anchor=south west] {$\vec{u}$};
+            \draw[->, green!80!black, ultra thick] (O) -- (C) node[anchor=south west] {$\mathbf{z}$};
+            \draw pic ["$\alpha$", draw=black, angle radius=0.65cm] {angle = A--O--B};
+        \end{tikzpicture}
+        \vspace{0.5ex}
+        $\alpha = 180^\circ$
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth} % Figure 4: Alpha = 270
+        \centering
+        \begin{tikzpicture}[tdplot_main_coords,scale=1.5, line cap=round]
+            \begin{scope}[canvas is xy plane at z=0]
+                \draw[step=0.5, gray!30, very thin] (-1.5,-1.5) grid (1.5,1.5);
+                \draw[thick] (-1.5,0) -- (1.5,0);
+                \draw[thick] (0,-1.5) -- (0,1.5);
+            \end{scope}
+            \coordinate (O) at (0,0,0);
+            \coordinate (A) at (1,0,0);
+            \tdplotsetcoord{B}{1}{90}{270}
+            \pgfmathsetmacro{\Cz}{-sin(270)}
+            \coordinate (C) at (0, 0,\Cz);
+            \draw[->, red, ultra thick] (O) -- (A) node[anchor=north east] {$\vec{v}$};
+            \draw[->, blue, ultra thick] (O) -- (B) node[anchor=south west] {$\vec{u}$};
+            \draw[->, green!80!black, ultra thick] (O) -- (C) node[anchor=south west] {$\mathbf{z}$};
+            \draw pic ["$\alpha$", draw=black, angle radius=0.65cm] {angle = A--O--B};
+        \end{tikzpicture}
+        \vspace{0.5ex}
+        $\alpha = 270^\circ$
+    \end{minipage}
+\end{center}
 \newpage
 \nocite{*}
 \bibliographystyle{plainnat}

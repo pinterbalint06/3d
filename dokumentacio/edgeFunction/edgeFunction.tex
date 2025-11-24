@@ -15,6 +15,11 @@
 \author{Pintér Bálint}
 \renewcommand{\contentsname}{Tartalomjegyzék}
 \renewcommand{\bibsection}{\section*{Források}}
+\newcommand{\paralelogramma}{
+    \begin{tikzpicture}[scale=0.15, baseline=(current bounding box.center)]
+        \draw[black] (0,0) -- (1.5,0) -- (2.3,1) -- (0.8,1) -- cycle;
+    \end{tikzpicture}
+}
 \tdplotsetmaincoords{60}{130}
 
 \begin{document}
@@ -27,8 +32,8 @@
 Az edge function egy lineáris függvény, amellyel egy egyenessel kettéosztott
 síkon lévő pontokat lehet három régióba osztani:
 \begin{itemize}
-    \item Az egyenestől 'jobbra' lévő pontok (ahol a függvény értéke pozitív).
-    \item Az egyenestől 'balra' lévő pontok (ahol a függvény értéke negatív).
+    \item Az egyenestől `jobbra' lévő pontok (ahol a függvény értéke pozitív).
+    \item Az egyenestől `balra' lévő pontok (ahol a függvény értéke negatív).
     \item Az egyenesre illeszkedő pontok (ahol a függvény értéke nulla).
 \end{itemize}
 \begin{center}
@@ -52,9 +57,9 @@ síkon lévő pontokat lehet három régióba osztani:
         \node[right] at (A1) {$A$};
         \node[right] at (B1) {$B$};
         \node[font=\Large] at (2,4) {$\boldsymbol{-}$};
-        \node[] at (2,4.5) {"Bal" oldal};
+        \node[] at (2,4.5) {`Bal' oldal};
         \node[font=\Large] at (4,2) {$\boldsymbol{+}$};
-        \node[] at (4, 1) {"Jobb" oldal};
+        \node[] at (4, 1) {`Jobb' oldal};
         \node[below, text width=6cm, align=center] at (3,0) {\textbf{1.~Ábra}\\Sík felosztása A-n és B-n átmenő egyenessel};
 
         \coordinate (BL2) at (8,0);
@@ -92,11 +97,11 @@ síkon lévő pontokat lehet három régióba osztani:
         \node[above left] at (A2) {$A$};
         \node[right] at (B2) {$B$};
         \node[above right] at (C2) {$C$};
-        \node[below, text width=6cm, align=center] at (11,0) {\textbf{2.~Ábra}\\Az AB, BC és CA szakaszok által meghatározott egyenesek "jobb" oldalainak metszete egy háromszög};
+        \node[below, text width=6cm, align=center] at (11,0) {\textbf{2.~Ábra}\\Az AB, BC és CA szakaszok által meghatározott egyenesek `jobb' oldalainak metszete egy háromszög belseje};
 
     \end{tikzpicture}
 \end{center}
-A 2. ábra szemlélteti, hogy a háromszög 'belseje' a három oldalhoz tartozó megfelelő irányú edge function előjelei alapján meghatározható.
+A 2. ábra szemlélteti, hogy a háromszög `belseje' a három oldalhoz tartozó megfelelő irányú edge function előjelei alapján meghatározható. Ezt használjuk 3D renderelésben, hogy a pixelt (pontot) tartalmazza-e a háromszög.
 \newpage
 \section{Edge function levezetése}
 \begin{itemize}
@@ -110,17 +115,19 @@ A 2. ábra szemlélteti, hogy a háromszög 'belseje' a három oldalhoz tartozó
               \item Ekkor a $\vec{P_{0}P}=\vec{u}=(x - X, y - Y)$
           \end{itemize}
 \end{itemize}
-Az edge function lényegében egy 'keresztszorzat'. Kettő két dimenziós vektor
-'keresztszorzata' a rájuk merőleges vektor $Z$ koordinátáját, hosszát adja meg.
+Az edge function lényegében a két vektor által alkotott $2 \times 2$-es mátrix determinánsa.
 \begin{align*}
-    \vec{u}\times\vec{x}=\det
+    \det
     \begin{bmatrix}
         u_{x} & u_{y} \\
         v_{x} & v_{y}
-    \end{bmatrix}
-    = u_{x}v_{y}-v_{x}u_{y}
+    \end{bmatrix} & =u_{x}v_{y}-u_{y}v_{x}\quad\text{/ } \det
+    \begin{bmatrix}
+        a & b \\
+        c & d
+    \end{bmatrix}=ad-bc
 \end{align*}
-Helyettesítsuk be az értékeinket:
+Helyettesítsük be az értékeinket:
 \begin{align*}
     u_{x} & = x - X \\
     u_{y} & = y - Y \\
@@ -129,16 +136,88 @@ Helyettesítsuk be az értékeinket:
 \end{align*}
 A végeredmény:
 \begin{align*}
-    \boxed{E(x,y)=(x - X)dY-(y - Y)dX}
+    E(x,y)            & = (x - X)dY-(y - Y)dX \\
+    E_{P_{0}P_{1}}(P) & = (x - X)dY-(y - Y)dX
 \end{align*}
 \newpage
 \section{Edge function működési elve}
-A kapott $Z$ koordináta előjele a két vektor forgásától függ a geometriai
-jobbkéz-szabály szerint.
+\subsection{Edge function geometriai jelentése}
+A determináns előjele $2\times2$-es mátrix esetén:
+\begin{itemize}
+    \item Pozitív esetben a vektorok jobbsodrású (pozitív irányítású) rendszert alkotnak.
+    \item Negatív esetben a vektorok balsodrású (negatív irányítású) rendszert alkotnak.
+    \item Nulla esetén párhuzamosak.
+\end{itemize}
+A determináns abszolút értéke $2\times2$-es mátrix esetén a mátrix sorvektorai által kifeszített paralelogramma területét jelenti. Így, ha ezt elosztjuk kettővel, akkor megkapjuk a háromszög területét. 
+\begin{center}
+    \begin{tikzpicture}
+
+        \coordinate (A) at (0,0);
+        \coordinate (B) at (6,1);
+
+        \coordinate (C) at (2,5);
+        \coordinate (D) at (8,6);
+        \draw (C) -- (A) -- (B);
+        \draw[dashed] (B) -- (D);
+        \draw[dashed] (C) -- (D);
+        \fill[pattern=north east lines, pattern color=gray]
+        (A) -- (B) -- (C) -- cycle;
+
+        \node[below left] at (A) {$A$};
+        \node[right] at (B) {$B$};
+        \node[above] at (C) {$C$};
+        \node[above right] at (D) {$D$};
+        \node[below, text width=6cm, align=center] at (4,0) {\textbf{3.~Ábra}\\Paralelogramma területe};
+    \end{tikzpicture}
+    \begin{align*}
+        E_{AC}(B)            & =T_{ABCD_{\paralelogramma}} \\
+        \frac{1}{2}E_{AC}(B) & =T_{ABC_{\Delta}}
+    \end{align*}
+\end{center}
+\subsubsection{Baricentrikus koordináták}
+Az előbb kiszámolt területet felhasználjuk a háromszögön belüli pont (pixel) baricentrikus koordinátáinak kiszámolására (A baricentrikus koordinátákkal tudjuk interpolálni a háromszög egy belső pontjára a háromszög csúcsaihoz vett értékeket).
+\begin{center}
+    \begin{tikzpicture}
+
+        \coordinate (A) at (0,0);
+        \coordinate (B) at (6,1);
+
+        \coordinate (C) at (2,5);
+        \coordinate (T) at (2,3);
+        \draw (A) -- (B) -- (C) -- cycle;
+        \draw (A) -- (T) -- (C);
+        \draw (T) -- (B);
+        \fill[pattern=north east lines, pattern color=green]
+        (A) -- (T) -- (C) -- cycle;
+        \fill[pattern=north east lines, pattern color=red]
+        (B) -- (T) -- (C) -- cycle;
+        \fill[pattern=north east lines, pattern color=blue]
+        (A) -- (T) -- (B) -- cycle;
+
+        \node[circle, fill, inner sep=1.5pt] at (T) {};
+
+        \node[below left] at (A) {$A$};
+        \node[right] at (B) {$B$};
+        \node[above] at (C) {$C$};
+        \node[above right] at (T) {$T$};
+        \node[below, text width=6cm, align=center] at (3,0) {\textbf{4.~Ábra}\\A háromszög egy belső ponttal felosztva.};
+    \end{tikzpicture}
+    \begin{align*}
+        \textcolor{red}{\lambda_{A}}                                                              & =\frac{T_{TBC_{\textcolor{red}{\Delta}}}}{T_{ABC_{\Delta}}}   & \text{/ } T_{TBC_{\textcolor{red}{\Delta}}}=\frac{1}{2}E_{CB}(T)   \\
+        \textcolor{green}{\lambda_{B}}                                                            & =\frac{T_{ATC_{\textcolor{green}{\Delta}}}}{T_{ABC_{\Delta}}} & \text{/ } T_{ATC_{\textcolor{green}{\Delta}}}=\frac{1}{2}E_{AC}(T) \\
+        \textcolor{blue}{\lambda_{C}}                                                             & =\frac{T_{ATB_{\textcolor{blue}{\Delta}}}}{T_{ABC_{\Delta}}}  & \text{/ } T_{ATB_{\textcolor{blue}{\Delta}}}=\frac{1}{2}E_{BA}(T)  \\
+                                                                                                  & \text{Fontos tulajdonságuk:}                                  &                                                                    \\
+        \textcolor{red}{\lambda_{A}}+\textcolor{green}{\lambda_{B}}+\textcolor{blue}{\lambda_{C}} & =1                                                            & \text{/ Területszámítás axiómáiból is következik}
+    \end{align*}
+\end{center}
+\subsection{Vektoriális szorzatos magyarázat}
+A vektoriális szorzat definíció szerint csak háromdimenziós vektorokra van
+értelmezve. Ha azonban a $\vec{u}$ és $\vec{v}$ vektorainkat kiegészítjük $z=0$
+koordinátával, akkor az így kapott két vektor vektoriális szorzatának a $z$
+koordinátája az edge function értéke.
 
 \begin{center}
-    % --- ROW 1: Figures 1 and 2 ---
-    \begin{minipage}[t]{0.48\textwidth} % Figure 1: Alpha = 0
+    \begin{minipage}[t]{0.48\textwidth}
         \centering
         \begin{tikzpicture}[tdplot_main_coords,scale=1.5, line cap=round]
             \begin{scope}[canvas is xy plane at z=0]
@@ -147,21 +226,19 @@ jobbkéz-szabály szerint.
                 \draw[thick] (0,-1.5) -- (0,1.5);
             \end{scope}
             \coordinate (O) at (0,0,0);
-            \coordinate (A) at (1,0,0);
-            \tdplotsetcoord{B}{1}{90}{0}
+            \coordinate (A) at (-1,0,0);
+            \tdplotsetcoord{B}{-1}{90}{0}
             \pgfmathsetmacro{\Cz}{-sin(0)}
             \coordinate (C) at (0, 0,\Cz);
             \draw[->, red, ultra thick] (O) -- (A) node[anchor=north east] {$\vec{v}$};
             \draw[->, blue, ultra thick] (O) -- (B) node[anchor=south west] {$\vec{u}$};
             \draw[->, green!80!black, ultra thick] (O) -- (C) node[anchor=south west] {$\mathbf{z}$};
-            \draw pic [opacity=0, angle radius=0.65cm] {angle = A--O--B};
         \end{tikzpicture}
         \vspace{0.5ex}
-        % SHIFTED RIGHT: Adjusting the text position
-        \hspace*{4mm}$\alpha = 0^\circ$
+        \hspace*{4mm}$z = 0\Rightarrow$ \\ Párhuzamos a két vektor \\ A pont a vonalon van
     \end{minipage}%
     \hfill
-    \begin{minipage}[t]{0.48\textwidth} % Figure 2: Alpha = 90
+    \begin{minipage}[t]{0.48\textwidth}
         \centering
         \begin{tikzpicture}[tdplot_main_coords,scale=1.5, line cap=round]
             \begin{scope}[canvas is xy plane at z=0]
@@ -170,24 +247,20 @@ jobbkéz-szabály szerint.
                 \draw[thick] (0,-1.5) -- (0,1.5);
             \end{scope}
             \coordinate (O) at (0,0,0);
-            \coordinate (A) at (1,0,0);
-            \tdplotsetcoord{B}{1}{90}{90}
+            \coordinate (A) at (-1,0,0);
+            \tdplotsetcoord{B}{-1}{90}{90}
             \pgfmathsetmacro{\Cz}{-sin(90)}
             \coordinate (C) at (0, 0,\Cz);
             \draw[->, red, ultra thick] (O) -- (A) node[anchor=north east] {$\vec{v}$};
             \draw[->, blue, ultra thick] (O) -- (B) node[anchor=south west] {$\vec{u}$};
             \draw[->, green!80!black, ultra thick] (O) -- (C) node[anchor=south west] {$\mathbf{z}$};
-            \draw pic ["$\alpha$", draw=black, angle radius=0.65cm] {angle = A--O--B};
         \end{tikzpicture}
         \vspace{0.5ex}
-        % SHIFTED RIGHT: Adjusting the text position
-        \hspace*{4mm}$\alpha = 90^\circ$
+        \hspace*{4mm}$z < 0\Rightarrow$ \\ A pont `balra' van a vonaltól
     \end{minipage}
 
-    \vspace{1cm} % Vertical space between the two rows
-
-    % --- ROW 2: Figures 3 and 4 (No change needed) ---
-    \begin{minipage}[t]{0.48\textwidth} % Figure 3: Alpha = 180
+    \vspace{1cm}
+    \begin{minipage}[t]{0.48\textwidth}
         \centering
         \begin{tikzpicture}[tdplot_main_coords,scale=1.5, line cap=round]
             \begin{scope}[canvas is xy plane at z=0]
@@ -196,20 +269,19 @@ jobbkéz-szabály szerint.
                 \draw[thick] (0,-1.5) -- (0,1.5);
             \end{scope}
             \coordinate (O) at (0,0,0);
-            \coordinate (A) at (1,0,0);
-            \tdplotsetcoord{B}{1}{90}{180}
+            \coordinate (A) at (-1,0,0);
+            \tdplotsetcoord{B}{-1}{90}{180}
             \pgfmathsetmacro{\Cz}{-sin(180)}
             \coordinate (C) at (0, 0,\Cz);
             \draw[->, red, ultra thick] (O) -- (A) node[anchor=north east] {$\vec{v}$};
             \draw[->, blue, ultra thick] (O) -- (B) node[anchor=south west] {$\vec{u}$};
             \draw[->, green!80!black, ultra thick] (O) -- (C) node[anchor=south west] {$\mathbf{z}$};
-            \draw pic ["$\alpha$", draw=black, angle radius=0.65cm] {angle = A--O--B};
         \end{tikzpicture}
         \vspace{0.5ex}
-        $\alpha = 180^\circ$
-    \end{minipage}%
+        $z = 0\Rightarrow$ \\ Párhuzamos a két vektor \\ A pont a vonalon van
+    \end{minipage}
     \hfill
-    \begin{minipage}[t]{0.48\textwidth} % Figure 4: Alpha = 270
+    \begin{minipage}[t]{0.48\textwidth}
         \centering
         \begin{tikzpicture}[tdplot_main_coords,scale=1.5, line cap=round]
             \begin{scope}[canvas is xy plane at z=0]
@@ -218,19 +290,50 @@ jobbkéz-szabály szerint.
                 \draw[thick] (0,-1.5) -- (0,1.5);
             \end{scope}
             \coordinate (O) at (0,0,0);
-            \coordinate (A) at (1,0,0);
-            \tdplotsetcoord{B}{1}{90}{270}
+            \coordinate (A) at (-1,0,0);
+            \tdplotsetcoord{B}{-1}{90}{270}
             \pgfmathsetmacro{\Cz}{-sin(270)}
             \coordinate (C) at (0, 0,\Cz);
             \draw[->, red, ultra thick] (O) -- (A) node[anchor=north east] {$\vec{v}$};
             \draw[->, blue, ultra thick] (O) -- (B) node[anchor=south west] {$\vec{u}$};
             \draw[->, green!80!black, ultra thick] (O) -- (C) node[anchor=south west] {$\mathbf{z}$};
-            \draw pic ["$\alpha$", draw=black, angle radius=0.65cm] {angle = A--O--B};
         \end{tikzpicture}
         \vspace{0.5ex}
-        $\alpha = 270^\circ$
+        $z > 0\Rightarrow$ \\ A pont `jobbra' van a vonaltól
     \end{minipage}
+    \textbf{5.~Ábra}\\Vektoriális szorzattal szemléltetve
 \end{center}
+\section{Inkrementalitás}
+Mivel az edge function lineáris számolhatjuk inkrementálisan. Elég egyszer
+kiszámolni mindegyik oldalra magát az edge functiont:
+\[
+    E(x,y) = (x - X)dY-(y - Y)dX
+\]
+Utána egy összeadással kiszámolhatjuk a többi pontokra (pixelekre) \\
+A következő egyenletek képernyő térbeli koordináta-rendszerben vannak x jobbra nő, y lefele nő:
+\begin{align*}
+    E(x+1,y) & = E(x,y) + dY \\
+    E(x-1,y) & = E(x,y) - dY \\
+    E(x,y+1) & = E(x,y) - dX \\
+    E(x,y-1) & = E(x,y) + dX
+\end{align*}
+Az edge function 5 műveletjét (3 kivonás, 2 szorzás), így lecsökkentjük egy műveletre (1 összeadás). Ez egy $1920\times1080$ felbontású képnél például jelentős mennyiségű műveletet jelent.
+Használhatjuk egy adott $L$ távol lévő pixelre is.
+\begin{align*}
+    E(x+L,y) & = E(x,y) + L\times dY \\
+    E(x-L,y) & = E(x,y) - L\times dY \\
+    E(x,y+L) & = E(x,y) - L\times dX \\
+    E(x,y-L) & = E(x,y) + L\times dX
+\end{align*}
+Bizonyítása egyik esetre:
+\begin{align*}
+    E(x+L,y) & = ((x+L) - X)dY-(y - Y)dX          &                                      \\
+    E(x+L,y) & = (x - X + L)dY-(y - Y)dX          &                                      \\
+    E(x+L,y) & = (x - X)dY + L\times dY-(y - Y)dX &                                      \\
+    E(x+L,y) & = (x - X)dY-(y - Y)dX + L\times dY & \text{/ } E(x,y)=(x - X)dY-(y - Y)dX \\
+    E(x+L,y) & = E(x,y) + L\times dY              &
+\end{align*}
+A többi esetet is hasonlóan lehet belátni.
 \newpage
 \nocite{*}
 \bibliographystyle{plainnat}

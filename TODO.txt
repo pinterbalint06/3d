@@ -1,7 +1,5 @@
-1. Edge Function dokumentálása
-2. Webassembly SIMD
-3. Sutherland-Hodgman algoritmus dokumentálása
-4. Perlin-zaj átírása webassemblybe
-5. Shading
-6. Texturing
-7. Edge function további optimalizálása
+1. Sutherland-Hodgman algoritmus dokumentálása
+2. Perlin-zaj átírása webassemblybe
+3. Shading
+4. Texturing
+5. Edge function további optimalizálása

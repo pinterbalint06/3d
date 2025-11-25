@@ -1,7 +1,16 @@
-@techreport{Pineda:1988:APAP,
-  author       = {Juan Pineda},
-  title        = {A Parallel Algorithm for Polygon Rasterization},
-  institution  = {Apollo Computer Inc.},
-  year         = {1988},
-  url          = {https://www.cs.drexel.edu/~deb39/Classes/Papers/comp175-06-pineda.pdf}
+@inproceedings{10.1145/54852.378457,
+author = {Pineda, Juan},
+title = {A parallel algorithm for polygon rasterization},
+year = {1988},
+isbn = {0897912756},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/54852.378457},
+doi = {10.1145/54852.378457},
+abstract = {A parallel algorithm for the rasterization of polygons is presented that is particularly well suited for 3D Z-buffered graphics implementations. The algorithm represents each edge of a polygon by a linear edge function that has a value greater than zero on one side of the edge and less than zero on the opposite side. The value of the function can be interpolated with hardware similar to hardware required to interpolate color and Z pixel values. In addition, the edge function of adjacent pixels may be easily computed in parallel. The coefficients of the "Edge function" can be computed from floating point endpoints in such a way that sub-pixel precision of the endpoints can be retained in an elegant way.},
+booktitle = {Proceedings of the 15th Annual Conference on Computer Graphics and Interactive Techniques},
+pages = {17–20},
+numpages = {4},
+keywords = {sub-pixel vertices, polygon rasterization, parallel processing, linear edge function},
+series = {SIGGRAPH '88}
 }

@@ -1,15 +1,27 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{2}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
-\bibitem[Pineda(1988)]{Pineda:1988:APAP}
+\bibitem[Pineda(1988{\natexlab{a}})]{10.1145/378456.378457}
 Juan Pineda.
 \newblock A parallel algorithm for polygon rasterization.
-\newblock Technical report, Apollo Computer Inc., 1988.
-\newblock URL
-  \url{https://www.cs.drexel.edu/~deb39/Classes/Papers/comp175-06-pineda.pdf}.
+\newblock \emph{SIGGRAPH Comput. Graph.}, 22\penalty0 (4):\penalty0 17–20,
+  June 1988{\natexlab{a}}.
+\newblock ISSN 0097-8930.
+\newblock \doi{10.1145/378456.378457}.
+\newblock URL \url{https://doi.org/10.1145/378456.378457}.
+
+\bibitem[Pineda(1988{\natexlab{b}})]{10.1145/54852.378457}
+Juan Pineda.
+\newblock A parallel algorithm for polygon rasterization.
+\newblock In \emph{Proceedings of the 15th Annual Conference on Computer
+  Graphics and Interactive Techniques}, SIGGRAPH '88, page 17–20, New York,
+  NY, USA, 1988{\natexlab{b}}. Association for Computing Machinery.
+\newblock ISBN 0897912756.
+\newblock \doi{10.1145/54852.378457}.
+\newblock URL \url{https://doi.org/10.1145/54852.378457}.
 
 \end{thebibliography}

@@ -4,3 +4,5 @@
 4. Texturing
 5. Edge function további optimalizálása
 6. Teljes graphics pipeline dokumentálása
+7. Pont tulajdonságok
+8. Pont tulajdonságok interpolálása a Sutherland-Hodgman algoritmuskor

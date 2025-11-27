@@ -16,6 +16,21 @@
 \author{Pintér Bálint}
 \renewcommand{\contentsname}{Tartalomjegyzék}
 \renewcommand{\bibsection}{\section*{Források}}
+\newcommand{\teglalap}{
+    \begin{tikzpicture}[scale=0.15, baseline=(current bounding box.center)]
+        \draw[black] (0,0) -- (1.5,0) -- (1.5,1) -- (0,1) -- cycle;
+    \end{tikzpicture}
+}
+\newcommand{\sokszog}{
+    \begin{tikzpicture}[scale=0.15, baseline=(current bounding box.center)]
+        \draw[black] (0,0) -- (0.5,0) -- (1.2,0.8) -- (0,1) -- cycle;
+    \end{tikzpicture}
+}
+\newcommand{\haromszog}{
+    \begin{tikzpicture}[scale=0.15, baseline=(current bounding box.center)]
+        \draw[black] (0,0) -- (1,0) -- (0.5,1) -- cycle;
+    \end{tikzpicture}
+}
 
 
 \begin{document}
@@ -26,8 +41,9 @@
 
 \section{Bevezetés}
 A Sutherland-Hodgman algoritmus egy clipping algoritmus. Feladata, hogy levágja
-az alakzatok látómezőről lelógó részeit. A teljesen kívül eső alakzatokat
-elveti, a kilógókat úgy vágja meg, hogy csak a látható rész maradjon.
+az alakzatok látómezőn kívűl eső részeit. A teljesen kívül eső alakzatokat
+elveti, a vágósíkokat metsző alakzatokat úgy vágja meg, hogy csak a látható
+rész maradjon.
 \begin{center}
     \begin{tikzpicture}
         \coordinate (A) at (0,0);
@@ -61,11 +77,103 @@ elveti, a kilógókat úgy vágja meg, hogy csak a látható rész maradjon.
 
     \end{tikzpicture}
     \\
-    \textbf{1. Ábra:}\\Sutherland-Hodgman algoritmus szemléltetése
+    \textbf{1. Ábra:}\\Sutherland-Hodgman algoritmus szemléltetése \\ $ABCD_{\teglalap}$ vágósokszög\\$EFG_{\haromszog}$ Levágandó sokszög\\$AHFJ{\sokszog}$ Levágott sokszög
 \end{center}
 \section{Az algoritmus}
-\subsection{Alapelve}
-\subsection{Vágási lépések}
+\subsection{Vágótér (clip space)}
+A levágást perspektív mátrixszal való szorzás után, de a perspective divide
+előtt végezzük homogén koordinátákkal. Ez a clip space. A perspektív mátrixszal
+való szorzás előtt a látótér egy csonkagúla (viewing frustum). A perspektív
+mátrixszal való szorzás után egy kocka, amin a vágási feltételek egyszerűen
+vizsgálhatók. Clip spaceben végezzük a levágást, mert camera spaceban a látótér
+egy csonkagúla, amire nehéz lenne vágni. A perspective divide után a kamera
+mögötti pontok (melyekre $w\leq0$) helytelenül vetítődnek a képernyőre, ezért a
+vágást a perspective divide előtt kell elvégezni.
+\subsection{A vágás lépései}
+Egy sokszöget a pontjai megadott sorrendje határozza meg. A sokszög oldalait
+teszteljük a síkhoz képest. Az oldalnak négy lehetséges elhelyezkedése van a
+síkhoz képest:
+\begin{enumerate}
+    \item \textbf{(BE$\rightarrow$BE)} Mindkét pontja belül van
+    \item \textbf{(BE$\rightarrow$KI)} Kezdeti pontja belül van, de a végpontja kívül van
+    \item \textbf{(KI$\rightarrow$BE)} Kezdeti pontja kívül van, de a végpontja belül van
+    \item \textbf{(KI$\rightarrow$KI)} Mindkét pontja kívül van
+\end{enumerate}
+A pontokról clip spaceben egyszerű elsőfokú egyenlőtlenséggel el lehet dönteni, hogy a sík
+melyik oldalán van (mivel egy kocka). A perspektív mátrixunk úgy lett megírva,
+hogy $x,y\in[-1;1]$ és $z\in[0;1]$. A perspective divide előtt ($w$-vel osztás) a koordinátáink:
+\begin{align*}
+    -w & \leq x \leq w \\
+    -w & \leq y \leq w \\
+    0  & \leq z \leq w \\
+\end{align*}
+Így a feltételeink a kocka különböző oldalaira:
+\begin{center}
+    \begin{tabular}{|c | c | c |}
+        \hline
+        \parbox{0.25\linewidth}{
+            \vspace{4pt}
+            \textbf{Jobb oldali sík:}
+            \[
+                \begin{aligned}
+                    x & \leq w     \\
+                    0 & \leq w - x
+                \end{aligned}
+            \]
+        } &
+        \parbox{0.25\linewidth}{
+            \vspace{4pt}
+            \textbf{Felső oldal síkja:}
+            \[
+                \begin{aligned}
+                    y & \leq w     \\
+                    0 & \leq w - y
+                \end{aligned}
+            \]
+        } &
+        \parbox{0.25\linewidth}{
+            \vspace{4pt}
+            \textbf{Távoli oldal síkja:}
+            \[
+                \begin{aligned}
+                    z & \leq w     \\
+                    0 & \leq w - z
+                \end{aligned}
+            \]
+        }   \\
+        \hline
+        \parbox{0.25\linewidth}{
+            \vspace{4pt}
+            \textbf{Bal oldali sík:}
+            \[
+                \begin{aligned}
+                    -w & \leq x     \\
+                    0  & \leq x + w
+                \end{aligned}
+            \]
+        } &
+        \parbox{0.25\linewidth}{
+            \vspace{4pt}
+            \textbf{Alsó oldal síkja:}
+            \[
+                \begin{aligned}
+                    -w & \leq y     \\
+                    0  & \leq y + w
+                \end{aligned}
+            \]
+        } &
+        \parbox{0.25\linewidth}{
+            \vspace{4pt}
+            \textbf{Közeli oldal síkja:}
+            \[
+                \begin{aligned}
+                    0 & \leq z
+                \end{aligned}
+            \]
+        }   \\
+        \hline
+    \end{tabular}
+\end{center}
 \newpage
 \nocite{*}
 \bibliographystyle{plainnat}

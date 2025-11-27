@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <stdexcept>
 
-
 int t, b, r, l;
 int meret;
 int rndSzm;
@@ -25,7 +24,10 @@ int imageAntiBufferLength;
 int imageBufferLength;
 float yforgas;
 float xforgas;
+// kamera magassága a talajtól
+float kameraMagassag;
 
+// Perspective Projection Matrix
 float *P;
 // Camera Matrix
 float *MCamera;
@@ -56,11 +58,11 @@ void matrixSzorzas4x4(float *m1, float *m2, float *eredmeny)
     }
 }
 
-void ujHely(int rd)
+void ujHely()
 {
-    rndSzm = rand() % (pontokMeret/3);
+    rndSzm = rand() % (pontokMeret / 3);
     MCamera[12] = -pontok[rndSzm * 3];
-    MCamera[13] = -pontok[rndSzm * 3 + 1] - 20;
+    MCamera[13] = -pontok[rndSzm * 3 + 1] - kameraMagassag;
     MCamera[14] = -pontok[rndSzm * 3 + 2];
 }
 
@@ -85,10 +87,14 @@ void SutherlandHodgman(float *pont0, float *pont1, float *pont2)
     clippedMeret = 12;
     int elozoPontIndex = 8;
     float tavolsag, elozoTavolsag, dTav;
-    for (int k = 0; k < 6; k++)
+    int k = 0;
+    float *temp;
+    while (k < 6 && clippedMeret != 0)
     {
         bemenetMeret = clippedMeret;
-        memcpy(bemenet, clipped, clippedMeret * sizeof(float));
+        temp = bemenet;
+        bemenet = clipped;
+        clipped = temp;
         clippedMeret = 0;
         for (int i = 0; i < bemenetMeret; i += 4)
         {
@@ -122,6 +128,7 @@ void SutherlandHodgman(float *pont0, float *pont1, float *pont2)
             }
             elozoPontIndex = i;
         }
+        k++;
     }
 }
 
@@ -212,13 +219,14 @@ void calcCameraMatrix()
 
     // kamera helye
     temp[12] = -pontok[rndSzm * 3];
-    temp[13] = -pontok[rndSzm * 3 + 1] - 20;
+    temp[13] = -pontok[rndSzm * 3 + 1] - kameraMagassag;
     temp[14] = -pontok[rndSzm * 3 + 2];
     matrixSzorzas4x4(temp, forgasMatrix, MCamera);
     free(temp);
 }
 
-bool isSquareNumber(int n) {
+bool isSquareNumber(int n)
+{
     return n >= 0 && std::sqrt(n) == (int)std::sqrt(n);
 }
 
@@ -228,8 +236,13 @@ int render()
     {
         throw "Wrong antialias. Must be square number and between 1 and 16!";
     }
+    float temp = zBufferMeret;
     zBufferMeret = imageWidth * imageHeight * antialias;
-    zBuffer = (float *)malloc(zBufferMeret * sizeof(float));
+    if (zBufferMeret > temp)
+    {
+        free(zBuffer);
+        zBuffer = (float *)malloc(zBufferMeret * sizeof(float));
+    }
     for (int i = 0; i < zBufferMeret; i++)
     {
         zBuffer[i] = 1;
@@ -386,7 +399,6 @@ int render()
         }
     }
     free(projectedTriangles);
-    free(zBuffer);
     free(imageAntiBuffer);
     return (int)imageBuffer;
 }
@@ -401,7 +413,7 @@ int imageBufferSize()
     return imageBufferLength;
 }
 
-void setFrustum(float focal, float filmW, float filmH, int imageW, int imageH, int n, int f)
+void setFrustum(float focal, float filmW, float filmH, int imageW, int imageH, float n, float f)
 {
     float xKitoltes = 1.0f;
     float yKitoltes = 1.0f;
@@ -572,6 +584,7 @@ float getXForog()
 
 void init()
 {
+    srand(time(0));
     P = (float *)calloc(16, sizeof(float));
     MVP = (float *)calloc(16, sizeof(float));
     MCamera = (float *)calloc(16, sizeof(float));
@@ -582,21 +595,39 @@ void init()
     bemenet = (float *)calloc(36, sizeof(float));
     sikok = (int *)calloc(18, sizeof(int));
     sikok[0] = 3;
+    // sikok[1] = 0;
     sikok[2] = -1;
+    // w + x * (-1) = w - x
+    // right clipping plane
+
     sikok[3] = 3;
+    // sikok[4] = 0;
     sikok[5] = 1;
+    // w + x * (1) = w + x
+    // left clipping plane
+
     sikok[6] = 3;
     sikok[7] = 1;
     sikok[8] = -1;
+    // w + y * (-1) = w - y
+    // top clipping plane
+
     sikok[9] = 3;
     sikok[10] = 1;
     sikok[11] = 1;
+    // w + y * (1) = w + y
+    // bottom clipping plane
+
     sikok[12] = 3;
     sikok[13] = 2;
     sikok[14] = -1;
-    sikok[15] = 3;
-    sikok[16] = 2;
-    sikok[17] = 1;
+    // w + z * (-1) = w - z
+    // far clipping plane
+    sikok[15] = 2;
+    // sikok[16] = 0;
+    // sikok[17] = 0;
+    // z + x * (0) = z
+    // near clipping plane
     MCamera[0] = 1;
     MCamera[5] = 1;
     MCamera[10] = 1;
@@ -608,6 +639,7 @@ void init()
     rndSzm = 0;
     antialias = 4;
     yforgas = 0.0f;
+    kameraMagassag = 3.8;
 }
 
 EMSCRIPTEN_BINDINGS(raw_pointers)

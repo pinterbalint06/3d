@@ -1,7 +1,7 @@
 1. Perlin-zaj átírása WebAssembly-be
 2. Shading
 3. Texturing
-4. Edge function további optimalizálása
+4. Edge function további optimalizálása (bejárás)
 5. Teljes graphics pipeline dokumentálása
 6. Pont tulajdonságok
 7. Pont tulajdonságok interpolálása a Sutherland-Hodgman algoritmuskor

@@ -1,5 +1,6 @@
 #include <emscripten/emscripten.h>
 #include <emscripten/bind.h>
+#include "randomNumber.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>

@@ -1,6 +1,5 @@
 #include <emscripten/emscripten.h>
 #include <emscripten/bind.h>
-#include "randomNumber.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -482,7 +481,7 @@ int allocateIndexek(int indexekSzam)
     indexek = (int32_t *)malloc(indexekSzam * sizeof(int32_t));
     if (indexek)
     {
-        indexekMeret = indexekSzam;
+        indexekMeret = 0;
         return (int)indexek;
     }
     return 0;
@@ -531,13 +530,13 @@ void osszekotesekKiszamolasa()
             i = y * meret + x;
             // A három indexnek a pontjait (pontok[index] pontot ad meg) összekötjük háromszögekre
             // A négyzet
-            indexek[i * 6] = i + 1;         // jobb felső pontja
-            indexek[i * 6 + 1] = i + meret; // bal alsó pontja
-            indexek[i * 6 + 2] = i;         // bal felső pontja
+            indexek[indexekMeret++] = i + 1;         // jobb felső pontja
+            indexek[indexekMeret++] = i + meret; // bal alsó pontja
+            indexek[indexekMeret++] = i;         // bal felső pontja
 
-            indexek[i * 6 + 3] = i + 1;         // jobb felső pontja
-            indexek[i * 6 + 4] = i + meret + 1; // jobb alsó pontja
-            indexek[i * 6 + 5] = i + meret;     // bal alsó pontja
+            indexek[indexekMeret++] = i + 1;         // jobb felső pontja
+            indexek[indexekMeret++] = i + meret + 1; // jobb alsó pontja
+            indexek[indexekMeret++] = i + meret;     // bal alsó pontja
             // a négyzetet felosztottuk két háromszögre
         }
     }

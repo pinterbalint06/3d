@@ -6,7 +6,7 @@
 class pcgRand
 {
 private:
-    static uint64_t state;
+    uint64_t state;
     void LCG()
     {
         // Linear congruential generator
@@ -26,6 +26,12 @@ private:
     }
 
 public:
+    pcgRand(uint32_t seed)
+    {
+        state = seed;
+        LCG();
+    }
+
     uint32_t random()
     {
         uint64_t x = state;
@@ -47,12 +53,6 @@ public:
         // (maximum ertek+1)-el osztjuk a random szamot igy mindig [0;1[ intervallumba esik
         // 32-bit unsigned max + 1
         return random() / 4294967296.0f;
-    }
-
-    void pcgRandInit(uint64_t seed)
-    {
-        state = seed;
-        LCG();
     }
 };
 #endif

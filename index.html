@@ -15,97 +15,111 @@
 
 <body>
     <div class="row w100 around wrap">
-        <div class="col gap">
-            <h2>Hely:</h2>
-            <label for="seed">Seed:</label>
-            <input type="range" id="seed" min="1" max="1000000000"
-                oninput="this.nextElementSibling.value = this.value; ujhely();ujTerkep();">
-            <output>40</output>
-            <label for="kameraHeight">Kamera magasság:</label>
-            <input type="range" id="kameraHeight" min="3.8" max="50" step="0.1" value="3.8"
-                oninput="this.nextElementSibling.value = this.value; ujKameraMagassag();">
-            <output>3.8</output>
-            <button type="button" onclick="ujhely();">Új hely</button>
-            <button type="button" onclick="irany(90, 0);">Le</button>
-            <button type="button" onclick="irany(-90, 0);">Fel</button>
-            <button type="button" onclick="irany(0, 0);">Előre</button>
-            <button type="button" onclick="irany(0, 180);">Hátra</button>
-            <button type="button" onclick="irany(0, 90);">Jobbra</button>
-            <button type="button" onclick="irany(0, -90);">Balra</button>
-            <br>
-            <h2>Forgás:</h2>
-            <div class="wfit col btns">
-                <div class="row wfit flex1">
-                    <div class="flex1 center"><button onclick="xyForgas(-10, -10)">
-                            <p class="felforogPoz">&lt;</p>
-                        </button></div>
-                    <div class="flex1 center"><button onclick="xyForgas(-10, 0)">
-                            <p class="forog">&lt;</p>
-                        </button></div>
-                    <div class="flex1 center"><button onclick="xyForgas(-10, 10)">
-                            <p class="felforogNeg">&gt;</p>
-                        </button></div>
-                </div>
-                <div class="row wfit flex1">
-                    <div class="flex1 center"><button onclick="xyForgas(0, -10)">&lt;</button></div>
-                    <div></div>
-                    <div class="flex1 center"><button onclick="xyForgas(0, 10)">&gt;</button></div>
-                </div>
-                <div class="row wfit flex1">
-                    <div class="flex1 center"><button onclick="xyForgas(10, -10)">
-                            <p class="felforogNeg">&lt;</p>
-                        </button></div>
-                    <div class="flex1 center"><button onclick="xyForgas(10, 0)">
-                            <p class="forog">&gt;</p>
-                        </button></div>
-                    <div class="flex1 center"><button onclick="xyForgas(10, 10)">
-                            <p class="felforogPoz">&gt;</p>
-                        </button></div>
+        <div class="row wrap gap">
+            <div class="col gap">
+                <h2>Hely:</h2>
+                <label for="seed">Seed:</label>
+                <input type="range" id="seed" min="1" max="1000000000"
+                    oninput="this.nextElementSibling.value = this.value; ujhely();ujTerkep();">
+                <output>40</output>
+                <label for="kameraHeight">Kamera magasság:</label>
+                <input type="range" id="kameraHeight" min="3.8" max="50" step="0.1" value="3.8"
+                    oninput="this.nextElementSibling.value = this.value; ujKameraMagassag();">
+                <output>3.8</output>
+                <button type="button" onclick="ujhely();">Új hely</button>
+                <button type="button" onclick="irany(90, 0);">Le</button>
+                <button type="button" onclick="irany(-90, 0);">Fel</button>
+                <button type="button" onclick="irany(0, 0);">Előre</button>
+                <button type="button" onclick="irany(0, 180);">Hátra</button>
+                <button type="button" onclick="irany(0, 90);">Jobbra</button>
+                <button type="button" onclick="irany(0, -90);">Balra</button>
+            </div>
+            <div class="col gap">
+                <h2>Forgás:</h2>
+                <div class="wfit col btns">
+                    <div class="row wfit flex1">
+                        <div class="flex1 center"><button onclick="xyForgas(-10, -10)">
+                                <p class="felforogPoz">&lt;</p>
+                            </button></div>
+                        <div class="flex1 center"><button onclick="xyForgas(-10, 0)">
+                                <p class="forog">&lt;</p>
+                            </button></div>
+                        <div class="flex1 center"><button onclick="xyForgas(-10, 10)">
+                                <p class="felforogNeg">&gt;</p>
+                            </button></div>
+                    </div>
+                    <div class="row wfit flex1">
+                        <div class="flex1 center"><button onclick="xyForgas(0, -10)">&lt;</button></div>
+                        <div></div>
+                        <div class="flex1 center"><button onclick="xyForgas(0, 10)">&gt;</button></div>
+                    </div>
+                    <div class="row wfit flex1">
+                        <div class="flex1 center"><button onclick="xyForgas(10, -10)">
+                                <p class="felforogNeg">&lt;</p>
+                            </button></div>
+                        <div class="flex1 center"><button onclick="xyForgas(10, 0)">
+                                <p class="forog">&gt;</p>
+                            </button></div>
+                        <div class="flex1 center"><button onclick="xyForgas(10, 10)">
+                                <p class="felforogPoz">&gt;</p>
+                            </button></div>
+                    </div>
                 </div>
             </div>
-            <br>
-            <h2>Renderelés:</h2>
-            <label for="antialias">Élsimítás:</label>
-            <select name="antialias" id="antialias" onchange="rendereles();">
-                <option value="1" selected>1x</option>
-                <option value="4">4x</option>
-                <option value="9">9x</option>
-                <option value="16">16x</option>
-            </select>
-            <h2>Cubemap gyorsaság:</h2>
-            <button type="button" onclick="teszt();">Teszt</button>
-            <p>Idő:<span id="ido"></span> ms</p>
-            <br>
-            <h2>Térkép:</h2>
-            <label for="multiplier">Magasság szorzó:</label>
-            <input type="range" id="multiplier" min="1" max="300" value="150"
-                oninput="this.nextElementSibling.value = this.value;ujMagassag();">
-            <output>150</output>
-            <label for="lacunarity">Lacunarity:</label>
-            <input type="range" id="lacunarity" min="0.1" max="2" value="2" step="0.05"
-                oninput="this.nextElementSibling.value = this.value;UjPerlinParam();">
-            <output>2</output>
-            <label for="persistence">Persistence:</label>
-            <input type="range" id="persistence" min="0.1" max="0.75" value="0.5" step="0.05"
-                oninput="this.nextElementSibling.value = this.value;UjPerlinParam();">
-            <output>0.5</output>
-            <label for="oktav">Octaves:</label>
-            <select name="meret" id="oktav" onchange="UjPerlinParam();">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9" selected>9</option>
-            </select>
-            <h2>Környezet:</h2>
-            <label for="lightIntensity">Fény intenzitás:</label>
-            <input type="range" id="lightIntensity" min="0" max="10000" value="5000" step="100"
-                oninput="this.nextElementSibling.value = this.value;UjFenyIntenzitas();">
-            <output>5000</output>
+            <div class="col gap">
+                <h2>Renderelés:</h2>
+                <label for="antialias">Élsimítás:</label>
+                <select name="antialias" id="antialias" onchange="rendereles();">
+                    <option value="1" selected>1x</option>
+                    <option value="4">4x</option>
+                    <option value="9">9x</option>
+                    <option value="16">16x</option>
+                </select>
+                <h2>Cubemap gyorsaság:</h2>
+                <button type="button" onclick="teszt();">Teszt</button>
+                <p>Idő:<span id="ido"></span> ms</p>
+            </div>
+            <div class="col gap">
+                <h2>Térkép:</h2>
+                <label for="multiplier">Magasság szorzó:</label>
+                <input type="range" id="multiplier" min="1" max="300" value="150"
+                    oninput="this.nextElementSibling.value = this.value;ujMagassag();">
+                <output>150</output>
+                <label for="lacunarity">Lacunarity:</label>
+                <input type="range" id="lacunarity" min="0.1" max="2" value="2" step="0.05"
+                    oninput="this.nextElementSibling.value = this.value;UjPerlinParam();">
+                <output>2</output>
+                <label for="persistence">Persistence:</label>
+                <input type="range" id="persistence" min="0.1" max="0.75" value="0.5" step="0.05"
+                    oninput="this.nextElementSibling.value = this.value;UjPerlinParam();">
+                <output>0.5</output>
+                <label for="oktav">Octaves:</label>
+                <select name="meret" id="oktav" onchange="UjPerlinParam();">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9" selected>9</option>
+                </select>
+            </div>
+            <div class="col gap">
+                <h2>Környezet:</h2>
+                <label for="lightIntensity">Fény intenzitás:</label>
+                <input type="range" id="lightIntensity" min="0" max="10000" value="5000" step="100"
+                    oninput="this.nextElementSibling.value = this.value;UjFenyIntenzitas();">
+                <output>5000</output>
+                <label for="lightDirection">Fény irány:</label>
+                <input type="range" id="lightDirection" min="0" max="360" value="270" step="1"
+                    oninput="this.nextElementSibling.value = this.value+'°';UjFenyIrany();">
+                <output>270°</output>
+                <canvas id="canvasAngle" width="250" height="250">
+
+                </canvas>
+            </div>
         </div>
         <div class="col">
             <canvas id="canvas"></canvas>

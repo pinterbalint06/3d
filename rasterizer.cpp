@@ -659,6 +659,13 @@ void newCameraHeight(float height)
     renderJs(antialias);
 }
 
+void newLightDirection(float x, float y)
+{
+    lightDir[0] = x;
+    lightDir[1] = y;
+    renderJs(antialias);
+}
+
 int allocate4x4Matrix()
 {
     float *matrix = (float *)calloc(16, sizeof(float));
@@ -796,4 +803,5 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("newCameraHeight", &newCameraHeight);
     emscripten::function("newPerlinSameMap", &newPerlinSameMap);
     emscripten::function("newLightIntensity", &newLightIntensity);
+    emscripten::function("newLightDirection", &newLightDirection);
 }

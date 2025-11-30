@@ -10,6 +10,7 @@ const n = 1;
 const f = 1000;
 
 document.addEventListener("DOMContentLoaded", async function () {
+    korRajzol(0, -1);
     let canvas = document.getElementById("canvas");
     canvas.get
     canvas.width = jsCanvasSzelesseg;
@@ -37,8 +38,8 @@ function xyForgas(xszoggel, yszoggel) {
 
 // mennyi idő lenne lerenderelni a cubemapet
 function teszt() {
-    let tempX = Module.getXForog();
-    let tempY = Module.getYForog();
+    let tempX = Module.getXForog() * (180 / Math.PI);
+    let tempY = Module.getYForog() * (180 / Math.PI);
     let most = performance.now();
     irany(90, 0);
     irany(-90, 0);
@@ -80,6 +81,37 @@ function UjPerlinParam() {
 function UjFenyIntenzitas() {
     let intensity = document.getElementById("lightIntensity");
     Module.newLightIntensity(intensity.value);
+}
+
+function UjFenyIrany() {
+    let angle = document.getElementById("lightDirection").value * (Math.PI / 180);
+    let x = Math.cos(angle);
+    let y = Math.sin(angle);
+    console.log(x, y);
+    korRajzol(x, y);
+    Module.newLightDirection(x, y);
+}
+
+function korRajzol(x, y) {
+    let canvas = document.getElementById('canvasAngle');
+    let ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let centerX = canvas.width / 2;
+    let centerY = canvas.height / 2;
+    let sugar = Math.min(centerX, centerY) - 5;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, sugar, 0, 2 * Math.PI);
+    ctx.strokeStyle = 'black';
+    ctx.stroke();
+
+    let vektorVegeX = centerX - sugar * x;
+    let vektorVegeY = centerY - sugar * y;
+
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(vektorVegeX, vektorVegeY);
+    ctx.strokeStyle = 'black';
+    ctx.stroke();
 }
 
 function ujhely() {

@@ -26,10 +26,11 @@ float linearInterpolation(float a1, float a2, float d)
     return a1 + (a2 - a1) * smoothingFunction(d);
 }
 
-void generatePerlinNoise(float *values, int frequency, int size, uint32_t seed, float amplitude, int octaveCount, int lacunarity = 2, float persistence = 0.5, float noiseOffset = 0, float noiseSize = 1)
+void generatePerlinNoise(float *values, int frequency, int size, uint32_t seed, float amplitude, int octaveCount, float lacunarity = 2, float persistence = 0.5, float noiseOffset = 0, float noiseSize = 1)
 {
     float currAmplitude = amplitude;
-    int gridSize = size / frequency;
+    float currFrequency = frequency;
+    int gridSize = size / currFrequency;
     float sumAmplitude = 0;
     float vecX, vecY;
     for (int i = 0; i < octaveCount; i++)
@@ -99,8 +100,8 @@ void generatePerlinNoise(float *values, int frequency, int size, uint32_t seed, 
         }
         sumAmplitude += currAmplitude;
         currAmplitude *= persistence;
-        frequency *= lacunarity;
-        gridSize = size / frequency;
+        currFrequency *= lacunarity;
+        gridSize = size / currFrequency;
 
         free(vectors);
     }

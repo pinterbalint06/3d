@@ -25,6 +25,8 @@ int imageAntiBufferLength;
 int imageBufferLength;
 float yforgas;
 float xforgas;
+// perlin noise height multiplier
+float heightMultiplier;
 // kamera magassága a talajtól
 float kameraMagassag;
 
@@ -59,12 +61,17 @@ void matrixSzorzas4x4(float *m1, float *m2, float *eredmeny)
     }
 }
 
+void calcNewLocationCamera(int index)
+{
+    MCamera[12] = -pontok[index * 3];
+    MCamera[13] = -pontok[index * 3 + 1] - kameraMagassag;
+    MCamera[14] = -pontok[index * 3 + 2];
+}
+
 void ujHely()
 {
     rndSzm = rand() % (pontokMeret / 3);
-    MCamera[12] = -pontok[rndSzm * 3];
-    MCamera[13] = -pontok[rndSzm * 3 + 1] - kameraMagassag;
-    MCamera[14] = -pontok[rndSzm * 3 + 2];
+    calcNewLocationCamera(rndSzm);
 }
 
 int getMVP()
@@ -515,7 +522,7 @@ void pontokKiszamolasa()
         {
             i = (y * meret + x);
             pontok[i * 3] = x;
-            pontok[i * 3 + 1] = perlin[i];
+            pontok[i * 3 + 1] = perlin[i] * heightMultiplier;
             pontok[i * 3 + 2] = -y;
         }
     }
@@ -547,15 +554,45 @@ EM_JS(void, renderJs, (int elsimitas), {
     render("canvas", elsimitas);
 });
 
-void newMap(int seed)
+void newMap(int seed, float lacunarity, float persistence, int octaves)
 {
     allocatePerlin(meret * meret);
-    generatePerlinNoise(perlin, 1, meret, seed, 2, 9, 2, 0.5f, 0.0f, 150.0f);
+    generatePerlinNoise(perlin, 1, meret, seed, 2, octaves, lacunarity, persistence);
     allocatePontok(meret * meret * 3);
     pontokKiszamolasa();
     allocateIndexek((meret - 1) * (meret - 1) * 6);
     osszekotesekKiszamolasa();
     ujHely();
+    renderJs(antialias);
+}
+
+void newPerlinSameMap(int seed, float lacunarity, float persistence, int octaves)
+{
+    allocatePerlin(meret * meret);
+    generatePerlinNoise(perlin, 1, meret, seed, 2, octaves, lacunarity, persistence);
+    allocatePontok(meret * meret * 3);
+    pontokKiszamolasa();
+    allocateIndexek((meret - 1) * (meret - 1) * 6);
+    osszekotesekKiszamolasa();
+    renderJs(antialias);
+}
+
+
+void newHeightMult(float mult)
+{
+    heightMultiplier = mult;
+    allocatePontok(meret * meret * 3);
+    pontokKiszamolasa();
+    allocateIndexek((meret - 1) * (meret - 1) * 6);
+    osszekotesekKiszamolasa();
+    calcNewLocationCamera(rndSzm);
+    renderJs(antialias);
+}
+
+void newCameraHeight(float height)
+{
+    kameraMagassag = height;
+    calcNewLocationCamera(rndSzm);
     renderJs(antialias);
 }
 
@@ -657,6 +694,7 @@ void init()
     antialias = 4;
     yforgas = 0.0f;
     kameraMagassag = 3.8;
+    heightMultiplier = 150.0f;
 }
 
 EMSCRIPTEN_BINDINGS(raw_pointers)
@@ -686,4 +724,7 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("freeImageBuffer", &freeImageBuffer);
     emscripten::function("setAntialias", &setAntialias);
     emscripten::function("newMap", &newMap);
+    emscripten::function("newHeightMult", &newHeightMult);
+    emscripten::function("newCameraHeight", &newCameraHeight);
+    emscripten::function("newPerlinSameMap", &newPerlinSameMap);
 }

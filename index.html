@@ -14,13 +14,17 @@
 </head>
 
 <body>
-    <div class="row w100 around">
+    <div class="row w100 around wrap">
         <div class="col gap">
-            <p>Hely:</p>
+            <h2>Hely:</h2>
             <label for="seed">Seed:</label>
             <input type="range" id="seed" min="1" max="1000000000"
                 oninput="this.nextElementSibling.value = this.value; ujhely();ujTerkep();">
             <output>40</output>
+            <label for="kameraHeight">Kamera magasság:</label>
+            <input type="range" id="kameraHeight" min="3.8" max="50" step="0.1" value="3.8"
+                oninput="this.nextElementSibling.value = this.value; ujKameraMagassag();">
+            <output>3.8</output>
             <button type="button" onclick="ujhely();">Új hely</button>
             <button type="button" onclick="irany(90, 0);">Le</button>
             <button type="button" onclick="irany(-90, 0);">Fel</button>
@@ -29,26 +33,38 @@
             <button type="button" onclick="irany(0, 90);">Jobbra</button>
             <button type="button" onclick="irany(0, -90);">Balra</button>
             <br>
-            <p>Forgás:</p>
-            <div class="w100 col btns">
-                <div class="row w100">
-                    <div class="cella center"><button onclick="xyForgas(-10, -10)"><p class="felforogPoz">&lt;</p></button></div>
-                    <div class="cella center"><button class="forog" onclick="xyForgas(-10, 0)">&lt;</button></div>
-                    <div class="cella center"><button onclick="xyForgas(-10, 10)"><p class="felforogNeg">&gt;</p></button></div>
+            <h2>Forgás:</h2>
+            <div class="wfit col btns">
+                <div class="row wfit flex1">
+                    <div class="flex1 center"><button onclick="xyForgas(-10, -10)">
+                            <p class="felforogPoz">&lt;</p>
+                        </button></div>
+                    <div class="flex1 center"><button onclick="xyForgas(-10, 0)">
+                            <p class="forog">&lt;</p>
+                        </button></div>
+                    <div class="flex1 center"><button onclick="xyForgas(-10, 10)">
+                            <p class="felforogNeg">&gt;</p>
+                        </button></div>
                 </div>
-                <div class="row w100">
-                    <div class="cella center"><button onclick="xyForgas(0, -10)">&lt;</button></div>
-                    <div class="cella"></div>
-                    <div class="cella center"><button onclick="xyForgas(0, 10)">&gt;</button></div>
+                <div class="row wfit flex1">
+                    <div class="flex1 center"><button onclick="xyForgas(0, -10)">&lt;</button></div>
+                    <div></div>
+                    <div class="flex1 center"><button onclick="xyForgas(0, 10)">&gt;</button></div>
                 </div>
-                <div class="row w100">
-                    <div class="cella center"><button onclick="xyForgas(10, -10)"><p class="felforogNeg">&lt;</p></button></div>
-                    <div class="cella center"><button class="forog" onclick="xyForgas(10, 0)">&gt;</button></div>
-                    <div class="cella center"><button onclick="xyForgas(10, 10)"><p class="felforogPoz">&gt;</p></button></div>
+                <div class="row wfit flex1">
+                    <div class="flex1 center"><button onclick="xyForgas(10, -10)">
+                            <p class="felforogNeg">&lt;</p>
+                        </button></div>
+                    <div class="flex1 center"><button onclick="xyForgas(10, 0)">
+                            <p class="forog">&gt;</p>
+                        </button></div>
+                    <div class="flex1 center"><button onclick="xyForgas(10, 10)">
+                            <p class="felforogPoz">&gt;</p>
+                        </button></div>
                 </div>
             </div>
             <br>
-            <p>Renderelés:</p>
+            <h2>Renderelés:</h2>
             <label for="antialias">Élsimítás:</label>
             <select name="antialias" id="antialias" onchange="rendereles();">
                 <option value="1" selected>1x</option>
@@ -56,10 +72,35 @@
                 <option value="9">9x</option>
                 <option value="16">16x</option>
             </select>
-            <p>Cubemap gyorsaság:</p>
+            <h2>Cubemap gyorsaság:</h2>
             <button type="button" onclick="teszt();">Teszt</button>
             <p>Idő:<span id="ido"></span> ms</p>
             <br>
+            <h2>Térkép:</h2>
+            <label for="multiplier">Magasság szorzó:</label>
+            <input type="range" id="multiplier" min="1" max="300" value="150"
+                oninput="this.nextElementSibling.value = this.value;ujMagassag();">
+            <output>150</output>
+            <label for="lacunarity">Lacunarity:</label>
+            <input type="range" id="lacunarity" min="0.1" max="2" value="2" step="0.05"
+                oninput="this.nextElementSibling.value = this.value;UjPerlinParam();">
+            <output>2</output>
+            <label for="persistence">Persistence:</label>
+            <input type="range" id="persistence" min="0.1" max="0.75" value="0.5" step="0.05"
+                oninput="this.nextElementSibling.value = this.value;UjPerlinParam();">
+            <output>0.5</output>
+            <label for="oktav">Octaves:</label>
+            <select name="meret" id="oktav" onchange="UjPerlinParam();">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9" selected>9</option>
+            </select>
         </div>
         <div class="col">
             <canvas id="canvas"></canvas>

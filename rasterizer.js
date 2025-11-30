@@ -52,9 +52,29 @@ function teszt() {
 
 function ujTerkep() {
     // 45-75ms
+    let persistence = document.getElementById("persistence");
+    let lacunarity = document.getElementById("lacunarity");
+    let oktav = document.getElementById("oktav");
     let eleje = performance.now()
-    Module.newMap(seed);
+    Module.newMap(seed, lacunarity.value, persistence.value, oktav.value);
     console.log("Új térkép idő:", performance.now() - eleje)
+}
+
+function ujMagassag() {
+    let mult = document.getElementById("multiplier");
+    Module.newHeightMult(mult.value);
+}
+
+function ujKameraMagassag() {
+    let cHeight = document.getElementById("kameraHeight");
+    Module.newCameraHeight(cHeight.value);
+}
+
+function UjPerlinParam() {
+    let oktav = document.getElementById("oktav");
+    let lacunarity = document.getElementById("lacunarity");
+    let persistence = document.getElementById("persistence");
+    Module.newPerlinSameMap(seed, lacunarity.value, persistence.value, oktav.value);
 }
 
 function ujhely() {

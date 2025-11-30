@@ -35,7 +35,8 @@
                 <button type="button" onclick="irany(0, -90);">Balra</button>
             </div>
             <div class="col gap">
-                <h2>Forgás:</h2>
+                <h2>Hely, forgás:</h2>
+                <p class="m0">Forgás</p>
                 <div class="wfit col btns">
                     <div class="row wfit flex1">
                         <div class="flex1 center"><button onclick="xyForgas(-10, -10)">
@@ -61,6 +62,36 @@
                                 <p class="forog">&gt;</p>
                             </button></div>
                         <div class="flex1 center"><button onclick="xyForgas(10, 10)">
+                                <p class="felforogPoz">&gt;</p>
+                            </button></div>
+                    </div>
+                </div>
+                <p class="m0">Hely</p>
+                <div class="wfit col btns">
+                    <div class="row wfit flex1">
+                        <div class="flex1 center"><button onclick="mozgas(1, -1)">
+                                <p class="felforogPoz">&lt;</p>
+                            </button></div>
+                        <div class="flex1 center"><button onclick="mozgas(1, 0)">
+                                <p class="forog">&lt;</p>
+                            </button></div>
+                        <div class="flex1 center"><button onclick="mozgas(1, 1)">
+                                <p class="felforogNeg">&gt;</p>
+                            </button></div>
+                    </div>
+                    <div class="row wfit flex1">
+                        <div class="flex1 center"><button onclick="mozgas(0, -1)">&lt;</button></div>
+                        <div></div>
+                        <div class="flex1 center"><button onclick="mozgas(0, 1)">&gt;</button></div>
+                    </div>
+                    <div class="row wfit flex1">
+                        <div class="flex1 center"><button onclick="mozgas(-1, -1)">
+                                <p class="felforogNeg">&lt;</p>
+                            </button></div>
+                        <div class="flex1 center"><button onclick="mozgas(-1, 0)">
+                                <p class="forog">&gt;</p>
+                            </button></div>
+                        <div class="flex1 center"><button onclick="mozgas(-1, 1)">
                                 <p class="felforogPoz">&gt;</p>
                             </button></div>
                     </div>
@@ -114,8 +145,7 @@
                 <output>5000</output>
                 <label for="lightDirection">Fény irány:</label>
                 <input type="range" id="lightDirection" min="0" max="360" value="270" step="1"
-                    oninput="this.nextElementSibling.value = this.value+'°';UjFenyIrany();">
-                <output>270°</output>
+                    oninput="this.nextElementSibling.value = UjFenyIrany();">
                 <canvas id="canvasAngle" width="250" height="250">
 
                 </canvas>

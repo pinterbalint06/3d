@@ -87,7 +87,6 @@ function UjFenyIrany() {
     let angle = document.getElementById("lightDirection").value * (Math.PI / 180);
     let x = Math.cos(angle);
     let y = Math.sin(angle);
-    console.log(x, y);
     korRajzol(x, y);
     Module.newLightDirection(x, y);
 }
@@ -123,6 +122,21 @@ function irany(x, y) {
     Module.setXForog(x * (Math.PI / 180));
     Module.setYForog(y * (Math.PI / 180));
     rendereles();
+}
+
+function mozgas(iranyZ, iranyX) {
+    let yForog = Module.getYForog();
+
+    let eloreX = Math.sin(yForog);
+    let eloreZ = Math.cos(yForog);
+
+    let jobbraX = Math.sin(yForog + Math.PI / 2);
+    let jobbraZ = Math.cos(yForog + Math.PI / 2);
+
+    let mozgasX = Math.round(iranyZ * eloreX + iranyX * jobbraX);
+    let mozgasZ = Math.round(iranyZ * eloreZ + iranyX * jobbraZ);
+
+    Module.mozgas(mozgasZ, mozgasX);
 }
 
 function render(canvasId, antialias = 1) {

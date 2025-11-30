@@ -10,7 +10,7 @@
 
 int t, b, r, l;
 int meret;
-int rndSzm;
+int cameraLocation;
 int antialias;
 int imageWidth;
 int imageHeight;
@@ -73,8 +73,8 @@ void calcNewLocationCamera(int index)
 
 void ujHely()
 {
-    rndSzm = rand() % (pontokMeret / 3);
-    calcNewLocationCamera(rndSzm);
+    cameraLocation = rand() % (pontokMeret / 3);
+    calcNewLocationCamera(cameraLocation);
 }
 
 int getMVP()
@@ -229,9 +229,9 @@ void calcCameraMatrix()
     temp[15] = 1;
 
     // kamera helye
-    temp[12] = -pontok[rndSzm * 3];
-    temp[13] = -pontok[rndSzm * 3 + 1] - kameraMagassag;
-    temp[14] = -pontok[rndSzm * 3 + 2];
+    temp[12] = -pontok[cameraLocation * 3];
+    temp[13] = -pontok[cameraLocation * 3 + 1] - kameraMagassag;
+    temp[14] = -pontok[cameraLocation * 3 + 2];
     matrixSzorzas4x4(temp, forgasMatrix, MCamera);
     free(temp);
 }
@@ -642,7 +642,7 @@ void newHeightMult(float mult)
     pontokKiszamolasa();
     allocateIndexek((meret - 1) * (meret - 1) * 6);
     osszekotesekKiszamolasa();
-    calcNewLocationCamera(rndSzm);
+    calcNewLocationCamera(cameraLocation);
     renderJs(antialias);
 }
 
@@ -655,7 +655,7 @@ void newLightIntensity(float intensity)
 void newCameraHeight(float height)
 {
     kameraMagassag = height;
-    calcNewLocationCamera(rndSzm);
+    calcNewLocationCamera(cameraLocation);
     renderJs(antialias);
 }
 
@@ -663,6 +663,11 @@ void newLightDirection(float x, float y)
 {
     lightDir[0] = x;
     lightDir[1] = y;
+    renderJs(antialias);
+}
+
+void move(int z, int x) {
+    cameraLocation += z*meret+x;
     renderJs(antialias);
 }
 
@@ -760,7 +765,7 @@ void init()
     MVP[5] = 1;
     MVP[10] = 1;
     MVP[15] = 1;
-    rndSzm = 0;
+    cameraLocation = 0;
     antialias = 4;
     yforgas = 0.0f;
     kameraMagassag = 3.8;
@@ -804,4 +809,5 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("newPerlinSameMap", &newPerlinSameMap);
     emscripten::function("newLightIntensity", &newLightIntensity);
     emscripten::function("newLightDirection", &newLightDirection);
+    emscripten::function("mozgas", &move);
 }

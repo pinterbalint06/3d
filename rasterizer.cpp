@@ -3,10 +3,10 @@
 #include "perlin.h"
 #include <cmath>
 #include <cstdlib>
-#include <cstring>
 #include <cstdint>
 #include <algorithm>
 #include <stdexcept>
+#define INV_PI 0.318309886f
 
 int t, b, r, l;
 int meret;
@@ -36,8 +36,6 @@ float lightIntensity;
 float *P;
 // Camera Matrix
 float *MCamera;
-// Model View Projection Matrix
-float *MVP;
 float *pontok = NULL;
 int32_t *indexek = NULL;
 float *perlin = NULL;
@@ -50,7 +48,7 @@ float *clipped;
 float *projectedTriangles;
 int *sikok;
 float *imageAntiBuffer;
-float *imageBuffer;
+uint8_t *imageBuffer;
 float *lightDir;
 
 void matrixSzorzas4x4(float *m1, float *m2, float *eredmeny)
@@ -75,11 +73,6 @@ void ujHely()
 {
     cameraLocation = rand() % (pontokMeret / 3);
     calcNewLocationCamera(cameraLocation);
-}
-
-int getMVP()
-{
-    return (int)MVP;
 }
 
 float linearis_interpolacio(float a1, float a2, float d)
@@ -143,35 +136,110 @@ void SutherlandHodgman(float *pont0, float *pont1, float *pont2)
     }
 }
 
-void pontMVPSzorzas(const int &ind, float *pont)
+void pontCameraMatrixMultiplication(const int &ind, float *pont)
 {
     for (int i = 0; i < 4; i++)
     {
-        pont[i] = pontok[ind * 3] * MVP[i] + pontok[ind * 3 + 1] * MVP[4 + i] + pontok[ind * 3 + 2] * MVP[8 + i] + MVP[12 + i];
+        pont[i] = pontok[ind * 3] * MCamera[i] + pontok[ind * 3 + 1] * MCamera[4 + i] + pontok[ind * 3 + 2] * MCamera[8 + i] + MCamera[12 + i];
     }
 }
 
-void pontokVetitese(const int &i0, const int &i1, const int &i2)
+void pontPerspectiveMultiplication(float *pont)
 {
-    pontMVPSzorzas(i0, p0);
-    pontMVPSzorzas(i1, p1);
-    pontMVPSzorzas(i2, p2);
-    // clip space
-    SutherlandHodgman(p0, p1, p2);
-    float wRec;
-    projectedTrianglesMeret = 0;
-    for (int i = 0; i < clippedMeret / 4 - 2; i++)
+    float tempPont[4];
+    for (int i = 0; i < 4; i++)
     {
-        wRec = 1.0f / clipped[3];
-        projectedTriangles[projectedTrianglesMeret++] = (clipped[0] * wRec + 1) * 0.5f * (float)imageWidth;
-        projectedTriangles[projectedTrianglesMeret++] = (1 - clipped[1] * wRec) * 0.5f * (float)imageHeight;
-        projectedTriangles[projectedTrianglesMeret++] = clipped[2] * wRec;
-        for (int j = 1; j <= 2; j++)
+        tempPont[i] = pont[0] * P[i] + pont[1] * P[4 + i] + pont[2] * P[8 + i] + P[12 + i];
+    }
+    for (int i = 0; i < 4; i++)
+    {
+        pont[i] = tempPont[i];
+    }
+}
+void vectorMatrixMultiplication(float *vec, float *matrix)
+{
+    float tempVec[3];
+    for (int i = 0; i < 3; i++)
+    {
+        tempVec[i] = vec[0] * matrix[i] + vec[1] * matrix[4 + i] + vec[2] * matrix[8 + i];
+    }
+    for (int i = 0; i < 3; i++)
+    {
+        vec[i] = tempVec[i];
+    }
+}
+
+void normalizeVector(float *vector)
+{
+    float vectorLengthInv = 1 / std::sqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
+    vector[0] *= vectorLengthInv;
+    vector[1] *= vectorLengthInv;
+    vector[2] *= vectorLengthInv;
+}
+
+void calculateNormal(float *p0, float *p1, float *p2, float *normalVector)
+{
+    float vec1[3];
+    float vec2[3];
+
+    vec1[0] = p1[0] - p0[0];
+    vec1[1] = p1[1] - p0[1];
+    vec1[2] = p1[2] - p0[2];
+
+    vec2[0] = p2[0] - p0[0];
+    vec2[1] = p2[1] - p0[1];
+    vec2[2] = p2[2] - p0[2];
+    normalVector[0] = vec1[1] * vec2[2] - vec1[2] * vec2[1];
+    normalVector[1] = vec1[2] * vec2[0] - vec1[0] * vec2[2];
+    normalVector[2] = vec1[0] * vec2[1] - vec1[1] * vec2[0];
+}
+
+float dotProduct3D(float *vec0, float *vec1)
+{
+    return vec0[0] * vec1[0] + vec0[1] * vec1[1] + vec0[2] * vec1[2];
+}
+
+void pontokVetitese(const int &i0, const int &i1, const int &i2, float *normal)
+{
+    pontCameraMatrixMultiplication(i0, p0);
+    pontCameraMatrixMultiplication(i1, p1);
+    pontCameraMatrixMultiplication(i2, p2);
+    calculateNormal(p0, p1, p2, normal);
+    // backface culling
+    if (dotProduct3D(p0, normal) < 0.0f)
+    {
+        pontPerspectiveMultiplication(p0);
+        pontPerspectiveMultiplication(p1);
+        pontPerspectiveMultiplication(p2);
+        // clip space
+        SutherlandHodgman(p0, p1, p2);
+        float wRec;
+        projectedTrianglesMeret = 0;
+        // triangle fan
+        for (int i = 0; i < clippedMeret / 4 - 2; i++)
         {
-            wRec = 1.0f / clipped[(i + j) * 4 + 3];
-            projectedTriangles[projectedTrianglesMeret++] = (clipped[(i + j) * 4] * wRec + 1) * 0.5 * imageWidth;
-            projectedTriangles[projectedTrianglesMeret++] = (1 - clipped[(i + j) * 4 + 1] * wRec) * 0.5 * imageHeight;
-            projectedTriangles[projectedTrianglesMeret++] = clipped[(i + j) * 4 + 2] * wRec;
+            wRec = 1.0f / clipped[3];
+            projectedTriangles[projectedTrianglesMeret++] = (clipped[0] * wRec + 1) * 0.5f * (float)imageWidth;
+            projectedTriangles[projectedTrianglesMeret++] = (1 - clipped[1] * wRec) * 0.5f * (float)imageHeight;
+            projectedTriangles[projectedTrianglesMeret++] = clipped[2] * wRec;
+
+            // (i + 1) * 4 = i * 4 + 4
+            int index = i * 4 + 4;
+            wRec = 1.0f / clipped[index + 3];
+            projectedTriangles[projectedTrianglesMeret++] = (clipped[index] * wRec + 1) * 0.5 * imageWidth;
+            projectedTriangles[projectedTrianglesMeret++] = (1 - clipped[index + 1] * wRec) * 0.5 * imageHeight;
+            projectedTriangles[projectedTrianglesMeret++] = clipped[index + 2] * wRec;
+
+            // (i + 2) * 4 = i * 4 + 8
+            index = i * 4 + 8;
+            wRec = 1.0f / clipped[index + 3];
+            projectedTriangles[projectedTrianglesMeret++] = (clipped[index] * wRec + 1) * 0.5 * imageWidth;
+            projectedTriangles[projectedTrianglesMeret++] = (1 - clipped[index + 1] * wRec) * 0.5 * imageHeight;
+            projectedTriangles[projectedTrianglesMeret++] = clipped[index + 2] * wRec;
+        }
+        if (projectedTrianglesMeret > 0)
+        {
+            normalizeVector(normal);
         }
     }
 }
@@ -241,36 +309,6 @@ bool isSquareNumber(int n)
     return n >= 0 && std::sqrt(n) == (int)std::sqrt(n);
 }
 
-void normalizeVector(float *vector)
-{
-    float vectorLengthInv = 1 / std::sqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
-    vector[0] *= vectorLengthInv;
-    vector[1] *= vectorLengthInv;
-    vector[2] *= vectorLengthInv;
-}
-
-void calculateNormal(int ind0, int ind1, int ind2, float *normalVector)
-{
-    float vec1[3];
-    float vec2[3];
-
-    vec1[0] = pontok[ind1 * 3] - pontok[ind0 * 3];
-    vec1[1] = pontok[ind1 * 3 + 1] - pontok[ind0 * 3 + 1];
-    vec1[2] = pontok[ind1 * 3 + 2] - pontok[ind0 * 3 + 2];
-
-    vec2[0] = pontok[ind2 * 3] - pontok[ind0 * 3];
-    vec2[1] = pontok[ind2 * 3 + 1] - pontok[ind0 * 3 + 1];
-    vec2[2] = pontok[ind2 * 3 + 2] - pontok[ind0 * 3 + 2];
-    normalVector[0] = vec1[1] * vec2[2] - vec1[2] * vec2[1];
-    normalVector[1] = vec1[2] * vec2[0] - vec1[0] * vec2[2];
-    normalVector[2] = vec1[0] * vec2[1] - vec1[1] * vec2[0];
-}
-
-float dotProduct3D(float *vec0, float *vec1)
-{
-    return vec0[0] * vec1[0] + vec0[1] * vec1[1] + vec0[2] * vec1[2];
-}
-
 int render()
 {
     if (!(isSquareNumber(antialias) && (1 <= antialias && antialias <= 16)))
@@ -308,10 +346,10 @@ int render()
     lightVec[1] = -lightDir[1];
     lightVec[2] = -lightDir[2];
     calcCameraMatrix();
-    matrixSzorzas4x4(MCamera, P, MVP);
+    vectorMatrixMultiplication(lightVec, MCamera);
     for (int i = 0; i < indexekMeret; i += 3)
     {
-        pontokVetitese(indexek[i], indexek[i + 1], indexek[i + 2]);
+        pontokVetitese(indexek[i], indexek[i + 1], indexek[i + 2], normal);
         for (int j = 0; j < projectedTrianglesMeret; j += 9)
         {
             // A háromszöget határolókeret pontjainak kiszámolása
@@ -368,7 +406,6 @@ int render()
                                           dX2,
                                           dY2,
                                           projectedTriangles[j + 6], projectedTriangles[j + 7]);
-
             for (int y = htminy; y <= htmaxy; y++)
             {
                 w0 -= dX0;
@@ -392,22 +429,19 @@ int render()
                                 bufferIndex = (y * imageWidth + x) * antialias + ya * sqrAntialias + xa;
                                 if (zMelyseg < zBuffer[bufferIndex])
                                 {
-                                    calculateNormal(indexek[i], indexek[i + 1], indexek[i + 2], normal);
-
-                                    normalizeVector(normal);
 
                                     zBuffer[bufferIndex] = zMelyseg;
                                     kepIndex = bufferIndex * 3;
                                     float dotProd = std::max(0.0f, dotProduct3D(normal, lightVec));
-                                    float lightCoefficent = 1 / M_PI * lightIntensity * dotProd;
+                                    float lightCoefficent = INV_PI * lightIntensity * dotProd;
                                     // grass color
                                     // 19.0 albedo -> (19/255)^2.2=0.0033
                                     // 109.0 albedo -> (109/255)^2.2=0.154
                                     // 21.0 albedo -> (21/255)^2.2=0.154
                                     // sun color
                                     // 255.0 normalize -> 255.0f/255.0 = 1.0
-                                    // 223.0 normalize -> 223.0f/255.0 = 0.8745f
-                                    // 34.0 normalize -> 34.0f/255.0 = 0.13333f
+                                    // 223.0 normalize -> 223.0f/255.0 = 0.8745
+                                    // 34.0 normalize -> 34.0f/255.0 = 0.13333
                                     // final product
                                     // 0.0033 * 1.0 = 0.0033
                                     // 0.154 * 0.8745 = 0.134673
@@ -438,8 +472,8 @@ int render()
     free(lightVec);
     free(normal);
     free(projectedTriangles);
-    imageBufferLength = imageWidth * imageHeight * 3;
-    imageBuffer = (float *)calloc(imageBufferLength, sizeof(float));
+    imageBufferLength = imageWidth * imageHeight * 4;
+    imageBuffer = (uint8_t *)calloc(imageBufferLength, sizeof(uint8_t *));
     float r, g, b;
     int altalanosIndex, imageAntiIndex, subImageIndex, imageBufferIndex;
     float antiRec = 1.0f / antialias;
@@ -449,7 +483,7 @@ int render()
         {
             altalanosIndex = (y * imageWidth + x);
             imageAntiIndex = altalanosIndex * antialias;
-            imageBufferIndex = altalanosIndex * 3;
+            imageBufferIndex = altalanosIndex * 4;
             r = 0.0f;
             g = 0.0f;
             b = 0.0f;
@@ -460,9 +494,16 @@ int render()
                 g += imageAntiBuffer[subImageIndex + 1];
                 b += imageAntiBuffer[subImageIndex + 2];
             }
-            imageBuffer[imageBufferIndex] = r * antiRec;
-            imageBuffer[imageBufferIndex + 1] = g * antiRec;
-            imageBuffer[imageBufferIndex + 2] = b * antiRec;
+            imageBuffer[imageBufferIndex] = static_cast<uint8_t>(
+                std::round(
+                    std::clamp(r * antiRec, 0.0f, 255.0f)));
+            imageBuffer[imageBufferIndex + 1] = static_cast<uint8_t>(
+                std::round(
+                    std::clamp(g * antiRec, 0.0f, 255.0f)));
+            imageBuffer[imageBufferIndex + 2] = static_cast<uint8_t>(
+                std::round(
+                    std::clamp(b * antiRec, 0.0f, 255.0f)));
+            imageBuffer[imageBufferIndex + 3] = 255;
         }
     }
     free(imageAntiBuffer);
@@ -669,7 +710,7 @@ void newLightDirection(float x, float y)
 void move(int z, int x)
 {
     int newLocation = cameraLocation + z * meret + x;
-    if (!((x == -1 && newLocation % meret == 255) || (x == 1 && newLocation % meret == 0) || (newLocation < 0) || (newLocation >= meret*meret)))
+    if (!((x == -1 && newLocation % meret == 255) || (x == 1 && newLocation % meret == 0) || (newLocation < 0) || (newLocation >= meret * meret)))
     {
         cameraLocation += z * meret + x;
         renderJs(antialias);
@@ -720,7 +761,6 @@ void init()
 {
     srand(time(0));
     P = (float *)calloc(16, sizeof(float));
-    MVP = (float *)calloc(16, sizeof(float));
     MCamera = (float *)calloc(16, sizeof(float));
     p0 = (float *)calloc(4, sizeof(float));
     p1 = (float *)calloc(4, sizeof(float));
@@ -766,10 +806,6 @@ void init()
     MCamera[5] = 1;
     MCamera[10] = 1;
     MCamera[15] = 1;
-    MVP[0] = 1;
-    MVP[5] = 1;
-    MVP[10] = 1;
-    MVP[15] = 1;
     cameraLocation = 0;
     antialias = 4;
     yforgas = 0.0f;

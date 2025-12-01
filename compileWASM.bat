@@ -1,1 +1,1 @@
-emcc .\rasterizer.cpp -o webassembly.js -s IMPORTED_MEMORY=1 -lembind -s INITIAL_MEMORY=268435456 -sALLOW_MEMORY_GROWTH -O3 -msimd128
+emcc .\rasterizer.cpp -o webassembly.js -s IMPORTED_MEMORY=1 -lembind -s INITIAL_MEMORY=268435456 -sALLOW_MEMORY_GROWTH -O3 -flto -msimd128

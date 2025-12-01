@@ -57,7 +57,7 @@ function ujTerkep() {
     let lacunarity = document.getElementById("lacunarity");
     let oktav = document.getElementById("oktav");
     let eleje = performance.now()
-    Module.newMap(seed, lacunarity.value, persistence.value, oktav.value);
+    Module.newMap(seed, parseFloat(lacunarity.value), parseFloat(persistence.value), parseInt(oktav.value));
     console.log("Új térkép idő:", performance.now() - eleje)
 }
 
@@ -75,7 +75,7 @@ function UjPerlinParam() {
     let oktav = document.getElementById("oktav");
     let lacunarity = document.getElementById("lacunarity");
     let persistence = document.getElementById("persistence");
-    Module.newPerlinSameMap(seed, lacunarity.value, persistence.value, oktav.value);
+    Module.newPerlinSameMap(seed, parseFloat(lacunarity.value), parseFloat(persistence.value), parseInt(oktav.value));
 }
 
 function UjFenyIntenzitas() {
@@ -143,23 +143,16 @@ function render(canvasId, antialias = 1) {
     Module.setAntialias(antialias);
     let imageBufferHely = Module.render();
     let imageBufferMeret = Module.imageBufferSize();
-    let imageBuffer = new Float32Array(
+    let clampedArray = new Uint8ClampedArray(
         wasmMemory.buffer,
         imageBufferHely,
         imageBufferMeret
-    )
+    );
     let ctx = document.getElementById(canvasId).getContext("2d");
     ctx.clearRect(0, 0, jsCanvasSzelesseg, jsCanvasMagassag);
 
-    let img = ctx.createImageData(jsCanvasSzelesseg, jsCanvasMagassag);
-    let data = img.data;
-    for (let i = 0; i < imageBufferMeret / 3; i++) {
-        data[i * 4] = imageBuffer[i * 3];
-        data[i * 4 + 1] = imageBuffer[i * 3 + 1];
-        data[i * 4 + 2] = imageBuffer[i * 3 + 2];
-        data[i * 4 + 3] = 255;
-    }
-    ctx.putImageData(img, 0, 0);
+    let imgData = new ImageData(clampedArray, jsCanvasSzelesseg, jsCanvasMagassag);
+    ctx.putImageData(imgData, 0, 0);
     Module.freeImageBuffer();
 }
 

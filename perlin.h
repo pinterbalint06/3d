@@ -1,6 +1,7 @@
 #include "randomNumber.h"
 #include <emscripten/emscripten.h>
 #include <cmath>
+#include <algorithm>
 
 float dotProduct(float x0, float y0, float x1, float y1)
 {
@@ -101,7 +102,7 @@ void generatePerlinNoise(float *values, int frequency, int size, uint32_t seed, 
         sumAmplitude += currAmplitude;
         currAmplitude *= persistence;
         currFrequency *= lacunarity;
-        gridSize = size / currFrequency;
+        gridSize = std::max(size / currFrequency, 1.0f);
 
         free(vectors);
     }

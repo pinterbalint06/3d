@@ -36,6 +36,8 @@ float kameraMagassag;
 float lightIntensity;
 // pre calculated light used to multiply the object albedo * light color. INV_PI * lightIntensity
 float lightCoefficient;
+// color of the ground
+float rGround, bGround, gGround;
 
 // Perspective Projection Matrix
 float *P;
@@ -420,21 +422,9 @@ int render()
             // precalculate the lighting
             float dotProd = std::max(0.0f, dotProduct3D(normal, lightVec));
             float lightCoefficentTriangle = lightCoefficient * dotProd;
-            // grass color
-            // 19.0 albedo -> (19/255)^2.2=0.0033
-            // 109.0 albedo -> (109/255)^2.2=0.154
-            // 21.0 albedo -> (21/255)^2.2=0.154
-            // sun color
-            // 255.0 normalize -> 255.0f/255.0 = 1.0
-            // 223.0 normalize -> 223.0f/255.0 = 0.8745
-            // 34.0 normalize -> 34.0f/255.0 = 0.13333
-            // final product
-            // 0.0033 * 1.0 = 0.0033
-            // 0.154 * 0.8745 = 0.134673
-            // 0.004 * 0.13333 = 0.00053332
-            float r = 0.0033f * lightCoefficentTriangle;
-            float g = 0.134673f * lightCoefficentTriangle;
-            float b = 0.00053332f * lightCoefficentTriangle;
+            float r = rGround * lightCoefficentTriangle;
+            float g = gGround * lightCoefficentTriangle;
+            float b = bGround * lightCoefficentTriangle;
 
             // calculate parameters of edge function
             dX0 = v2x - v1x;
@@ -822,6 +812,53 @@ void newLightDirection(float x, float y)
     renderJs(antialias);
 }
 
+void newGroundType(int type)
+{
+
+    // grass color
+    // 65 -> (65/255)^2.2=0.04943 albedo
+    // 152 -> (152/255)^2.2=0.32038 albedo
+    // 10 -> (10/255)^2.2=0.000804 albedo
+    // sun color
+    // 255.0 normalize -> 255.0f/255.0 = 1.0
+    // 223.0 normalize -> 223.0f/255.0 = 0.8745
+    // 34.0 normalize -> 34.0f/255.0 = 0.13333
+    // final product
+    // 0.04943 * 1.0 = 0.04943
+    // 0.32038 * 0.8745 = 0.28017
+    // 0.000804 * 0.13333 = 0.00053332
+
+    // dirt color
+    // 155 -> (155/255)^2.2=0.33445
+    // 118 -> (118/255)^2.2=0.1835489
+    // 83  -> (83/255)^2.2=0.08464
+    // precalculated with sun color
+    // final product
+    // 0.33445 * 1.0 = 0.33445
+    // 0.1835489 * 0.8745 = 0.160513
+    // 0.08464 * 0.13333 = 0.011285
+
+    switch (type)
+    {
+    case 0:
+        rGround = 0.04943f;
+        gGround = 0.28017f;
+        bGround = 0.00053332f;
+        break;
+    case 1:
+        rGround = 0.33445f;
+        gGround = 0.160513f;
+        bGround = 0.011285f;
+        break;
+    default:
+        rGround = 0.04943f;
+        gGround = 0.28017f;
+        bGround = 0.00053332f;
+        break;
+    }
+    renderJs(antialias);
+}
+
 void move(int z, int x)
 {
     int newLocation = cameraLocation + z * meret + x;
@@ -929,9 +966,12 @@ void init()
     lightDir[0] = 0;
     lightDir[1] = -1;
     lightDir[2] = 0;
-    lightIntensity = 5000.0f;
+    lightIntensity = 1800.0f;
     lightCoefficient = INV_PI * lightIntensity;
     projectedTriangles = (float *)calloc(100, sizeof(float));
+    rGround = 0.04943f;
+    gGround = 0.28017f;
+    bGround = 0.00053332f;
 }
 
 EMSCRIPTEN_BINDINGS(raw_pointers)
@@ -966,4 +1006,5 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("newLightIntensity", &newLightIntensity);
     emscripten::function("newLightDirection", &newLightDirection);
     emscripten::function("mozgas", &move);
+    emscripten::function("newGroundType", &newGroundType);
 }

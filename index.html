@@ -141,15 +141,23 @@
             <div class="col gap">
                 <h2>Környezet:</h2>
                 <label for="lightIntensity">Fény intenzitás:</label>
-                <input type="range" id="lightIntensity" min="0" max="10000" value="5000" step="100"
+                <input type="range" id="lightIntensity" min="0" max="10000" value="1800" step="100"
                     oninput="this.nextElementSibling.value = this.value;UjFenyIntenzitas();">
-                <output>5000</output>
+                <output>1800</output>
                 <label for="lightDirection">Fény irány:</label>
                 <input type="range" id="lightDirection" min="0" max="360" value="270" step="1"
                     oninput="this.nextElementSibling.value = UjFenyIrany();">
                 <canvas id="canvasAngle" width="250" height="250">
 
                 </canvas>
+                <div>
+                    <label for="grass">Fű</label>
+                    <input type="radio" name="ground" value="0" id="grass" oninput="ujTalaj();" checked>
+                </div>
+                <div>
+                    <label for="dirt">Föld</label>
+                    <input type="radio" name="ground" value="1" id="dirt" oninput="ujTalaj();">
+                </div>
             </div>
         </div>
         <div class="col">

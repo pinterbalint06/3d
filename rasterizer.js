@@ -91,6 +91,11 @@ function UjFenyIrany() {
     Module.newLightDirection(x, y);
 }
 
+function ujTalaj() {
+    let type = document.querySelector('input[name="ground"]:checked').value;
+    Module.newGroundType(type);
+}
+
 function korRajzol(x, y) {
     let canvas = document.getElementById('canvasAngle');
     let ctx = canvas.getContext('2d');

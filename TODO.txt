@@ -1,8 +1,7 @@
-1. float cserelese fix point számolásra az edge functionnél és baricentrikus koordinátáknál
-2. Perlin zaj tovább fejlesztése (több funkció, pont normálvektorok számolása)
-3. Perlin zaj dokumentálása
-4. Texturing
-5. Edge function további optimalizálása (bejárás)
-6. Teljes graphics pipeline dokumentálása
-7. Random szám generátor dokumentálása
-8. Shading dokumentálása, Lambertian diffuse
+1. Perlin zaj tovább fejlesztése (több funkció, pont normálvektorok számolása)
+2. Perlin zaj dokumentálása
+3. Texturing
+4. Edge function további optimalizálása (bejárás)
+5. Teljes graphics pipeline dokumentálása
+6. Random szám generátor dokumentálása
+7. Shading dokumentálása, Lambertian diffuse

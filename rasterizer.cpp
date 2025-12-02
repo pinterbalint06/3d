@@ -338,11 +338,11 @@ int render()
     float inc = sqrAntialiasRec * 0.5f;
     float htminx, htmaxx, htminy, htmaxy;
     projectedTriangles = (float *)calloc(100, sizeof(float));
-    float dX0, dY0, dX1, dY1, dX2, dY2, w0, w1, w2, z0Rec, z1Rec, z2Rec, jobbraKicsiPixel0, jobbraKicsiPixel1, jobbraKicsiPixel2;
+    float dX0, dY0, dX1, dY1, dX2, dY2, w0, w1, w2, z0Rec, z1Rec, z2Rec;
     float balraFel0, balraFel1, balraFel2;
     float lambda0, lambda1, lambda2;
     float sorEleje0, sorEleje1, sorEleje2;
-    float haromszogTerulet, haromszogTeruletRec;
+    float invTriArea;
     float zMelyseg;
     int bufferIndex, kepIndex;
     float *normal = (float *)malloc(3 * sizeof(float));
@@ -386,26 +386,10 @@ int render()
             htminy = std::max(0, std::min(imageHeight - 1, (int)std::floor(htminy)));
             htmaxx = std::max(0, std::min(imageWidth - 1, (int)std::ceil(htmaxx)));
             htmaxy = std::max(0, std::min(imageHeight - 1, (int)std::ceil(htmaxy)));
-            dX0 = projectedTriangles[j + 6] - projectedTriangles[j + 3];
-            dY0 = projectedTriangles[j + 7] - projectedTriangles[j + 4];
-            dX1 = projectedTriangles[j] - projectedTriangles[j + 6];
-            dY1 = projectedTriangles[j + 1] - projectedTriangles[j + 7];
-            dX2 = projectedTriangles[j + 3] - projectedTriangles[j];
-            dY2 = projectedTriangles[j + 4] - projectedTriangles[j + 1];
-            w0 = edgeFunction(projectedTriangles[j + 3], projectedTriangles[j + 4], dX0, dY0, htminx + inc, htminy + inc);
-            w1 = edgeFunction(projectedTriangles[j + 6], projectedTriangles[j + 7], dX1, dY1, htminx + inc, htminy + inc);
-            w2 = edgeFunction(projectedTriangles[j], projectedTriangles[j + 1], dX2, dY2, htminx + inc, htminy + inc);
             z0Rec = 1.0f / projectedTriangles[j + 2];
             z1Rec = 1.0f / projectedTriangles[j + 5];
             z2Rec = 1.0f / projectedTriangles[j + 8];
-            // to the right with one subpixel's width
-            jobbraKicsiPixel0 = dY0 * sqrAntialiasRec;
-            jobbraKicsiPixel1 = dY1 * sqrAntialiasRec;
-            jobbraKicsiPixel2 = dY2 * sqrAntialiasRec;
             // go down with one subpixel's height
-            float downOneSub0 = -(dX0 * sqrAntialiasRec);
-            float downOneSub1 = -(dX1 * sqrAntialiasRec);
-            float downOneSub2 = -(dX2 * sqrAntialiasRec);
             float dotProd = std::max(0.0f, dotProduct3D(normal, lightVec));
             float lightCoefficentTriangle = lightCoefficient * dotProd;
             // grass color
@@ -423,44 +407,96 @@ int render()
             float r = 0.0033f * lightCoefficentTriangle;
             float g = 0.134673f * lightCoefficentTriangle;
             float b = 0.00053332f * lightCoefficentTriangle;
-            haromszogTerulet = 1.0f / edgeFunction(
-                                          projectedTriangles[j], projectedTriangles[j + 1],
-                                          dX2,
-                                          dY2,
-                                          projectedTriangles[j + 6], projectedTriangles[j + 7]);
-            float w0Row = w0;
-            float w1Row = w1;
-            float w2Row = w2;
-            float w0Col;
-            float w1Col;
-            float w2Col;
+
+            dX0 = projectedTriangles[j + 6] - projectedTriangles[j + 3];
+            dY0 = projectedTriangles[j + 7] - projectedTriangles[j + 4];
+            dX1 = projectedTriangles[j] - projectedTriangles[j + 6];
+            dY1 = projectedTriangles[j + 1] - projectedTriangles[j + 7];
+            dX2 = projectedTriangles[j + 3] - projectedTriangles[j];
+            dY2 = projectedTriangles[j + 4] - projectedTriangles[j + 1];
+            w0 = edgeFunction(projectedTriangles[j + 3], projectedTriangles[j + 4], dX0, dY0, htminx + inc, htminy + inc);
+            w1 = edgeFunction(projectedTriangles[j + 6], projectedTriangles[j + 7], dX1, dY1, htminx + inc, htminy + inc);
+            w2 = edgeFunction(projectedTriangles[j], projectedTriangles[j + 1], dX2, dY2, htminx + inc, htminy + inc);
+            invTriArea = 1.0f / edgeFunction(
+                                    projectedTriangles[j], projectedTriangles[j + 1],
+                                    dX2,
+                                    dY2,
+                                    projectedTriangles[j + 6], projectedTriangles[j + 7]);
+            // base barycentric weight
+            // these are constants we do not change them we calculate the current row from these
+            // scaled by the triangle's area's inverse so we don't have to multiply by that in the inner loop
+            const float w0Base = w0 * invTriArea;
+            const float w1Base = w1 * invTriArea;
+            const float w2Base = w2 * invTriArea;
+
+            // E(x+ 1,y) = E(x,y) + dY
+            // scaled by the triangle's area's inverse so we don't have to multiply by that in the inner loop
+            float stepRightOnePixel0 = dY0 * invTriArea;
+            float stepRightOnePixel1 = dY1 * invTriArea;
+            float stepRightOnePixel2 = dY2 * invTriArea;
+
+            // E(x,y+ 1) = E(x,y) −dX
+            // scaled by the triangle's area's inverse so we don't have to multiply by that in the inner loop
+            float stepDownOnePixel0 = -dX0 * invTriArea;
+            float stepDownOnePixel1 = -dX1 * invTriArea;
+            float stepDownOnePixel2 = -dX2 * invTriArea;
+
+            // step right by the subpixel's width
+            // step one pixel * small pixel width
+            float stepRightOneSubPixel0 = stepRightOnePixel0 * sqrAntialiasRec;
+            float stepRightOneSubPixel1 = stepRightOnePixel1 * sqrAntialiasRec;
+            float stepRightOneSubPixel2 = stepRightOnePixel2 * sqrAntialiasRec;
+
+            // step down by the subpixel's height
+            // step one pixel * small pixel height
+            float stepDownOneSubPixel0 = stepDownOnePixel0 * sqrAntialiasRec;
+            float stepDownOneSubPixel1 = stepDownOnePixel1 * sqrAntialiasRec;
+            float stepDownOneSubPixel2 = stepDownOnePixel2 * sqrAntialiasRec;
             for (int y = htminy; y <= htmaxy; y++)
             {
-                w0Col = w0Row;
-                w1Col = w1Row;
-                w2Col = w2Row;
+                // how many pixels are we from the top
+                float dy = (float)(y - htminy);
+
+                // E(x,y + L) = E(x,y) - L * dX
+                // L is dy pixel's from top
+                // dX is the stepDownOnePixel
+                // calculate current row's edge function
+                float w0Row = w0Base + dy * stepDownOnePixel0;
+                float w1Row = w1Base + dy * stepDownOnePixel1;
+                float w2Row = w2Base + dy * stepDownOnePixel2;
+
                 for (int x = htminx; x <= htmaxx; x++)
                 {
+                    // how many pixels are we from the left
+                    float dx = (float)(x - htminx);
+
+                    // E(x+ L,y) = E(x,y) + L × dY
+                    // L is dx pixel's from the left
+                    // dY is the stepRightOnePixel
+                    // calculate current column's edge function
+                    float w0Col = w0Row + dx * stepRightOnePixel0;
+                    float w1Col = w1Row + dx * stepRightOnePixel1;
+                    float w2Col = w2Row + dx * stepRightOnePixel2;
+
                     float w0SubRow = w0Col;
                     float w1SubRow = w1Col;
                     float w2SubRow = w2Col;
+
                     for (int ya = 0; ya < sqrAntialias; ya++)
                     {
-                        w0 = w0SubRow;
-                        w1 = w1SubRow;
-                        w2 = w2SubRow;
+                        float w0 = w0SubRow;
+                        float w1 = w1SubRow;
+                        float w2 = w2SubRow;
+
                         for (int xa = 0; xa < sqrAntialias; xa++)
                         {
-                            if (w0 >= 0 && w1 >= 0 && w2 >= 0)
+                            if (w0 >= 0.0f && w1 >= 0.0f && w2 >= 0.0f)
                             {
-                                lambda0 = w0 * haromszogTerulet;
-                                lambda1 = w1 * haromszogTerulet;
-                                lambda2 = w2 * haromszogTerulet;
-                                zMelyseg = 1.0f / (z0Rec * lambda0 + z1Rec * lambda1 + z2Rec * lambda2);
+                                zMelyseg = 1.0f / (w0 * z0Rec + w1 * z1Rec + w2 * z2Rec);
                                 bufferIndex = (y * imageWidth + x) * antialias + ya * sqrAntialias + xa;
+
                                 if (zMelyseg < zBuffer[bufferIndex])
                                 {
-
                                     zBuffer[bufferIndex] = zMelyseg;
                                     kepIndex = bufferIndex * 3;
 
@@ -469,21 +505,17 @@ int render()
                                     imageAntiBuffer[kepIndex + 2] = b;
                                 }
                             }
-                            w0 += jobbraKicsiPixel0;
-                            w1 += jobbraKicsiPixel1;
-                            w2 += jobbraKicsiPixel2;
+
+                            w0 += stepRightOneSubPixel0;
+                            w1 += stepRightOneSubPixel1;
+                            w2 += stepRightOneSubPixel2;
                         }
-                        w0SubRow += downOneSub0;
-                        w1SubRow += downOneSub1;
-                        w2SubRow += downOneSub2;
+
+                        w0SubRow += stepDownOneSubPixel0;
+                        w1SubRow += stepDownOneSubPixel1;
+                        w2SubRow += stepDownOneSubPixel2;
                     }
-                    w0Col += dY0;
-                    w1Col += dY1;
-                    w2Col += dY2;
                 }
-                w0Row -= dX0;
-                w1Row -= dX1;
-                w2Row -= dX2;
             }
         }
     }

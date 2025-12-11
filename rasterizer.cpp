@@ -63,12 +63,6 @@ enum SHADINGMODE
     FLAT = 2
 };
 enum SHADINGMODE currShadingMode = SHADINGMODE::PHONG;
-enum NORMALCALCMODE
-{
-    FINITEDIFFERENCE = 0,
-    ANALYTICAL = 1
-};
-enum NORMALCALCMODE currNormalCalcMode = NORMALCALCMODE::FINITEDIFFERENCE;
 
 float *perlin = NULL;
 float *zBuffer;
@@ -625,18 +619,7 @@ void newPerlinMap(int seed, float frequency, float lacunarity, float persistence
     }
     terrain = new Mesh(meret * meret, (meret - 1) * (meret - 1) * 6);
     allocatePerlin(meret * meret);
-    switch (currNormalCalcMode)
-    {
-    case (NORMALCALCMODE::ANALYTICAL):
-        generatePerlinNoiseAnalytical(perlin, terrain->getNormals(), frequency, meret, seed, 2, octaves, lacunarity, persistence, 0.0f, heightMultiplier);
-        break;
-    case (NORMALCALCMODE::FINITEDIFFERENCE):
-        generatePerlinNoiseFiniteDifference(perlin, terrain->getNormals(), frequency, meret, seed, 2, octaves, lacunarity, persistence, 0.0f, heightMultiplier);
-        break;
-    default:
-        generatePerlinNoiseAnalytical(perlin, terrain->getNormals(), frequency, meret, seed, 2, octaves, lacunarity, persistence, 0.0f, heightMultiplier);
-        break;
-    }
+    generatePerlinNoise(perlin, terrain->getNormals(), frequency, meret, seed, 2, octaves, lacunarity, persistence, 0.0f, heightMultiplier);
     generateTerrain(perlin, terrain);
     renderJs(antialias);
 }
@@ -697,12 +680,6 @@ void setShadingTechnique(int shading)
 {
     currShadingMode = static_cast<SHADINGMODE>(shading);
     renderJs(antialias);
-}
-
-void setNormalCalculationMode(int normalcalc)
-{
-    currNormalCalcMode = static_cast<NORMALCALCMODE>(normalcalc);
-    newPerlinMap(seed, frequency, lacunarity, persistence, octaves, heightMultiplier);
 }
 
 void move(int z, int x)
@@ -812,5 +789,4 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("mozgas", &move);
     emscripten::function("newGroundType", &newGroundType);
     emscripten::function("setShadingTechnique", &setShadingTechnique);
-    emscripten::function("setNormalCalculationMode", &setNormalCalculationMode);
 }

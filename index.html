@@ -154,16 +154,6 @@
                 <input type="range" id="frequency" min="0.5" max="5.0" value="1.0" step="0.5"
                     oninput="this.nextElementSibling.value = this.value;UjPerlinParam();">
                 <output>1.0</output>
-                <p class="m0">Normál vektor számítás:</p>
-                <div>
-                    <label for="finitedifference">Differenciahányados</label>
-                    <input type="radio" name="normalCalc" value="0" id="finitedifference" oninput="UjNormalSzamitas();"
-                        checked>
-                </div>
-                <div>
-                    <label for="analytic">Analitikus</label>
-                    <input type="radio" name="normalCalc" value="1" id="analytic" oninput="UjNormalSzamitas();">
-                </div>
             </div>
             <div class="col gap">
                 <h2>Környezet:</h2>

@@ -1,9 +1,8 @@
 1. Kód strukturálása
-2. Perlin zaj analitikus normál vektor számításának átnézése
-3. Perlin zaj dokumentálása
-4. Pont attribútumok interpolálása Sutherland-Hodgman algoritmusnál (visual bugot csinál jelenleg)
-5. Texturing
-6. Edge function további optimalizálása (bejárás)
-7. Teljes graphics pipeline dokumentálása
-8. Random szám generátor dokumentálása
-9. Shading dokumentálása, Lambertian diffuse
+2. Perlin zaj dokumentálása
+3. Pont attribútumok interpolálása Sutherland-Hodgman algoritmusnál (visual bugot csinál jelenleg)
+4. Texturing
+5. Edge function további optimalizálása (bejárás)
+6. Teljes graphics pipeline dokumentálása
+7. Random szám generátor dokumentálása
+8. Shading dokumentálása, Lambertian diffuse

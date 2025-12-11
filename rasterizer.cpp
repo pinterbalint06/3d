@@ -5,6 +5,7 @@
 #include "core/mesh.h"
 #include "core/distantLight.h"
 #include "utils/mathUtils.h"
+#include "core/shader.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstdint>
@@ -157,7 +158,7 @@ void SutherlandHodgman(float *pont0, float *pont1, float *pont2)
     }
 }
 
-void pontokVetitese(const int &i0, const int &i1, const int &i2, float *normal)
+inline void pontokVetitese(const int &i0, const int &i1, const int &i2, float *normal)
 {
 
     const float *MV = mainCamera.getViewMatrix();
@@ -208,12 +209,13 @@ void pontokVetitese(const int &i0, const int &i1, const int &i2, float *normal)
     }
 }
 
-int64_t edgeFunction(int32_t X, int32_t Y, int32_t dX, int32_t dY, int32_t x, int32_t y)
+inline int64_t edgeFunction(int32_t X, int32_t Y, int32_t dX, int32_t dY, int32_t x, int32_t y)
 {
     return ((int64_t)(x - X) * dY - (int64_t)(y - Y) * dX);
 }
 
-int renderPhong()
+template <typename StructShader>
+int renderTemplate()
 {
     if (!(MathUtils::isSquareNumber(antialias) && (1 <= antialias && antialias <= 16)))
     {
@@ -262,6 +264,7 @@ int renderPhong()
     upVec[1] = 1.0f;
     upVec[2] = 0.0f;
     mainCamera.updateViewMatrix();
+    StructShader shader;
     for (int i = 0; i < terrain->getIndexCount(); i += 3)
     {
         int32_t *currIndices = terrain->getIndices();
@@ -343,6 +346,11 @@ int renderPhong()
             // if triangle's are is 0 or smaller it is not a real triangle
             if (triArea > 0)
             {
+                // initialize shader for triangle
+                shader.setupTriangle(normal, terrain->getNormals(), terrain->getIndices(),
+                                     i, lightVec, rGround, gGround, bGround, sun,
+                                     z0Rec, z1Rec, z2Rec);
+
                 // precalculate inverse of triangle's area
                 invTriArea = 1.0f / (float)triArea;
 
@@ -410,25 +418,9 @@ int renderPhong()
                                     {
                                         zBuffer[bufferIndex] = zDepth;
                                         imageIndex = bufferIndex * 3;
-                                        // perspective correct interpolation
-                                        normalInterpolated[0] = (lambda0 * currNormals[currIndices[i] * 3] * z0Rec + lambda1 * currNormals[currIndices[i + 1] * 3] * z1Rec + lambda2 * currNormals[currIndices[i + 2] * 3] * z2Rec) * zDepth;
-                                        normalInterpolated[1] = (lambda0 * currNormals[currIndices[i] * 3 + 1] * z0Rec + lambda1 * currNormals[currIndices[i + 1] * 3 + 1] * z1Rec + lambda2 * currNormals[currIndices[i + 2] * 3 + 1] * z2Rec) * zDepth;
-                                        normalInterpolated[2] = (lambda0 * currNormals[currIndices[i] * 3 + 2] * z0Rec + lambda1 * currNormals[currIndices[i + 1] * 3 + 2] * z1Rec + lambda2 * currNormals[currIndices[i + 2] * 3 + 2] * z2Rec) * zDepth;
-                                        float normalLengthInv = 1.0f / std::sqrt(normalInterpolated[0] * normalInterpolated[0] + normalInterpolated[1] * normalInterpolated[1] + normalInterpolated[2] * normalInterpolated[2]);
-                                        normalInterpolated[0] *= normalLengthInv;
-                                        normalInterpolated[1] *= normalLengthInv;
-                                        normalInterpolated[2] *= normalLengthInv;
-
-                                        float dotProd = std::max(0.0f, MathUtils::dotProduct3D(normalInterpolated, lightVec));
-                                        // float slopeness = normalInterpolated[1];
-
-                                        // rPix = rDirt + (rGrass - rDirt) * slopeness;
-                                        // gPix = gDirt + (gGrass - gDirt) * slopeness;
-                                        // bPix = bDirt + (bGrass - bDirt) * slopeness;
-
-                                        imageAntiBuffer[imageIndex] = rGround * sun->getRedCalculated() * dotProd;
-                                        imageAntiBuffer[imageIndex + 1] = gGround * sun->getGreenCalculated() * dotProd;
-                                        imageAntiBuffer[imageIndex + 2] = bGround * sun->getBlueCalculated() * dotProd;
+                                        // shade current pixel
+                                        shader.shadePixel(lambda0, lambda1, lambda2,
+                                                          zDepth, imageAntiBuffer, imageIndex);
                                     }
                                 }
                                 // step one subpixel to the right
@@ -491,574 +483,22 @@ int renderPhong()
     return (int)imageBuffer;
 }
 
-int renderGouraud()
-{
-    if (!(MathUtils::isSquareNumber(antialias) && (1 <= antialias && antialias <= 16)))
-    {
-        throw "Wrong antialias. Must be square number and between 1 and 16!";
-    }
-    std::fill(zBuffer, zBuffer + zBufferMeret, 1.0f);
-    std::fill(imageAntiBuffer, imageAntiBuffer + imageAntiBufferLength, 0.0f);
-    std::fill(imageBuffer, imageBuffer + imageBufferLength, 0);
-    std::fill(projectedTriangles, projectedTriangles + 100, 0);
-    // subpixels width and height
-    int sqrAntialias = (int)sqrt(antialias);
-    // one subpixel's width and height
-    int32_t sqrAntialiasRec = Float2Fix(1.0f / sqrAntialias);
-    // half of one subpixel's width and height
-    // >> 1 = / 2
-    int32_t inc = sqrAntialiasRec >> 1;
-    // bounding box
-    float htminx, htmaxx, htminy, htmaxy;
-    // used for the edge function
-    int32_t dX0, dY0, dX1, dY1, dX2, dY2;
-    // edge function results
-    int64_t w0, w1, w2;
-    // reciprocal of the z values
-    float z0Rec, z1Rec, z2Rec;
-    // triangle's area
-    int64_t triArea;
-    // triangle's area's reciprocal
-    float invTriArea;
-    // used for the z-buffer
-    float zDepth;
-    // indexes
-    int bufferIndex, imageIndex;
-    // normal of the current triangle
-    float *normal = (float *)malloc(3 * sizeof(float));
-    // light vector
-    float lightVec[3];
-    float rPix, gPix, bPix;
-    const float *lightDir = sun->getDirection();
-    lightVec[0] = -lightDir[0];
-    lightVec[1] = -lightDir[1];
-    lightVec[2] = -lightDir[2];
-    // up vector
-    float upVec[3];
-    upVec[0] = 0.0f;
-    upVec[1] = 1.0f;
-    upVec[2] = 0.0f;
-    mainCamera.updateViewMatrix();
-    for (int i = 0; i < terrain->getIndexCount(); i += 3)
-    {
-        int32_t *currIndices = terrain->getIndices();
-        float *currNormals = terrain->getNormals();
-        pontokVetitese(currIndices[i], currIndices[i + 1], currIndices[i + 2], normal);
-        for (int j = 0; j < projectedTrianglesMeret; j += 9)
-        {
-            // Calculate bounding box
-            htminx = imageWidth;
-            htmaxx = -imageWidth;
-            htminy = imageHeight;
-            htmaxy = -imageHeight;
-            for (int k = 0; k < 9; k += 3)
-            {
-                if (projectedTriangles[j + k] < htminx)
-                {
-                    htminx = projectedTriangles[j + k];
-                }
-                if (projectedTriangles[j + k] > htmaxx)
-                {
-                    htmaxx = projectedTriangles[j + k];
-                }
-                if (projectedTriangles[j + k + 1] < htminy)
-                {
-                    htminy = projectedTriangles[j + k + 1];
-                }
-                if (projectedTriangles[j + k + 1] > htmaxy)
-                {
-                    htmaxy = projectedTriangles[j + k + 1];
-                }
-            }
-            int bbminx = std::max(0, std::min(imageWidth - 1, (int)std::floor(htminx)));
-            int bbminy = std::max(0, std::min(imageHeight - 1, (int)std::floor(htminy)));
-            int bbmaxx = std::max(0, std::min(imageWidth - 1, (int)std::ceil(htmaxx)));
-            int bbmaxy = std::max(0, std::min(imageHeight - 1, (int)std::ceil(htmaxy)));
-
-            // Convert triangle vertices to fixed point integer
-            int32_t v0x = Float2Fix(projectedTriangles[j]);
-            int32_t v0y = Float2Fix(projectedTriangles[j + 1]);
-            int32_t v0z = Float2Fix(projectedTriangles[j + 2]);
-            int32_t v1x = Float2Fix(projectedTriangles[j + 3]);
-            int32_t v1y = Float2Fix(projectedTriangles[j + 4]);
-            int32_t v1z = Float2Fix(projectedTriangles[j + 5]);
-            int32_t v2x = Float2Fix(projectedTriangles[j + 6]);
-            int32_t v2y = Float2Fix(projectedTriangles[j + 7]);
-            int32_t v2z = Float2Fix(projectedTriangles[j + 8]);
-
-            // precalculate the reciprocal
-            z0Rec = 1.0f / projectedTriangles[j + 2];
-            z1Rec = 1.0f / projectedTriangles[j + 5];
-            z2Rec = 1.0f / projectedTriangles[j + 8];
-
-            // calculate parameters of edge function
-            dX0 = v2x - v1x;
-            dY0 = v2y - v1y;
-
-            dX1 = v0x - v2x;
-            dY1 = v0y - v2y;
-
-            dX2 = v1x - v0x;
-            dY2 = v1y - v0y;
-
-            // first pixel's center
-            int32_t startX = Int2Fix(bbminx) + inc;
-            int32_t startY = Int2Fix(bbminy) + inc;
-
-            // Edge functions
-            w0 = edgeFunction(v1x, v1y, dX0, dY0, startX, startY);
-            w1 = edgeFunction(v2x, v2y, dX1, dY1, startX, startY);
-            w2 = edgeFunction(v0x, v0y, dX2, dY2, startX, startY);
-
-            // gives back area * 2 but w0, w1, w2 is also * 2 so it will cancel out
-            triArea = edgeFunction(
-                v0x, v0y,
-                dX2,
-                dY2,
-                v2x, v2y);
-
-            // if triangle's are is 0 or smaller it is not a real triangle
-            if (triArea > 0)
-            {
-
-                float dotProd0 = std::max(0.0f, MathUtils::dotProduct3D(&currNormals[currIndices[i] * 3], lightVec));
-                float dotProd1 = std::max(0.0f, MathUtils::dotProduct3D(&currNormals[currIndices[i + 1] * 3], lightVec));
-                float dotProd2 = std::max(0.0f, MathUtils::dotProduct3D(&currNormals[currIndices[i + 2] * 3], lightVec));
-                // float slopeness = normalInterpolated[1];
-
-                // rPix = rDirt + (rGrass - rDirt) * slopeness;
-                // gPix = gDirt + (gGrass - gDirt) * slopeness;
-                // bPix = bDirt + (bGrass - bDirt) * slopeness;
-                float r0 = rGround * sun->getRedCalculated() * dotProd0;
-                float g0 = gGround * sun->getGreenCalculated() * dotProd0;
-                float b0 = bGround * sun->getBlueCalculated() * dotProd0;
-
-                float r1 = rGround * sun->getRedCalculated() * dotProd1;
-                float g1 = gGround * sun->getGreenCalculated() * dotProd1;
-                float b1 = bGround * sun->getBlueCalculated() * dotProd1;
-
-                float r2 = rGround * sun->getRedCalculated() * dotProd2;
-                float g2 = gGround * sun->getGreenCalculated() * dotProd2;
-                float b2 = bGround * sun->getBlueCalculated() * dotProd2;
-                // precalculate inverse of triangle's area
-                invTriArea = 1.0f / (float)triArea;
-
-                // E(x+ 1,y) = E(x,y) + dY
-                // dY Q21.10 so * FIX_ONE dY becomes Q42.20
-                int64_t stepRightOnePixel0 = (int64_t)dY0 * FIX_ONE;
-                int64_t stepRightOnePixel1 = (int64_t)dY1 * FIX_ONE;
-                int64_t stepRightOnePixel2 = (int64_t)dY2 * FIX_ONE;
-
-                // E(x,y+ 1) = E(x,y) −dX
-                // dX Q21.10 so * FIX_ONE dX becomes Q42.20
-                int64_t stepDownOnePixel0 = (int64_t)(-dX0) * FIX_ONE;
-                int64_t stepDownOnePixel1 = (int64_t)(-dX1) * FIX_ONE;
-                int64_t stepDownOnePixel2 = (int64_t)(-dX2) * FIX_ONE;
-
-                // step right by the subpixel's width
-                // step one pixel * small pixel width
-                // Q42.20 * Q21.10 would be Q32.30 so we have to >> FIX_BITS
-                int64_t stepRightOneSubPixel0 = (stepRightOnePixel0 * sqrAntialiasRec) >> FIX_BITS;
-                int64_t stepRightOneSubPixel1 = (stepRightOnePixel1 * sqrAntialiasRec) >> FIX_BITS;
-                int64_t stepRightOneSubPixel2 = (stepRightOnePixel2 * sqrAntialiasRec) >> FIX_BITS;
-
-                // step down by the subpixel's height
-                // step one pixel * small pixel height
-                // Q42.20 * Q21.10 would be Q32.30 so we have to >> FIX_BITS
-                int64_t stepDownOneSubPixel0 = (stepDownOnePixel0 * sqrAntialiasRec) >> FIX_BITS;
-                int64_t stepDownOneSubPixel1 = (stepDownOnePixel1 * sqrAntialiasRec) >> FIX_BITS;
-                int64_t stepDownOneSubPixel2 = (stepDownOnePixel2 * sqrAntialiasRec) >> FIX_BITS;
-
-                int64_t w0Row = w0;
-                int64_t w1Row = w1;
-                int64_t w2Row = w2;
-
-                float lambda0 = (float)w0 * invTriArea;
-                float lambda1 = (float)w1 * invTriArea;
-                float lambda2 = (float)w2 * invTriArea;
-
-                for (int y = bbminy; y <= bbmaxy; y++)
-                {
-                    int64_t w0Col = w0Row;
-                    int64_t w1Col = w1Row;
-                    int64_t w2Col = w2Row;
-
-                    for (int x = bbminx; x <= bbmaxx; x++)
-                    {
-                        int64_t w0SubRow = w0Col;
-                        int64_t w1SubRow = w1Col;
-                        int64_t w2SubRow = w2Col;
-
-                        for (int ya = 0; ya < sqrAntialias; ya++)
-                        {
-                            int64_t w0Sub = w0SubRow;
-                            int64_t w1Sub = w1SubRow;
-                            int64_t w2Sub = w2SubRow;
-                            for (int xa = 0; xa < sqrAntialias; xa++)
-                            {
-                                // the sign bit is one if the number is negative
-                                // if all three number is positive all of their sign bit is zero so in an OR operator the result's sign bit is also 0 and positive
-                                // if any of  the number is negative (their sign bit is 1) then the result's sign bit will also be 1 and will be negative
-                                if ((w0Sub | w1Sub | w2Sub) >= 0)
-                                {
-                                    // barycentric coordinates
-                                    lambda0 = (float)w0Sub * invTriArea;
-                                    lambda1 = (float)w1Sub * invTriArea;
-                                    lambda2 = (float)w2Sub * invTriArea;
-                                    // hyperbolic interpolation for z-coordinate
-                                    zDepth = 1.0f / (lambda0 * z0Rec + lambda1 * z1Rec + lambda2 * z2Rec);
-                                    bufferIndex = (y * imageWidth + x) * antialias + ya * sqrAntialias + xa;
-                                    if (zDepth < zBuffer[bufferIndex])
-                                    {
-                                        zBuffer[bufferIndex] = zDepth;
-                                        imageIndex = bufferIndex * 3;
-                                        // perspective correct interpolation
-                                        imageAntiBuffer[imageIndex] = (lambda0 * r0 * z0Rec + lambda1 * r1 * z1Rec + lambda2 * r2 * z2Rec) * zDepth;
-                                        imageAntiBuffer[imageIndex + 1] = (lambda0 * g0 * z0Rec + lambda1 * g1 * z1Rec + lambda2 * g2 * z2Rec) * zDepth;
-                                        imageAntiBuffer[imageIndex + 2] = (lambda0 * b0 * z0Rec + lambda1 * b1 * z1Rec + lambda2 * b2 * z2Rec) * zDepth;
-                                    }
-                                }
-                                // step one subpixel to the right
-                                w0Sub += stepRightOneSubPixel0;
-                                w1Sub += stepRightOneSubPixel1;
-                                w2Sub += stepRightOneSubPixel2;
-                            }
-                            // step down one subpixel
-                            w0SubRow += stepDownOneSubPixel0;
-                            w1SubRow += stepDownOneSubPixel1;
-                            w2SubRow += stepDownOneSubPixel2;
-                        }
-                        // step one pixel to the right
-                        w0Col += stepRightOnePixel0;
-                        w1Col += stepRightOnePixel1;
-                        w2Col += stepRightOnePixel2;
-                    }
-                    // step down one pixel
-                    w0Row += stepDownOnePixel0;
-                    w1Row += stepDownOnePixel1;
-                    w2Row += stepDownOnePixel2;
-                }
-            }
-        }
-    }
-    free(normal);
-    float r, g, b;
-    int altalanosIndex, imageAntiIndex, subImageIndex, imageBufferIndex;
-    float antiRec = 1.0f / antialias;
-    for (int y = 0; y < imageHeight; y++)
-    {
-        for (int x = 0; x < imageWidth; x++)
-        {
-            altalanosIndex = (y * imageWidth + x);
-            imageAntiIndex = altalanosIndex * antialias;
-            imageBufferIndex = altalanosIndex * 4;
-            r = 0.0f;
-            g = 0.0f;
-            b = 0.0f;
-            for (int k = 0; k < antialias; k++)
-            {
-                subImageIndex = (imageAntiIndex + k) * 3;
-                r += imageAntiBuffer[subImageIndex];
-                g += imageAntiBuffer[subImageIndex + 1];
-                b += imageAntiBuffer[subImageIndex + 2];
-            }
-            imageBuffer[imageBufferIndex] = static_cast<uint8_t>(
-                std::round(
-                    std::clamp(r * antiRec, 0.0f, 255.0f)));
-            imageBuffer[imageBufferIndex + 1] = static_cast<uint8_t>(
-                std::round(
-                    std::clamp(g * antiRec, 0.0f, 255.0f)));
-            imageBuffer[imageBufferIndex + 2] = static_cast<uint8_t>(
-                std::round(
-                    std::clamp(b * antiRec, 0.0f, 255.0f)));
-            imageBuffer[imageBufferIndex + 3] = 255;
-        }
-    }
-    return (int)imageBuffer;
-}
-
-int renderFlat()
-{
-    if (!(MathUtils::isSquareNumber(antialias) && (1 <= antialias && antialias <= 16)))
-    {
-        throw "Wrong antialias. Must be square number and between 1 and 16!";
-    }
-    std::fill(zBuffer, zBuffer + zBufferMeret, 1.0f);
-    std::fill(imageAntiBuffer, imageAntiBuffer + imageAntiBufferLength, 0.0f);
-    std::fill(imageBuffer, imageBuffer + imageBufferLength, 0);
-    std::fill(projectedTriangles, projectedTriangles + 100, 0);
-    // subpixels width and height
-    int sqrAntialias = (int)sqrt(antialias);
-    // one subpixel's width and height
-    int32_t sqrAntialiasRec = Float2Fix(1.0f / sqrAntialias);
-    // half of one subpixel's width and height
-    // >> 1 = / 2
-    int32_t inc = sqrAntialiasRec >> 1;
-    // bounding box
-    float htminx, htmaxx, htminy, htmaxy;
-    // used for the edge function
-    int32_t dX0, dY0, dX1, dY1, dX2, dY2;
-    // edge function results
-    int64_t w0, w1, w2;
-    // reciprocal of the z values
-    float z0Rec, z1Rec, z2Rec;
-    // triangle's area
-    int64_t triArea;
-    // triangle's area's reciprocal
-    float invTriArea;
-    // used for the z-buffer
-    float zDepth;
-    // indexes
-    int bufferIndex, imageIndex;
-    // normal of the current triangle
-    float *normal = (float *)malloc(3 * sizeof(float));
-    // light vector
-    float lightVec[3];
-    float rPix, gPix, bPix;
-    const float *lightDir = sun->getDirection();
-    lightVec[0] = -lightDir[0];
-    lightVec[1] = -lightDir[1];
-    lightVec[2] = -lightDir[2];
-    // up vector
-    float upVec[3];
-    upVec[0] = 0.0f;
-    upVec[1] = 1.0f;
-    upVec[2] = 0.0f;
-    mainCamera.updateViewMatrix();
-    for (int i = 0; i < terrain->getIndexCount(); i += 3)
-    {
-        int32_t *currIndices = terrain->getIndices();
-        pontokVetitese(currIndices[i], currIndices[i + 1], currIndices[i + 2], normal);
-        for (int j = 0; j < projectedTrianglesMeret; j += 9)
-        {
-            // Calculate bounding box
-            htminx = imageWidth;
-            htmaxx = -imageWidth;
-            htminy = imageHeight;
-            htmaxy = -imageHeight;
-            for (int k = 0; k < 9; k += 3)
-            {
-                if (projectedTriangles[j + k] < htminx)
-                {
-                    htminx = projectedTriangles[j + k];
-                }
-                if (projectedTriangles[j + k] > htmaxx)
-                {
-                    htmaxx = projectedTriangles[j + k];
-                }
-                if (projectedTriangles[j + k + 1] < htminy)
-                {
-                    htminy = projectedTriangles[j + k + 1];
-                }
-                if (projectedTriangles[j + k + 1] > htmaxy)
-                {
-                    htmaxy = projectedTriangles[j + k + 1];
-                }
-            }
-            int bbminx = std::max(0, std::min(imageWidth - 1, (int)std::floor(htminx)));
-            int bbminy = std::max(0, std::min(imageHeight - 1, (int)std::floor(htminy)));
-            int bbmaxx = std::max(0, std::min(imageWidth - 1, (int)std::ceil(htmaxx)));
-            int bbmaxy = std::max(0, std::min(imageHeight - 1, (int)std::ceil(htmaxy)));
-
-            // Convert triangle vertices to fixed point integer
-            int32_t v0x = Float2Fix(projectedTriangles[j]);
-            int32_t v0y = Float2Fix(projectedTriangles[j + 1]);
-            int32_t v0z = Float2Fix(projectedTriangles[j + 2]);
-            int32_t v1x = Float2Fix(projectedTriangles[j + 3]);
-            int32_t v1y = Float2Fix(projectedTriangles[j + 4]);
-            int32_t v1z = Float2Fix(projectedTriangles[j + 5]);
-            int32_t v2x = Float2Fix(projectedTriangles[j + 6]);
-            int32_t v2y = Float2Fix(projectedTriangles[j + 7]);
-            int32_t v2z = Float2Fix(projectedTriangles[j + 8]);
-
-            // precalculate the reciprocal
-            z0Rec = 1.0f / projectedTriangles[j + 2];
-            z1Rec = 1.0f / projectedTriangles[j + 5];
-            z2Rec = 1.0f / projectedTriangles[j + 8];
-
-            // precalculate the lighting
-            float dotProd = std::max(0.0f, MathUtils::dotProduct3D(normal, lightVec));
-            float r = rGround * sun->getRedCalculated() * dotProd;
-            float g = gGround * sun->getGreenCalculated() * dotProd;
-            float b = bGround * sun->getBlueCalculated() * dotProd;
-
-            // calculate parameters of edge function
-            dX0 = v2x - v1x;
-            dY0 = v2y - v1y;
-
-            dX1 = v0x - v2x;
-            dY1 = v0y - v2y;
-
-            dX2 = v1x - v0x;
-            dY2 = v1y - v0y;
-
-            // first pixel's center
-            int32_t startX = Int2Fix(bbminx) + inc;
-            int32_t startY = Int2Fix(bbminy) + inc;
-
-            // Edge functions
-            w0 = edgeFunction(v1x, v1y, dX0, dY0, startX, startY);
-            w1 = edgeFunction(v2x, v2y, dX1, dY1, startX, startY);
-            w2 = edgeFunction(v0x, v0y, dX2, dY2, startX, startY);
-
-            // gives back area * 2 but w0, w1, w2 is also * 2 so it will cancel out
-            triArea = edgeFunction(
-                v0x, v0y,
-                dX2,
-                dY2,
-                v2x, v2y);
-
-            // if triangle's are is 0 or smaller it is not a real triangle
-            if (triArea > 0)
-            {
-                // precalculate inverse of triangle's area
-                invTriArea = 1.0f / (float)triArea;
-
-                // E(x+ 1,y) = E(x,y) + dY
-                // dY Q21.10 so * FIX_ONE dY becomes Q42.20
-                int64_t stepRightOnePixel0 = (int64_t)dY0 * FIX_ONE;
-                int64_t stepRightOnePixel1 = (int64_t)dY1 * FIX_ONE;
-                int64_t stepRightOnePixel2 = (int64_t)dY2 * FIX_ONE;
-
-                // E(x,y+ 1) = E(x,y) −dX
-                // dX Q21.10 so * FIX_ONE dX becomes Q42.20
-                int64_t stepDownOnePixel0 = (int64_t)(-dX0) * FIX_ONE;
-                int64_t stepDownOnePixel1 = (int64_t)(-dX1) * FIX_ONE;
-                int64_t stepDownOnePixel2 = (int64_t)(-dX2) * FIX_ONE;
-
-                // step right by the subpixel's width
-                // step one pixel * small pixel width
-                // Q42.20 * Q21.10 would be Q32.30 so we have to >> FIX_BITS
-                int64_t stepRightOneSubPixel0 = (stepRightOnePixel0 * sqrAntialiasRec) >> FIX_BITS;
-                int64_t stepRightOneSubPixel1 = (stepRightOnePixel1 * sqrAntialiasRec) >> FIX_BITS;
-                int64_t stepRightOneSubPixel2 = (stepRightOnePixel2 * sqrAntialiasRec) >> FIX_BITS;
-
-                // step down by the subpixel's height
-                // step one pixel * small pixel height
-                // Q42.20 * Q21.10 would be Q32.30 so we have to >> FIX_BITS
-                int64_t stepDownOneSubPixel0 = (stepDownOnePixel0 * sqrAntialiasRec) >> FIX_BITS;
-                int64_t stepDownOneSubPixel1 = (stepDownOnePixel1 * sqrAntialiasRec) >> FIX_BITS;
-                int64_t stepDownOneSubPixel2 = (stepDownOnePixel2 * sqrAntialiasRec) >> FIX_BITS;
-
-                int64_t w0Row = w0;
-                int64_t w1Row = w1;
-                int64_t w2Row = w2;
-
-                for (int y = bbminy; y <= bbmaxy; y++)
-                {
-                    int64_t w0Col = w0Row;
-                    int64_t w1Col = w1Row;
-                    int64_t w2Col = w2Row;
-
-                    for (int x = bbminx; x <= bbmaxx; x++)
-                    {
-                        int64_t w0SubRow = w0Col;
-                        int64_t w1SubRow = w1Col;
-                        int64_t w2SubRow = w2Col;
-
-                        for (int ya = 0; ya < sqrAntialias; ya++)
-                        {
-                            int64_t w0Sub = w0SubRow;
-                            int64_t w1Sub = w1SubRow;
-                            int64_t w2Sub = w2SubRow;
-                            for (int xa = 0; xa < sqrAntialias; xa++)
-                            {
-                                // the sign bit is one if the number is negative
-                                // if all three number is positive all of their sign bit is zero so in an OR operator the result's sign bit is also 0 and positive
-                                // if any of  the number is negative (their sign bit is 1) then the result's sign bit will also be 1 and will be negative
-                                if ((w0Sub | w1Sub | w2Sub) >= 0)
-                                {
-                                    // barycentric coordinates
-                                    float lambda0 = (float)w0Sub * invTriArea;
-                                    float lambda1 = (float)w1Sub * invTriArea;
-                                    float lambda2 = (float)w2Sub * invTriArea;
-                                    // hyperbolic interpolation for z-coordinate
-                                    zDepth = 1.0f / (lambda0 * z0Rec + lambda1 * z1Rec + lambda2 * z2Rec);
-                                    bufferIndex = (y * imageWidth + x) * antialias + ya * sqrAntialias + xa;
-                                    if (zDepth < zBuffer[bufferIndex])
-                                    {
-                                        zBuffer[bufferIndex] = zDepth;
-                                        imageIndex = bufferIndex * 3;
-                                        imageAntiBuffer[imageIndex] = r;
-                                        imageAntiBuffer[imageIndex + 1] = g;
-                                        imageAntiBuffer[imageIndex + 2] = b;
-                                    }
-                                }
-                                // step one subpixel to the right
-                                w0Sub += stepRightOneSubPixel0;
-                                w1Sub += stepRightOneSubPixel1;
-                                w2Sub += stepRightOneSubPixel2;
-                            }
-                            // step down one subpixel
-                            w0SubRow += stepDownOneSubPixel0;
-                            w1SubRow += stepDownOneSubPixel1;
-                            w2SubRow += stepDownOneSubPixel2;
-                        }
-                        // step one pixel to the right
-                        w0Col += stepRightOnePixel0;
-                        w1Col += stepRightOnePixel1;
-                        w2Col += stepRightOnePixel2;
-                    }
-                    // step down one pixel
-                    w0Row += stepDownOnePixel0;
-                    w1Row += stepDownOnePixel1;
-                    w2Row += stepDownOnePixel2;
-                }
-            }
-        }
-    }
-    free(normal);
-    float r, g, b;
-    int altalanosIndex, imageAntiIndex, subImageIndex, imageBufferIndex;
-    float antiRec = 1.0f / antialias;
-    for (int y = 0; y < imageHeight; y++)
-    {
-        for (int x = 0; x < imageWidth; x++)
-        {
-            altalanosIndex = (y * imageWidth + x);
-            imageAntiIndex = altalanosIndex * antialias;
-            imageBufferIndex = altalanosIndex * 4;
-            r = 0.0f;
-            g = 0.0f;
-            b = 0.0f;
-            for (int k = 0; k < antialias; k++)
-            {
-                subImageIndex = (imageAntiIndex + k) * 3;
-                r += imageAntiBuffer[subImageIndex];
-                g += imageAntiBuffer[subImageIndex + 1];
-                b += imageAntiBuffer[subImageIndex + 2];
-            }
-            imageBuffer[imageBufferIndex] = static_cast<uint8_t>(
-                std::round(
-                    std::clamp(r * antiRec, 0.0f, 255.0f)));
-            imageBuffer[imageBufferIndex + 1] = static_cast<uint8_t>(
-                std::round(
-                    std::clamp(g * antiRec, 0.0f, 255.0f)));
-            imageBuffer[imageBufferIndex + 2] = static_cast<uint8_t>(
-                std::round(
-                    std::clamp(b * antiRec, 0.0f, 255.0f)));
-            imageBuffer[imageBufferIndex + 3] = 255;
-        }
-    }
-    return (int)imageBuffer;
-}
-
 int render()
 {
     calcNewLocationCamera(cameraLocation);
     switch (currShadingMode)
     {
     case (SHADINGMODE::PHONG):
-        return renderPhong();
+        return renderTemplate<Shaders::PhongShader>();
         break;
     case (SHADINGMODE::GOURAUD):
-        return renderGouraud();
+        return renderTemplate<Shaders::GouraudShader>();
         break;
     case (SHADINGMODE::FLAT):
-        return renderFlat();
+        return renderTemplate<Shaders::FlatShader>();
         break;
     default:
-        return renderPhong();
+        return renderTemplate<Shaders::PhongShader>();
         break;
     }
 }
@@ -1156,7 +596,7 @@ void generateTerrain(float *perlin, Mesh *terrain)
             i = y * meret + x;
 
             // We form two triangles from a rectangle in the perlin grid
-            terrain->getIndices()[currIndex++] = i + 1;         // top-right vertex
+            terrain->getIndices()[currIndex++] = i + 1;     // top-right vertex
             terrain->getIndices()[currIndex++] = i + meret; // bottom-left vertex
             terrain->getIndices()[currIndex++] = i;         // top-left vertex
 
@@ -1355,7 +795,6 @@ void init()
 EMSCRIPTEN_BINDINGS(my_module)
 {
     emscripten::function("init", &init);
-    emscripten::function("allocatePerlin", &allocatePerlin);
     emscripten::function("render", &render);
     emscripten::function("imageBufferSize", &imageBufferSize);
     emscripten::function("ujHely", &ujHely);

@@ -7,14 +7,12 @@
 #include "utils/mathUtils.h"
 #include "core/shader.h"
 #include "utils/frameBuffer.h"
+#include "utils/fixedPoint.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstdint>
 #include <algorithm>
 #include <stdexcept>
-#define FIX_BITS 10
-#define FIX_ONE (1 << FIX_BITS)
-#define FIX64 (1 << (FIX_BITS * 2))
 
 int meret;
 int cameraLocation;
@@ -72,16 +70,6 @@ int *sikok;
 Mesh *terrain = nullptr;
 // frame buffers
 FrameBuffer *FrameBuff = nullptr;
-
-int32_t Float2Fix(float num)
-{
-    return (int32_t)((num)*FIX_ONE);
-}
-
-int32_t Int2Fix(int num)
-{
-    return (int32_t)((num)*FIX_ONE);
-}
 
 void calcNewLocationCamera(int index)
 {
@@ -164,9 +152,6 @@ inline void pontokVetitese(const int &i0, const int &i1, const int &i2, float *n
         MathUtils::vert3MatrixMult(p0, MP);
         MathUtils::vert3MatrixMult(p1, MP);
         MathUtils::vert3MatrixMult(p2, MP);
-        // pontPerspectiveMultiplication(p0);
-        // pontPerspectiveMultiplication(p1);
-        // pontPerspectiveMultiplication(p2);
         // clip space
         SutherlandHodgman(p0, p1, p2);
         float wRec;
@@ -217,7 +202,7 @@ int renderTemplate()
     // subpixels width and height
     int sqrAntialias = (int)sqrt(antialias);
     // one subpixel's width and height
-    int32_t sqrAntialiasRec = Float2Fix(1.0f / sqrAntialias);
+    int32_t sqrAntialiasRec = FixedPoint::Float2Fix(1.0f / sqrAntialias);
     // half of one subpixel's width and height
     // >> 1 = / 2
     int32_t inc = sqrAntialiasRec >> 1;
@@ -238,8 +223,8 @@ int renderTemplate()
     // indexes
     int bufferIndex, imageIndex;
     // normal of the current triangle
-    float *normal = (float *)malloc(3 * sizeof(float));
-    float *normalInterpolated = (float *)malloc(3 * sizeof(float));
+    float *normal = new float[3];
+    float *normalInterpolated = new float[3];
     // light vector
     float lightVec[3];
     float rPix, gPix, bPix;
@@ -293,15 +278,15 @@ int renderTemplate()
             int bbmaxy = std::max(0, std::min(imageHeight - 1, (int)std::ceil(htmaxy)));
 
             // Convert triangle vertices to fixed point integer
-            int32_t v0x = Float2Fix(projectedTriangles[j]);
-            int32_t v0y = Float2Fix(projectedTriangles[j + 1]);
-            int32_t v0z = Float2Fix(projectedTriangles[j + 2]);
-            int32_t v1x = Float2Fix(projectedTriangles[j + 3]);
-            int32_t v1y = Float2Fix(projectedTriangles[j + 4]);
-            int32_t v1z = Float2Fix(projectedTriangles[j + 5]);
-            int32_t v2x = Float2Fix(projectedTriangles[j + 6]);
-            int32_t v2y = Float2Fix(projectedTriangles[j + 7]);
-            int32_t v2z = Float2Fix(projectedTriangles[j + 8]);
+            int32_t v0x = FixedPoint::Float2Fix(projectedTriangles[j]);
+            int32_t v0y = FixedPoint::Float2Fix(projectedTriangles[j + 1]);
+            int32_t v0z = FixedPoint::Float2Fix(projectedTriangles[j + 2]);
+            int32_t v1x = FixedPoint::Float2Fix(projectedTriangles[j + 3]);
+            int32_t v1y = FixedPoint::Float2Fix(projectedTriangles[j + 4]);
+            int32_t v1z = FixedPoint::Float2Fix(projectedTriangles[j + 5]);
+            int32_t v2x = FixedPoint::Float2Fix(projectedTriangles[j + 6]);
+            int32_t v2y = FixedPoint::Float2Fix(projectedTriangles[j + 7]);
+            int32_t v2z = FixedPoint::Float2Fix(projectedTriangles[j + 8]);
 
             // precalculate the reciprocal
             z0Rec = 1.0f / projectedTriangles[j + 2];
@@ -319,8 +304,8 @@ int renderTemplate()
             dY2 = v1y - v0y;
 
             // first pixel's center
-            int32_t startX = Int2Fix(bbminx) + inc;
-            int32_t startY = Int2Fix(bbminy) + inc;
+            int32_t startX = FixedPoint::Int2Fix(bbminx) + inc;
+            int32_t startY = FixedPoint::Int2Fix(bbminy) + inc;
 
             // Edge functions
             w0 = edgeFunction(v1x, v1y, dX0, dY0, startX, startY);
@@ -437,8 +422,8 @@ int renderTemplate()
             }
         }
     }
-    free(normal);
-    free(normalInterpolated);
+    delete[] normal;
+    delete[] normalInterpolated;
     FrameBuff->calculateAntialias();
     return (int)FrameBuff->getImageBuffer();
 }

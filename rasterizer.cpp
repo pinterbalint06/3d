@@ -1,8 +1,8 @@
 #include <emscripten/emscripten.h>
 #include <emscripten/bind.h>
-#include "utils/perlin.h"
 #include "core/camera.h"
 #include "core/mesh.h"
+#include "core/terrain.h"
 #include "core/distantLight.h"
 #include "utils/mathUtils.h"
 #include "core/shader.h"
@@ -14,12 +14,10 @@
 #include <algorithm>
 #include <stdexcept>
 
-int meret;
 int cameraLocation;
 int antialias;
 int imageWidth;
 int imageHeight;
-int perlinMeret = 0;
 int bemenetMeret;
 int projectedTrianglesMeret;
 int clippedMeret;
@@ -27,15 +25,10 @@ int clippedMeret;
 Camera mainCamera;
 // terrain mesh
 distantLight *sun = nullptr;
-// perlin noise height multiplier
-float heightMultiplier;
 // kamera magassága a talajtól
 float kameraMagassag;
 // color of the ground
 float rGround, bGround, gGround;
-// perlin parameters
-float lacunarity, persistence, frequency;
-int octaves, seed;
 // grass color
 // 65 -> (65/255)^2.2=0.04943 albedo
 float rGrass = 0.04943;
@@ -58,7 +51,6 @@ enum SHADINGMODE
 };
 enum SHADINGMODE currShadingMode = SHADINGMODE::PHONG;
 
-float *perlin = nullptr;
 float *p0;
 float *p1;
 float *p2;
@@ -66,19 +58,20 @@ float *bemenet;
 float *clipped;
 float *projectedTriangles;
 int *sikok;
-// terrain mesh
-Mesh *terrain = nullptr;
+// terrain class
+Terrain *worldTerrain = nullptr;
 // frame buffers
 FrameBuffer *FrameBuff = nullptr;
 
 void calcNewLocationCamera(int index)
 {
-    mainCamera.setPosition(terrain->getVertices()[index * 3], terrain->getVertices()[index * 3 + 1] + kameraMagassag, terrain->getVertices()[index * 3 + 2]);
+    float *vertices = worldTerrain->getMesh()->getVertices();
+    mainCamera.setPosition(vertices[index * 3], vertices[index * 3 + 1] + kameraMagassag, vertices[index * 3 + 2]);
 }
 
 void ujHely()
 {
-    cameraLocation = rand() % (terrain->getVertexCount() / 3);
+    cameraLocation = rand() % (worldTerrain->getMesh()->getVertexCount() / 3);
 }
 
 void SutherlandHodgman(float *pont0, float *pont1, float *pont2)
@@ -137,13 +130,13 @@ void SutherlandHodgman(float *pont0, float *pont1, float *pont2)
     }
 }
 
-inline void pontokVetitese(const int &i0, const int &i1, const int &i2, float *normal)
+void pontokVetitese(const int &i0, const int &i1, const int &i2, float *normal, float *vertices)
 {
 
     const float *MV = mainCamera.getViewMatrix();
-    MathUtils::vert3MatrixMult(&terrain->getVertices()[i0 * 3], MV, p0);
-    MathUtils::vert3MatrixMult(&terrain->getVertices()[i1 * 3], MV, p1);
-    MathUtils::vert3MatrixMult(&terrain->getVertices()[i2 * 3], MV, p2);
+    MathUtils::vert3MatrixMult(&vertices[i0 * 3], MV, p0);
+    MathUtils::vert3MatrixMult(&vertices[i1 * 3], MV, p1);
+    MathUtils::vert3MatrixMult(&vertices[i2 * 3], MV, p2);
     MathUtils::calculateNormal(p0, p1, p2, normal);
     // backface culling
     if (MathUtils::dotProduct3D(p0, normal) < 0.0f)
@@ -241,11 +234,14 @@ int renderTemplate()
     StructShader shader;
     float *zBuffer = FrameBuff->getZBuffer();
     float *imageAntiBuffer = FrameBuff->getAntialiasImageBuffer();
-    for (int i = 0; i < terrain->getIndexCount(); i += 3)
+    Mesh *mesh = worldTerrain->getMesh();
+    int32_t *currIndices = mesh->getIndices();
+    float *currVertices = mesh->getVertices();
+    float *currNormals = mesh->getNormals();
+    int indicesCount = mesh->getIndexCount();
+    for (int i = 0; i < indicesCount; i += 3)
     {
-        int32_t *currIndices = terrain->getIndices();
-        float *currNormals = terrain->getNormals();
-        pontokVetitese(currIndices[i], currIndices[i + 1], currIndices[i + 2], normal);
+        pontokVetitese(currIndices[i], currIndices[i + 1], currIndices[i + 2], normal, currVertices);
         for (int j = 0; j < projectedTrianglesMeret; j += 9)
         {
             // Calculate bounding box
@@ -323,7 +319,7 @@ int renderTemplate()
             if (triArea > 0)
             {
                 // initialize shader for triangle
-                shader.setupTriangle(normal, terrain->getNormals(), terrain->getIndices(),
+                shader.setupTriangle(normal, currNormals, currIndices,
                                      i, lightVec, rGround, gGround, bGround, sun,
                                      z0Rec, z1Rec, z2Rec);
 
@@ -463,7 +459,7 @@ void setFrustum(float focal, float filmW, float filmH, int imageW, int imageH, f
 
 void meretBeallit(int meretKert)
 {
-    meret = meretKert;
+    worldTerrain = new Terrain(meretKert);
 }
 
 void setAntialias(int anti)
@@ -472,77 +468,19 @@ void setAntialias(int anti)
     FrameBuff->setAntialias(antialias);
 }
 
-int allocatePerlin(int perlinek)
-{
-    // ha létezik felszabadítjuk
-    if (perlin)
-    {
-        free(perlin);
-    }
-
-    // Memória lefoglalása a listának
-    perlin = (float *)calloc(perlinek, sizeof(float));
-    if (perlin)
-    {
-        perlinMeret = perlinek;
-        return (int)perlin;
-    }
-    return 0;
-}
-
-void generateTerrain(float *perlin, Mesh *terrain)
-{
-    int i;
-    for (int y = 0; y < meret; y++)
-    {
-        for (int x = 0; x < meret; x++)
-        {
-            i = y * meret + x;
-            terrain->getVertices()[i * 3] = x;
-            terrain->getVertices()[i * 3 + 1] = perlin[i];
-            terrain->getVertices()[i * 3 + 2] = -y;
-        }
-    }
-    // calculate indices
-    int currIndex = 0;
-    for (int y = 0; y < meret - 1; y++)
-    {
-        for (int x = 0; x < meret - 1; x++)
-        {
-            i = y * meret + x;
-
-            // We form two triangles from a rectangle in the perlin grid
-            terrain->getIndices()[currIndex++] = i + 1;     // top-right vertex
-            terrain->getIndices()[currIndex++] = i + meret; // bottom-left vertex
-            terrain->getIndices()[currIndex++] = i;         // top-left vertex
-
-            terrain->getIndices()[currIndex++] = i + 1;         // top-right vertex
-            terrain->getIndices()[currIndex++] = i + meret + 1; // bottom-right vertex
-            terrain->getIndices()[currIndex++] = i + meret;     // bottom-left vertex
-        }
-    }
-}
-
 EM_JS(void, renderJs, (int elsimitas), {
     render("canvas", elsimitas);
 });
 
 void newPerlinMap(int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier)
 {
-    ::frequency = frequency;
-    ::seed = seed;
-    ::lacunarity = lacunarity;
-    ::persistence = persistence;
-    ::octaves = octaves;
-    ::heightMultiplier = heightMultiplier;
-    if (terrain != nullptr)
-    {
-        delete terrain;
-    }
-    terrain = new Mesh(meret * meret, (meret - 1) * (meret - 1) * 6);
-    allocatePerlin(meret * meret);
-    generatePerlinNoise(perlin, terrain->getNormals(), frequency, meret, seed, 2, octaves, lacunarity, persistence, 0.0f, heightMultiplier);
-    generateTerrain(perlin, terrain);
+    worldTerrain->setFrequency(frequency);
+    worldTerrain->setSeed(seed);
+    worldTerrain->setLacunarity(lacunarity);
+    worldTerrain->setPersistence(persistence);
+    worldTerrain->setOctaves(octaves);
+    worldTerrain->setHeightMultiplier(heightMultiplier);
+    worldTerrain->regenerate();
     renderJs(antialias);
 }
 
@@ -606,10 +544,11 @@ void setShadingTechnique(int shading)
 
 void move(int z, int x)
 {
-    int newLocation = cameraLocation + z * meret + x;
-    if (!((x == -1 && newLocation % meret == 255) || (x == 1 && newLocation % meret == 0) || (newLocation < 0) || (newLocation >= meret * meret)))
+    int size = worldTerrain->getSize();
+    int newLocation = cameraLocation + z * size + x;
+    if (!((x == -1 && newLocation % size == 255) || (x == 1 && newLocation % size == 0) || (newLocation < 0) || (newLocation >= size * size)))
     {
-        cameraLocation += z * meret + x;
+        cameraLocation += z * size + x;
         renderJs(antialias);
     }
 }
@@ -679,7 +618,6 @@ void init()
     cameraLocation = 0;
     antialias = 1;
     kameraMagassag = 3.8;
-    heightMultiplier = 150.0f;
     // sun color
     // red: 255.0 normalize -> 255.0f/255.0 = 1.0
     // green: 223.0 normalize -> 223.0f/255.0 = 0.8745

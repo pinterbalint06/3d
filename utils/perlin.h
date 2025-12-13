@@ -1,3 +1,6 @@
+#ifndef PERLIN_NOISE_H
+#define PERLIN_NOISE_H
+
 #include "pcgRand.h"
 #include <emscripten/emscripten.h>
 #include <cmath>
@@ -127,3 +130,5 @@ namespace PerlinNoise
         }
     }
 }
+
+#endif

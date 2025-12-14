@@ -99,6 +99,11 @@ function UjNormalSzamitas() {
     Module.setNormalCalculationMode(parseInt(type));
 }
 
+function ujElsmitas() {
+    let elsimitas = document.getElementById("antialias");
+    Module.setAntialias(parseInt(elsimitas.value));
+}
+
 function korRajzol(x, y) {
     let canvas = document.getElementById('canvasAngle');
     let ctx = canvas.getContext('2d');
@@ -146,8 +151,7 @@ function mozgas(iranyZ, iranyX) {
     Module.mozgas(mozgasZ, mozgasX);
 }
 
-function render(canvasId, antialias = 1) {
-    Module.setAntialias(antialias);
+function render(canvasId) {
     let imageBufferHely = Module.render();
     let imageBufferMeret = Module.imageBufferSize();
     let clampedArray = new Uint8ClampedArray(

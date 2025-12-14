@@ -39,13 +39,7 @@ float rDirt = 0.33445;
 float gDirt = 0.1835489f;
 // 83  -> (83/255)^2.2=0.08464
 float bDirt = 0.08464f;
-enum SHADINGMODE
-{
-    PHONG = 0,
-    GOURAUD = 1,
-    FLAT = 2
-};
-enum SHADINGMODE currShadingMode = SHADINGMODE::PHONG;
+enum Shaders::SHADINGMODE currShadingMode = Shaders::SHADINGMODE::PHONG;
 
 float *p0;
 float *p1;
@@ -270,13 +264,13 @@ int render()
     calcNewLocationCamera(cameraLocation);
     switch (currShadingMode)
     {
-    case (SHADINGMODE::PHONG):
+    case (Shaders::SHADINGMODE::PHONG):
         return renderTemplate<Shaders::PhongShader>();
         break;
-    case (SHADINGMODE::GOURAUD):
+    case (Shaders::SHADINGMODE::GOURAUD):
         return renderTemplate<Shaders::GouraudShader>();
         break;
-    case (SHADINGMODE::FLAT):
+    case (Shaders::SHADINGMODE::FLAT):
         return renderTemplate<Shaders::FlatShader>();
         break;
     default:
@@ -380,7 +374,7 @@ void newGroundType(int type)
 
 void setShadingTechnique(int shading)
 {
-    currShadingMode = static_cast<SHADINGMODE>(shading);
+    currShadingMode = static_cast<Shaders::SHADINGMODE>(shading);
     renderJs(antialias);
 }
 

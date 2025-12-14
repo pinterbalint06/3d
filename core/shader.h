@@ -6,6 +6,13 @@ class distantLight;
 
 namespace Shaders
 {
+    enum SHADINGMODE
+    {
+        PHONG = 0,
+        GOURAUD = 1,
+        FLAT = 2
+    };
+    
     struct FlatShader
     {
         float r_, g_, b_;

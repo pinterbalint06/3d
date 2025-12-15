@@ -5,7 +5,7 @@ class pcgRand;
 #include <emscripten/emscripten.h>
 #include <cmath>
 #include <algorithm>
-#include "mathUtils.h"
+#include "utils/mathUtils.h"
 
 namespace PerlinNoise
 {

@@ -1,6 +1,6 @@
 #include <emscripten/emscripten.h>
-#include "clipping.h"
-#include "mathUtils.h"
+#include "utils/clipping.h"
+#include "utils/mathUtils.h"
 
 // w - x >= 0 Right plane
 // w + x >= 0 Left plane

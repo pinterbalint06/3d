@@ -2,7 +2,7 @@
 #define EDGE_FUNCTION_H
 
 #include <cstdint>
-#include "fixedPoint.h"
+#include "utils/fixedPoint.h"
 
 namespace EdgeFunction
 {

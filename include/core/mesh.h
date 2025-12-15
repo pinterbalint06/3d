@@ -1,7 +1,7 @@
 #ifndef MESH_H
 #define MESH_H
 #include <emscripten/emscripten.h>
-#include "material.h"
+#include "core/material.h"
 #include <cstdint>
 
 class Mesh

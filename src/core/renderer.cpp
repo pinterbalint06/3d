@@ -1,16 +1,16 @@
 #include <emscripten/emscripten.h>
-#include "renderer.h"
-#include "shader.h"
-#include "scene.h"
-#include "material.h"
-#include "camera.h"
-#include "distantLight.h"
-#include "mesh.h"
-#include "terrain.h"
-#include "../utils/clipping.h"
-#include "../utils/frameBuffer.h"
-#include "../utils/mathUtils.h"
-#include "../utils/edgeFunction.h"
+#include "core/renderer.h"
+#include "core/shader.h"
+#include "core/scene.h"
+#include "core/material.h"
+#include "core/camera.h"
+#include "core/distantLight.h"
+#include "core/mesh.h"
+#include "core/terrain.h"
+#include "utils/clipping.h"
+#include "utils/frameBuffer.h"
+#include "utils/mathUtils.h"
+#include "utils/edgeFunction.h"
 #include <cstring>
 
 Renderer::Renderer()

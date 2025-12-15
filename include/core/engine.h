@@ -1,10 +1,10 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#include "scene.h"
-#include "camera.h"
-#include "shader.h"
-#include "renderer.h"
+#include "core/scene.h"
+#include "core/camera.h"
+#include "core/shader.h"
+#include "core/renderer.h"
 
 class Engine
 {

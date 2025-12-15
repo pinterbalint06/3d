@@ -1,7 +1,7 @@
-#include "mesh.h"
-#include "terrain.h"
+#include "core/mesh.h"
+#include "core/terrain.h"
 #include <cstring>
-#include "../utils/perlin.h"
+#include "utils/perlin.h"
 
 Terrain::Terrain(int size)
 {

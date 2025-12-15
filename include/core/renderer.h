@@ -1,8 +1,8 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include "shader.h"
-#include "../utils/frameBuffer.h"
+#include "core/shader.h"
+#include "utils/frameBuffer.h"
 
 class Clipper;
 class Scene;

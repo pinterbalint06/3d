@@ -1,8 +1,8 @@
-#include "engine.h"
-#include "mesh.h"
-#include "scene.h"
-#include "renderer.h"
-#include "terrain.h"
+#include "core/engine.h"
+#include "core/mesh.h"
+#include "core/scene.h"
+#include "core/renderer.h"
+#include "core/terrain.h"
 
 Engine::Engine(int size)
 {

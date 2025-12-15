@@ -1,1 +1,0 @@
-emcc .\jsBindings.cpp .\utils\pcgRand.cpp .\core\camera.cpp .\core\mesh.cpp .\core\distantLight.cpp .\utils\frameBuffer.cpp .\core\terrain.cpp .\utils\clipping.cpp .\core\scene.cpp .\core\renderer.cpp .\core\engine.cpp -o engine.js -s IMPORTED_MEMORY=1 -lembind -s INITIAL_MEMORY=268435456 -sALLOW_MEMORY_GROWTH -msimd128 -g

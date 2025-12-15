@@ -1,8 +1,8 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include "../utils/mathUtils.h"
-#include "distantLight.h"
+#include "utils/mathUtils.h"
+#include "core/distantLight.h"
 
 namespace Shaders
 {

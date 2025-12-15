@@ -1,7 +1,7 @@
-#include "scene.h"
-#include "distantLight.h"
-#include "terrain.h"
-#include "camera.h"
+#include "core/scene.h"
+#include "core/distantLight.h"
+#include "core/terrain.h"
+#include "core/camera.h"
 
 Scene::Scene(int terrainSize) {
     // sun color

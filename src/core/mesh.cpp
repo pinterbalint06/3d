@@ -1,4 +1,4 @@
-#include "mesh.h"
+#include "core/mesh.h"
 #include <cstdint>
 
 Mesh::Mesh(int vertexCount, int indexCount)

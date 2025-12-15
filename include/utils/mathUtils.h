@@ -3,7 +3,7 @@
 
 #include <cmath>
 #include <algorithm>
-#include "pcgRand.h"
+#include "utils/pcgRand.h"
 
 namespace MathUtils
 {

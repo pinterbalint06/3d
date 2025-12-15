@@ -1,5 +1,5 @@
 #include <emscripten/emscripten.h>
-#include "distantLight.h"
+#include "core/distantLight.h"
 #define INV_PI 0.318309886f
 
 distantLight::distantLight(float r, float g, float b, float intensity, float x, float y, float z)

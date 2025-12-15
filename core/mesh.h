@@ -1,6 +1,7 @@
 #ifndef MESH_H
 #define MESH_H
 #include <emscripten/emscripten.h>
+#include "material.h"
 #include <cstdint>
 
 class Mesh
@@ -14,7 +15,7 @@ private:
     int indexCount_;
     int normalCount_;
 
-    float r_, g_, b_;
+    Materials::Material material_;
 
 public:
     Mesh(int vertexCount, int indexCount);
@@ -34,14 +35,10 @@ public:
 
     float *getNormals() const { return normals_; }
 
-    float getRed() const { return r_; }
-    float getGreen() const { return g_; }
-    float getBlue() const { return b_; }
+    Materials::Material getMaterial() const { return material_; }
     
     // setters
-    void setRed(float r) { r_ = r; }
-    void setGreen(float g) { g_ = g; }
-    void setBlue(float b) { b_ = b; }
+    void setMaterial(Materials::Material material) { material_ = material; }
 
     Mesh(const Mesh &) = delete;
     Mesh &operator=(const Mesh &) = delete;

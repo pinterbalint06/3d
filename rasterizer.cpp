@@ -11,6 +11,7 @@
 #include "utils/clipping.h"
 #include "core/scene.h"
 #include "core/renderer.h"
+#include "core/material.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstdint>
@@ -60,9 +61,7 @@ void meretBeallit(int meretKert)
 {
     scene = new Scene(meretKert);
     Mesh *mesh = scene->getTerrain()->getMesh();
-    mesh->setRed(0.04943f);
-    mesh->setGreen(0.32038f);
-    mesh->setBlue(0.000804f);
+    mesh->setMaterial(Materials::Material::Grass());
     calcNewLocationCamera(cameraLocation);
 }
 
@@ -111,34 +110,17 @@ void newLightDirection(float x, float y)
 
 void newGroundType(int type)
 {
-
-    // grass color
-    // 65 -> (65/255)^2.2=0.04943 albedo
-    // 152 -> (152/255)^2.2=0.32038 albedo
-    // 10 -> (10/255)^2.2=0.000804 albedo
-
-    // dirt color
-    // 155 -> (155/255)^2.2=0.33445
-    // 118 -> (118/255)^2.2=0.1835489
-    // 83  -> (83/255)^2.2=0.08464
-
     Mesh *mesh = scene->getTerrain()->getMesh();
     switch (type)
     {
     case 0:
-        mesh->setRed(0.04943f);
-        mesh->setGreen(0.32038f);
-        mesh->setBlue(0.000804f);
+        mesh->setMaterial(Materials::Material::Grass());
         break;
     case 1:
-        mesh->setRed(0.33445f);
-        mesh->setGreen(0.1835489f);
-        mesh->setBlue(0.08464f);
+        mesh->setMaterial(Materials::Material::Dirt());
         break;
     default:
-        mesh->setRed(0.04943f);
-        mesh->setGreen(0.32038f);
-        mesh->setBlue(0.000804f);
+        mesh->setMaterial(Materials::Material::Grass());
         break;
     }
     renderJs();

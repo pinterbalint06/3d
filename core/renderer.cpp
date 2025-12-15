@@ -2,6 +2,7 @@
 #include "renderer.h"
 #include "shader.h"
 #include "scene.h"
+#include "material.h"
 #include "camera.h"
 #include "distantLight.h"
 #include "mesh.h"
@@ -159,9 +160,10 @@ void Renderer::renderTemplate(const Scene *scene)
     float *zBuffer = frameBuffer_->getZBuffer();
     float *imageAntiBuffer = frameBuffer_->getAntialiasImageBuffer();
     Mesh *mesh = scene->getTerrain()->getMesh();
-    float rGround = mesh->getRed();
-    float gGround = mesh->getGreen();
-    float bGround = mesh->getBlue();
+    Materials::Color meshCol = mesh->getMaterial().albedo_;
+    float rGround = meshCol.r_;
+    float gGround = meshCol.g_;
+    float bGround = meshCol.b_;
     int32_t *currIndices = mesh->getIndices();
     float *currVertices = mesh->getVertices();
     float *currNormals = mesh->getNormals();

@@ -1,3 +1,9 @@
+body {
+    background-color: #121212;
+    color: #E0E0E0;
+    font-family: sans-serif;
+}
+
 .row {
     display: flex;
     flex-direction: row;
@@ -45,11 +51,25 @@
 .btns {
     width: 150px;
     height: 150px;
+    border: 1px solid #444444;
 }
 
 .btns button {
     width: 100%;
     height: 100%;
+    background-color: #2c2c2c;
+    color: #E0E0E0;
+    border: 1px solid #444444;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btns button:hover {
+    background-color: #3f3f3f;
+}
+
+.btns button:active {
+    background-color: #575757;
 }
 
 .around {
@@ -62,6 +82,7 @@
 
 h2 {
     margin: 0;
+    color: #f0f0f0;
 }
 
 .m0 {
@@ -69,7 +90,20 @@ h2 {
 }
 
 button {
-    padding: 0;
+    padding: 0.5rem 1rem;
+    background-color: #2c2c2c;
+    color: #E0E0E0;
+    border: 1px solid #444444;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #3f3f3f;
+}
+
+button:active {
+    background-color: #575757;
 }
 
 .wfit {
@@ -78,4 +112,51 @@ button {
 
 .wrapreverse {
     flex-wrap: wrap-reverse;
+}
+
+label {
+    color: #B0B0B0;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: #444444;
+    border-radius: 5px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #E0E0E0;
+    cursor: pointer;
+}
+
+input[type="color"] {
+    border: none;
+    padding: 0;
+    width: 50px;
+    height: 20px;
+    background-color: #121212;
+}
+
+select, input[type="text"], output {
+    background-color: #2c2c2c;
+    color: #E0E0E0;
+    border: 1px solid #444444;
+    padding: 0.2rem;
+    border-radius: 3px;
+}
+
+.col > button {
+    width: fit-content;
+    padding: 0.5rem 1rem;
+}
+
+canvas {
+    border: solid gray 2px;
 }

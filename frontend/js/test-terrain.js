@@ -120,7 +120,7 @@ function korRajzol(x, y) {
     let sugar = Math.min(centerX, centerY) - 5;
     ctx.beginPath();
     ctx.arc(centerX, centerY, sugar, 0, 2 * Math.PI);
-    ctx.strokeStyle = 'black';
+    ctx.strokeStyle = 'gray';
     ctx.stroke();
 
     let vektorVegeX = centerX - sugar * x;
@@ -129,7 +129,7 @@ function korRajzol(x, y) {
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
     ctx.lineTo(vektorVegeX, vektorVegeY);
-    ctx.strokeStyle = 'black';
+    ctx.strokeStyle = 'gray';
     ctx.stroke();
 }
 

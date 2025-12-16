@@ -1,8 +1,10 @@
 1. Kód kommentelése (függvények, változók magyarázata (doxygen))
-2. Perlin zaj dokumentálása
-3. Pont attribútumok interpolálása Sutherland-Hodgman algoritmusnál (visual bugot csinál jelenleg)
-4. Texturing
-5. Edge function további optimalizálása (bejárás)
-6. Teljes graphics pipeline dokumentálása
-7. Random szám generátor dokumentálása
-8. Shading dokumentálása, Phong reflection model
+2. Részletesebb térkép
+3. Perlin zaj dokumentálása
+4. Pont attribútumok interpolálása Sutherland-Hodgman algoritmusnál (visual bugot csinál jelenleg)
+5. Texturing
+6. Edge function további optimalizálása (bejárás)
+7. Teljes graphics pipeline dokumentálása
+8. Random szám generátor dokumentálása
+9. Shading dokumentálása, Phong reflection model
+10. Mozgás logika C++-ba

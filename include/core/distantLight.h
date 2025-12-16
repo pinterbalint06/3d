@@ -121,6 +121,16 @@ public:
     void setBlue(float blue);
 
     /**
+     * @brief Sets the color components of the distant light.
+     *
+     * Updates the internal color values and recalculates the precomputed
+     * intensity values based on the current intensity and the inverse of PI.
+     *
+     * @param blue The new blue color component value.
+     */
+    void setColor(float red, float green, float blue);
+
+    /**
      * @brief Sets the intensity of the distant light and updates pre-calculated color values.
      *
      * This function assigns the given intensity to the light source and recalculates

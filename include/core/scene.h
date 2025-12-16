@@ -22,6 +22,9 @@ public:
     distantLight *getLight() const { return light_; }
     float getAmbientLight() const { return ambientLight_; }
     Terrain *getTerrain() const { return worldTerrain_; }
+
+    // setter
+    void setAmbientLight(float ambientLightIntensity);
 };
 
 #endif

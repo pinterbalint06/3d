@@ -5,6 +5,7 @@
 #include "core/camera.h"
 #include "core/shader.h"
 #include "core/renderer.h"
+#include "core/material.h"
 
 class Engine
 {
@@ -20,7 +21,7 @@ public:
     Engine(int size);
     ~Engine();
 
-    void setGroundType(int type);
+    void setGroundMaterial(Materials::Material material);
     void setCameraHeight(float cameraHeight);
     void setLightDirection(float x, float y, float z);
     void setAntialias(int antialias);
@@ -28,6 +29,8 @@ public:
     void setLightIntensity(float intensity);
     void setShadingMode(Shaders::SHADINGMODE shadingmode);
     void setFrustum(float focal, float filmW, float filmH, int imageW, int imageH, float n, float f);
+    void setLightColor(float r, float g, float b);
+    void setAmbientLight(float ambientLightIntensity);
 
     void moveCamera(int x, int z);
     void rotateCamera(float dPitch, float dYaw);

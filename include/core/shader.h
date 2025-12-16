@@ -110,11 +110,18 @@ namespace Shaders
             specG = material.specularity_ * specFactor * lightG;
             specB = material.specularity_ * specFactor * lightB;
         }
+        // END OF SPECULAR
 
-        // "ambient" + diffuse + specular
-        result[0] = diffuseR + specR + ambientLight * light->getRed();
-        result[1] = diffuseG + specG + ambientLight * light->getGreen();
-        result[2] = diffuseB + specB + ambientLight * light->getBlue();
+        // CALCULATE AMBIENT
+        float ambientR = ambientLight * light->getRed() * color.r_;
+        float ambientG = ambientLight * light->getGreen() * color.g_;
+        float ambientB = ambientLight * light->getBlue() * color.b_;
+        // END OF AMBIENT
+
+        // diffuse + specular + ambient
+        result[0] = diffuseR + specR + ambientR;
+        result[1] = diffuseG + specG + ambientG;
+        result[2] = diffuseB + specB + ambientB;
     }
 
     /**

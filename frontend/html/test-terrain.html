@@ -158,24 +158,42 @@
             <div class="col gap">
                 <h2>Környezet:</h2>
                 <label for="lightIntensity">Fény intenzitás:</label>
-                <input type="range" id="lightIntensity" min="0" max="10000" value="1800" step="100"
+                <input type="range" id="lightIntensity" min="0" max="10000" value="1500" step="100"
                     oninput="this.nextElementSibling.value = this.value;UjFenyIntenzitas();">
-                <output>1800</output>
+                <output>1500</output>
                 <label for="lightDirection">Fény irány:</label>
                 <input type="range" id="lightDirection" min="0" max="360" value="270" step="1"
-                    oninput="this.nextElementSibling.value = UjFenyIrany();">
-                <canvas id="canvasAngle" width="250" height="250">
-
-                </canvas>
-                <p class="m0">Talaj típus:</p>
+                    oninput="UjFenyIrany();">
+                <canvas id="canvasAngle" width="250" height="250"></canvas>
                 <div>
-                    <label for="grass">Fű</label>
-                    <input type="radio" name="ground" value="0" id="grass" oninput="ujTalaj();" checked>
+                    <label for="lightColor">Fény színe:</label>
+                    <input type="color" name="color" id="lightColor" value="#ffffff" onchange="ujFenyszin();">
+                </div>
+                <label for="ambientLight">Környezeti fény:</label>
+                <input type="range" id="ambientLight" min="0.0" max="100.0" value="4.0" step="1"
+                    oninput="this.nextElementSibling.value = this.value; ujKornyezetiFeny();">
+                <output>4.0</output>
+                <h2>Talaj:</h2>
+                <div>
+                    <button id="grass" onclick="talajFu();">Fű</button>
+                    <button id="dirt" onclick="talajFold();">Föld</button>
                 </div>
                 <div>
-                    <label for="dirt">Föld</label>
-                    <input type="radio" name="ground" value="1" id="dirt" oninput="ujTalaj();">
+                    <label for="groundColor">Anyag színe:</label>
+                    <input type="color" name="color" id="groundColor" value="#41980a" onchange="ujAnyag();">
                 </div>
+                <label for="diffuseness">Diffuseness:</label>
+                <input type="range" id="diffuseness" min="0" max="1" value="1.0" step="0.01"
+                    oninput="this.nextElementSibling.value = this.value;ujAnyag();">
+                <output>1.0</output>
+                <label for="specularity">Specularity:</label>
+                <input type="range" id="specularity" min="0" max="1" value="0.02" step="0.01"
+                    oninput="this.nextElementSibling.value = this.value;ujAnyag();">
+                <output>0.02</output>
+                <label for="shininess">Shininess:</label>
+                <input type="range" id="shininess" min="1" max="1000" value="1" step="1"
+                    oninput="this.nextElementSibling.value = this.value;ujAnyag();">
+                <output>1</output>
             </div>
         </div>
         <div class="col">

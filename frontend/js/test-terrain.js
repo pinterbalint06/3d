@@ -93,12 +93,6 @@ function UjFenyIrany() {
     drawImage(canvasId);
 }
 
-function ujTalaj() {
-    let type = document.querySelector('input[name="ground"]:checked').value;
-    Module.newGroundType(parseInt(type));
-    drawImage(canvasId);
-}
-
 function ujArnyalas() {
     let type = document.querySelector('input[name="shading"]:checked').value;
     Module.setShadingTechnique(parseInt(type));
@@ -139,8 +133,93 @@ function korRajzol(x, y) {
     ctx.stroke();
 }
 
+function fromHexaToDec(num) {
+    let returnVal = 0;
+    switch (num) {
+        case "a":
+            returnVal = 10;
+            break;
+        case "b":
+            returnVal = 11;
+            break;
+        case "c":
+            returnVal = 12;
+            break;
+        case "d":
+            returnVal = 13;
+            break;
+        case "e":
+            returnVal = 14;
+            break;
+        case "f":
+            returnVal = 15;
+            break;
+        default:
+            returnVal = parseInt(num);
+            break;
+    }
+    return returnVal;
+}
+
+function ujAnyag() {
+    let color = document.getElementById("groundColor");
+    let red = fromHexaToDec(color.value[1])*16+fromHexaToDec(color.value[2]);
+    let green = fromHexaToDec(color.value[3])*16+fromHexaToDec(color.value[4]);
+    let blue = fromHexaToDec(color.value[5])*16+fromHexaToDec(color.value[6]);
+    let diff = document.getElementById("diffuseness");
+    let spec = document.getElementById("specularity");
+    let shin = document.getElementById("shininess");
+    Module.setGroundMaterial(red, green, blue, parseFloat(diff.value), parseFloat(spec.value), parseFloat(shin.value));
+    drawImage(canvasId);
+}
+
+function talajFu() {
+    document.getElementById("groundColor").value = "#41980a";
+    let diff = document.getElementById("diffuseness");
+    let spec = document.getElementById("specularity");
+    let shin = document.getElementById("shininess");
+    diff.value = 1.0;
+    diff.nextElementSibling.value = 1.0;
+    spec.value = 0.02;
+    spec.nextElementSibling.value = 0.02;
+    shin.value = 10.0;
+    shin.nextElementSibling.value = 10.0;
+    Module.setMaterialGrass();
+    drawImage(canvasId);
+}
+
+function talajFold() {
+    document.getElementById("groundColor").value = "#9b7653";
+    let diff = document.getElementById("diffuseness");
+    let spec = document.getElementById("specularity");
+    let shin = document.getElementById("shininess");
+    diff.value = 1.0;
+    diff.nextElementSibling.value = 1.0;
+    spec.value = 0.01;
+    spec.nextElementSibling.value = 0.01;
+    shin.value = 10.0;
+    shin.nextElementSibling.value = 10.0;
+    Module.setMaterialDirt();
+    drawImage(canvasId);
+}
+
 function ujhely() {
     Module.ujHely();
+    drawImage(canvasId);
+}
+
+function ujFenyszin() {
+    let color = document.getElementById("lightColor");
+    let red = fromHexaToDec(color.value[1])*16+fromHexaToDec(color.value[2]);
+    let green = fromHexaToDec(color.value[3])*16+fromHexaToDec(color.value[4]);
+    let blue = fromHexaToDec(color.value[5])*16+fromHexaToDec(color.value[6]);
+    Module.setLightColor(red, green, blue);
+    drawImage(canvasId);
+}
+
+function ujKornyezetiFeny() {
+    let ambient = document.getElementById("ambientLight");
+    Module.setAmbientLight(parseFloat(ambient.value));
     drawImage(canvasId);
 }
 

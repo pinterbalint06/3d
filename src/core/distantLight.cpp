@@ -16,7 +16,8 @@ distantLight::distantLight(float r, float g, float b, float intensity, float x, 
     bluePreCalc_ = blue_ * INV_PI * intensity_;
 }
 
-distantLight::~distantLight() {
+distantLight::~distantLight()
+{
     free(direction_);
 }
 
@@ -35,6 +36,16 @@ void distantLight::setGreen(float green)
 void distantLight::setBlue(float blue)
 {
     blue_ = blue;
+    bluePreCalc_ = blue_ * INV_PI * intensity_;
+}
+
+void distantLight::setColor(float red, float green, float blue)
+{
+    red_ = red;
+    green_ = green;
+    blue_ = blue;
+    redPreCalc_ = red_ * INV_PI * intensity_;
+    greenPreCalc_ = green_ * INV_PI * intensity_;
     bluePreCalc_ = blue_ * INV_PI * intensity_;
 }
 

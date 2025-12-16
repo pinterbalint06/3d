@@ -79,21 +79,9 @@ void Engine::setLightDirection(float x, float y, float z)
     renderer_->render(scene_);
 }
 
-void Engine::setGroundType(int type)
+void Engine::setGroundMaterial(Materials::Material material)
 {
-    Mesh *mesh = scene_->getTerrain()->getMesh();
-    switch (type)
-    {
-    case 0:
-        mesh->setMaterial(Materials::Material::Grass());
-        break;
-    case 1:
-        mesh->setMaterial(Materials::Material::Dirt());
-        break;
-    default:
-        mesh->setMaterial(Materials::Material::Grass());
-        break;
-    }
+    scene_->getTerrain()->getMesh()->setMaterial(material);
     renderer_->render(scene_);
 }
 
@@ -108,6 +96,18 @@ void Engine::setFrustum(float focal, float filmW, float filmH, int imageW, int i
 
     renderer_->setImageDimensions(imageW, imageH);
     scene_->getCamera()->setPerspective(focal, filmW, filmH, imageW, imageH, n, f);
+    renderer_->render(scene_);
+}
+
+void Engine::setLightColor(float r, float g, float b)
+{
+    scene_->getLight()->setColor(r, g, b);
+    renderer_->render(scene_);
+}
+
+void Engine::setAmbientLight(float ambientLightIntensity)
+{
+    scene_->setAmbientLight(ambientLightIntensity);
     renderer_->render(scene_);
 }
 

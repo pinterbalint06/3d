@@ -67,11 +67,16 @@ void setLightDirection(float x, float y)
     }
 }
 
-void setGroundType(int type)
+void setGroundMaterial(int r, int g, int b, float diff, float spec, float shin)
 {
     if (gEngine)
     {
-        gEngine->setGroundType(type);
+        Materials::Material ground;
+        ground.albedo_ = Materials::Color::fromRGB(r, g, b);
+        ground.diffuseness_ = diff;
+        ground.specularity_ = spec;
+        ground.shininess_ = shin;
+        gEngine->setGroundMaterial(ground);
     }
 }
 
@@ -137,6 +142,38 @@ int getImageBufferLocation()
     return returnValue;
 }
 
+void setMaterialGrass()
+{
+    if (gEngine)
+    {
+        gEngine->setGroundMaterial(Materials::Material::Grass());
+    }
+}
+
+void setMaterialDirt()
+{
+    if (gEngine)
+    {
+        gEngine->setGroundMaterial(Materials::Material::Dirt());
+    }
+}
+
+void setLightColor(int r, int g, int b)
+{
+    if (gEngine)
+    {
+        gEngine->setLightColor(r / 255.0f, g / 255.0f, b / 255.0f);
+    }
+}
+
+void setAmbientLight(float ambientLightIntensity)
+{
+    if (gEngine)
+    {
+        gEngine->setAmbientLight(ambientLightIntensity);
+    }
+}
+
 EMSCRIPTEN_BINDINGS(my_module)
 {
     emscripten::function("init", &init);
@@ -152,7 +189,11 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("newLightIntensity", &setLightIntensity);
     emscripten::function("newLightDirection", &setLightDirection);
     emscripten::function("mozgas", &moveCamera);
-    emscripten::function("newGroundType", &setGroundType);
+    emscripten::function("setGroundMaterial", &setGroundMaterial);
+    emscripten::function("setMaterialGrass", &setMaterialGrass);
+    emscripten::function("setMaterialDirt", &setMaterialDirt);
+    emscripten::function("setLightColor", &setLightColor);
+    emscripten::function("setAmbientLight", &setAmbientLight);
     emscripten::function("setShadingTechnique", &setShadingMode);
     emscripten::function("getImageLocation", &getImageBufferLocation);
 }

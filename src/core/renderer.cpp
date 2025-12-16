@@ -160,7 +160,8 @@ void Renderer::renderTemplate(const Scene *scene)
     float *zBuffer = frameBuffer_->getZBuffer();
     float *imageAntiBuffer = frameBuffer_->getAntialiasImageBuffer();
     Mesh *mesh = scene->getTerrain()->getMesh();
-    Materials::Color meshCol = mesh->getMaterial().albedo_;
+    Materials::Material meshMat = mesh->getMaterial();
+    Materials::Color meshCol = meshMat.albedo_;
     float rGround = meshCol.r_;
     float gGround = meshCol.g_;
     float bGround = meshCol.b_;
@@ -214,7 +215,7 @@ void Renderer::renderTemplate(const Scene *scene)
 
                 // initialize shader for triangle
                 shader.setupTriangle(normal_, currNormals, currIndices,
-                                     i, lightVec, rGround, gGround, bGround, sun,
+                                     i, lightVec, meshMat, sun,
                                      z0Rec, z1Rec, z2Rec);
 
                 // setup step values for inside test

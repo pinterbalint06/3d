@@ -3,6 +3,7 @@
 
 #include "utils/mathUtils.h"
 #include "core/distantLight.h"
+#include "core/material.h"
 
 namespace Shaders
 {
@@ -32,18 +33,21 @@ namespace Shaders
          * @param indices Pointer to the triangle's vertex indices (unused here).
          * @param i Index of the current triangle (unused here).
          * @param lightVec Pointer to the light direction vector.
-         * @param rGround Red component of the ground color.
-         * @param gGround Green component of the ground color.
-         * @param bGround Blue component of the ground color.
+         * @param material The material of the triangle.
          * @param sun Pointer to the distant light source.
          * @param z0Rec Reciprocal of the first vertex's depth (unused here).
          * @param z1Rec Reciprocal of the second vertex's depth (unused here).
          * @param z2Rec Reciprocal of the third vertex's depth (unused here).
          */
         inline void setupTriangle(float *faceNormal, float *vertNormals, int32_t *indices, int i,
-                                  float *lightVec, float rGround, float gGround, float bGround, distantLight *sun,
+                                  float *lightVec, Materials::Material material, distantLight *sun,
                                   float z0Rec, float z1Rec, float z2Rec)
         {
+            Materials::Color albedo = material.albedo_;
+            float rGround = albedo.r_;
+            float gGround = albedo.g_;
+            float bGround = albedo.b_;
+
             float dotProd = std::max(0.0f, MathUtils::dotProduct3D(faceNormal, lightVec));
             r_ = rGround * sun->getRedCalculated() * dotProd;
             g_ = gGround * sun->getGreenCalculated() * dotProd;
@@ -94,21 +98,24 @@ namespace Shaders
          * @param indices Pointer to the triangle's vertex indices.
          * @param i Index of the current triangle.
          * @param lightVec Pointer to the light direction vector.
-         * @param rGround Red component of the ground color.
-         * @param gGround Green component of the ground color.
-         * @param bGround Blue component of the ground color.
+         * @param material The material of the triangle.
          * @param sun Pointer to the distant light source.
          * @param z0Rec Reciprocal of the first vertex's depth.
          * @param z1Rec Reciprocal of the second vertex's depth.
          * @param z2Rec Reciprocal of the third vertex's depth.
          */
         inline void setupTriangle(float *faceNormal, float *vertNormals, int32_t *indices, int i,
-                                  float *lightVec, float rGround, float gGround, float bGround, distantLight *sun,
+                                  float *lightVec, Materials::Material material, distantLight *sun,
                                   float z0Rec, float z1Rec, float z2Rec)
         {
             float dotProd0 = std::max(0.0f, MathUtils::dotProduct3D(&vertNormals[indices[i] * 3], lightVec));
             float dotProd1 = std::max(0.0f, MathUtils::dotProduct3D(&vertNormals[indices[i + 1] * 3], lightVec));
             float dotProd2 = std::max(0.0f, MathUtils::dotProduct3D(&vertNormals[indices[i + 2] * 3], lightVec));
+
+            Materials::Color albedo = material.albedo_;
+            float rGround = albedo.r_;
+            float gGround = albedo.g_;
+            float bGround = albedo.b_;
 
             r0_ = rGround * sun->getRedCalculated() * dotProd0;
             g0_ = gGround * sun->getGreenCalculated() * dotProd0;
@@ -185,16 +192,14 @@ namespace Shaders
          * @param indices Pointer to the triangle's vertex indices.
          * @param i Index of the current triangle.
          * @param lightVec Pointer to the light direction vector.
-         * @param rGround Red component of the ground color.
-         * @param gGround Green component of the ground color.
-         * @param bGround Blue component of the ground color.
+         * @param material The material of the triangle.
          * @param sun Pointer to the distant light source.
          * @param z0Rec Reciprocal of the first vertex's depth.
          * @param z1Rec Reciprocal of the second vertex's depth.
          * @param z2Rec Reciprocal of the third vertex's depth.
          */
         inline void setupTriangle(float *faceNormal, float *vertNormals, int32_t *indices, int i,
-                                  float *lightVec, float rGround, float gGround, float bGround, distantLight *sun,
+                                  float *lightVec, Materials::Material material, distantLight *sun,
                                   float z0Rec, float z1Rec, float z2Rec)
         {
             pSun_ = sun;
@@ -222,9 +227,10 @@ namespace Shaders
             z1Rec_ = z1Rec;
             z2Rec_ = z2Rec;
 
-            rGround_ = rGround;
-            gGround_ = gGround;
-            bGround_ = bGround;
+            Materials::Color albedo = material.albedo_;
+            rGround_ = albedo.r_;
+            gGround_ = albedo.g_;
+            bGround_ = albedo.b_;
         }
 
         /**

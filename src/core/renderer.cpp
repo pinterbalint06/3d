@@ -145,8 +145,11 @@ void Renderer::renderTemplate(const Scene *scene)
     float zDepth;
     // indexes
     int bufferIndex, imageIndex;
-    // light vector
+    // camera
     Camera *mainCamera = scene->getCamera();
+    float camX = mainCamera->getXPosition();
+    float camY = mainCamera->getYPosition();
+    float camZ = mainCamera->getZPosition();
     // light
     distantLight *sun = scene->getLight();
     float lightVec[3];
@@ -214,9 +217,10 @@ void Renderer::renderTemplate(const Scene *scene)
                 z2Rec = 1.0f / projectedTriangles_[j + 8];
 
                 // initialize shader for triangle
-                shader.setupTriangle(normal_, currNormals, currIndices,
+                shader.setupTriangle(normal_, currNormals, currVertices, currIndices,
                                      i, lightVec, meshMat, sun,
-                                     z0Rec, z1Rec, z2Rec);
+                                     z0Rec, z1Rec, z2Rec,
+                                     camX, camY, camZ);
 
                 // setup step values for inside test
                 ef.setupStepValues(bbminx, bbminy, inc_, sqrAntialiasRec_);

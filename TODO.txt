@@ -1,8 +1,10 @@
-1. Kód kommentelése (függvények, változók magyarázata (doxygen))
-2. Perlin zaj dokumentálása
-3. Pont attribútumok interpolálása Sutherland-Hodgman algoritmusnál (visual bugot csinál jelenleg)
-4. Texturing
-5. Edge function további optimalizálása (bejárás)
-6. Teljes graphics pipeline dokumentálása
-7. Random szám generátor dokumentálása
-8. Shading dokumentálása, Lambertian diffuse
+1. Teljes Phong reflection model a Gouraud árnyalásban is
+2. Környezeti fény implementálása a Phong reflection modelbe
+3. Kód kommentelése (függvények, változók magyarázata (doxygen))
+4. Perlin zaj dokumentálása
+5. Pont attribútumok interpolálása Sutherland-Hodgman algoritmusnál (visual bugot csinál jelenleg)
+6. Texturing
+7. Edge function további optimalizálása (bejárás)
+8. Teljes graphics pipeline dokumentálása
+9. Random szám generátor dokumentálása
+10. Shading dokumentálása, Phong reflection model

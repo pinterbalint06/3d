@@ -22,8 +22,9 @@ namespace Materials
     struct Material
     {
         Color albedo_;
-        // specularity
-        // diffuse
+        float diffuseness_; /// [0;1]
+        float specularity_; /// [0;1]
+        float shininess_; /// [1;[
 
         static Material createMaterial(float r, float g, float b)
         {
@@ -36,6 +37,9 @@ namespace Materials
         {
             Material returnMat;
             returnMat.albedo_ = Color::fromRGB(65, 152, 10);
+            returnMat.diffuseness_ = 1.0f;
+            returnMat.specularity_ = 0.1f;
+            returnMat.shininess_ = 1.0f;
             return returnMat;
         }
 
@@ -43,6 +47,9 @@ namespace Materials
         {
             Material returnMat;
             returnMat.albedo_ = Color::fromRGB(155, 118, 83);
+            returnMat.diffuseness_ = 1.0f;
+            returnMat.specularity_ = 0.0f;
+            returnMat.shininess_ = 1.0f;
             return returnMat;
         }
     };

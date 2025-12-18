@@ -13,14 +13,14 @@ private:
      * @brief Pointer to the camera's view matrix.
      *
      * This matrix defines the transformation from world space to camera (view) space.
-     * It is a 4x4 matrix stored in a contiguous float array in column-major order.
+     * It is a 4x4 matrix stored in a contiguous float array in row-major order.
      */
     float *viewMatrix_;
 
     /**
      * @brief Pointer to the projection matrix used by the camera for transforming 3D coordinates to 2D screen space.
      *
-     * It is a 4x4 matrix stored in a contiguous float array in column-major order.
+     * It is a 4x4 matrix stored in a contiguous float array in row-major order.
      */
     float *projMatrix_;
 

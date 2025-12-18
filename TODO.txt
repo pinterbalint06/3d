@@ -1,8 +1,8 @@
-1. Kód kommentelése (függvények, változók magyarázata (doxygen))
-2. Részletesebb térkép
-3. Perlin zaj dokumentálása
-4. Pont attribútumok interpolálása Sutherland-Hodgman algoritmusnál (visual bugot csinál jelenleg)
-5. Texturing
+1. Részletesebb térkép
+2. Perlin zaj dokumentálása
+3. Pont attribútumok interpolálása Sutherland-Hodgman algoritmusnál (visual bugot csinál jelenleg)
+4. Texturing
+5. Kód kommentelése (függvények, változók magyarázata (doxygen))
 6. Edge function további optimalizálása (bejárás)
 7. Teljes graphics pipeline dokumentálása
 8. Random szám generátor dokumentálása

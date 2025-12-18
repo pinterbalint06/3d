@@ -68,13 +68,20 @@ function ujKameraMagassag() {
 }
 
 function UjPerlinParam() {
+    let size = document.getElementById("mapSize");
     let seed = document.getElementById("seed");
     let persistence = document.getElementById("persistence");
     let lacunarity = document.getElementById("lacunarity");
     let oktav = document.getElementById("oktav");
     let frequency = document.getElementById("frequency");
     let mult = document.getElementById("multiplier");
-    Module.newPerlinMap(parseInt(seed.value), parseFloat(frequency.value), parseFloat(lacunarity.value), parseFloat(persistence.value), parseInt(oktav.value), parseFloat(mult.value));
+    Module.newPerlinMap(parseInt(size.value), parseInt(seed.value), parseFloat(frequency.value), parseFloat(lacunarity.value), parseFloat(persistence.value), parseInt(oktav.value), parseFloat(mult.value));
+    drawImage(canvasId);
+}
+
+function UjTerkoz() {
+    let spacing = document.getElementById("spacing");
+    Module.setMapSpacing(parseFloat(spacing.value));
     drawImage(canvasId);
 }
 
@@ -163,9 +170,9 @@ function fromHexaToDec(num) {
 
 function ujAnyag() {
     let color = document.getElementById("groundColor");
-    let red = fromHexaToDec(color.value[1])*16+fromHexaToDec(color.value[2]);
-    let green = fromHexaToDec(color.value[3])*16+fromHexaToDec(color.value[4]);
-    let blue = fromHexaToDec(color.value[5])*16+fromHexaToDec(color.value[6]);
+    let red = fromHexaToDec(color.value[1]) * 16 + fromHexaToDec(color.value[2]);
+    let green = fromHexaToDec(color.value[3]) * 16 + fromHexaToDec(color.value[4]);
+    let blue = fromHexaToDec(color.value[5]) * 16 + fromHexaToDec(color.value[6]);
     let diff = document.getElementById("diffuseness");
     let spec = document.getElementById("specularity");
     let shin = document.getElementById("shininess");
@@ -210,9 +217,9 @@ function ujhely() {
 
 function ujFenyszin() {
     let color = document.getElementById("lightColor");
-    let red = fromHexaToDec(color.value[1])*16+fromHexaToDec(color.value[2]);
-    let green = fromHexaToDec(color.value[3])*16+fromHexaToDec(color.value[4]);
-    let blue = fromHexaToDec(color.value[5])*16+fromHexaToDec(color.value[6]);
+    let red = fromHexaToDec(color.value[1]) * 16 + fromHexaToDec(color.value[2]);
+    let green = fromHexaToDec(color.value[3]) * 16 + fromHexaToDec(color.value[4]);
+    let blue = fromHexaToDec(color.value[5]) * 16 + fromHexaToDec(color.value[6]);
     Module.setLightColor(red, green, blue);
     drawImage(canvasId);
 }

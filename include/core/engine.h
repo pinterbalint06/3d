@@ -25,12 +25,13 @@ public:
     void setCameraHeight(float cameraHeight);
     void setLightDirection(float x, float y, float z);
     void setAntialias(int antialias);
-    void setTerrainParams(int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier);
+    void setTerrainParams(int size, int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier);
     void setLightIntensity(float intensity);
     void setShadingMode(Shaders::SHADINGMODE shadingmode);
     void setFrustum(float focal, float filmW, float filmH, int imageW, int imageH, float n, float f);
     void setLightColor(float r, float g, float b);
     void setAmbientLight(float ambientLightIntensity);
+    void setMapSpacing(float mapSpacing);
 
     void moveCamera(int x, int z);
     void rotateCamera(float dPitch, float dYaw);

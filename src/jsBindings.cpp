@@ -19,11 +19,11 @@ void init(int size, float focal, float filmW, float filmH, int imageW, int image
     setFrustum(focal, filmW, filmH, imageW, imageH, n, f);
 }
 
-void setTerrainParams(int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier)
+void setTerrainParams(int size, int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier)
 {
     if (gEngine)
     {
-        gEngine->setTerrainParams(seed, frequency, lacunarity, persistence, octaves, heightMultiplier);
+        gEngine->setTerrainParams(size, seed, frequency, lacunarity, persistence, octaves, heightMultiplier);
     }
 }
 
@@ -174,6 +174,14 @@ void setAmbientLight(float ambientLightIntensity)
     }
 }
 
+void setMapSpacing(float mapSpacing)
+{
+    if (gEngine)
+    {
+        gEngine->setMapSpacing(mapSpacing);
+    }
+}
+
 EMSCRIPTEN_BINDINGS(my_module)
 {
     emscripten::function("init", &init);
@@ -196,4 +204,5 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("setAmbientLight", &setAmbientLight);
     emscripten::function("setShadingTechnique", &setShadingMode);
     emscripten::function("getImageLocation", &getImageBufferLocation);
+    emscripten::function("setMapSpacing", &setMapSpacing);
 }

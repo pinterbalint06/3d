@@ -154,6 +154,18 @@
                 <input type="range" id="frequency" min="0.5" max="5.0" value="1.0" step="0.5"
                     oninput="this.nextElementSibling.value = this.value;UjPerlinParam();">
                 <output>1.0</output>
+                <label for="mapSize">Térkép méret:</label>
+                <select name="mapSize" id="mapSize" onchange="UjPerlinParam();">
+                    <option value="64">64</option>
+                    <option value="128">128</option>
+                    <option value="256" selected>256</option>
+                    <option value="512">512</option>
+                    <option value="1024">1024</option>
+                </select>
+                <label for="spacing">Térköz:</label>
+                <input type="range" id="spacing" min="0.1" max="10.0" value="1.0" step="0.1"
+                    oninput="this.nextElementSibling.value = this.value;UjTerkoz();">
+                <output>1.0</output>
             </div>
             <div class="col gap">
                 <h2>Környezet:</h2>
@@ -162,8 +174,7 @@
                     oninput="this.nextElementSibling.value = this.value;UjFenyIntenzitas();">
                 <output>1500</output>
                 <label for="lightDirection">Fény irány:</label>
-                <input type="range" id="lightDirection" min="0" max="360" value="270" step="1"
-                    oninput="UjFenyIrany();">
+                <input type="range" id="lightDirection" min="0" max="360" value="270" step="1" oninput="UjFenyIrany();">
                 <canvas id="canvasAngle" width="250" height="250"></canvas>
                 <div>
                     <label for="lightColor">Fény színe:</label>

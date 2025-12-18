@@ -22,6 +22,7 @@ Scene::~Scene()
     delete cam_;
 }
 
-void Scene::setAmbientLight(float ambientLightIntensity) {
+void Scene::setAmbientLight(float ambientLightIntensity)
+{
     ambientLight_ = ambientLightIntensity;
 }

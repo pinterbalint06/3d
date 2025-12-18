@@ -17,12 +17,12 @@ private:
 
     Materials::Material material_;
 
+    void cleanup();
+
 public:
     Mesh(int vertexCount, int indexCount);
 
     ~Mesh();
-
-    void cleanup();
 
     // getters
     int getVertexCount() const { return vertexCount_; }
@@ -36,7 +36,7 @@ public:
     float *getNormals() const { return normals_; }
 
     Materials::Material getMaterial() const { return material_; }
-    
+
     // setters
     void setMaterial(Materials::Material material) { material_ = material; }
 

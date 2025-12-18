@@ -46,9 +46,13 @@ void Engine::setAntialias(int antialias)
     renderer_->render(scene_);
 }
 
-void Engine::setTerrainParams(int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier)
+void Engine::setTerrainParams(int size, int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier)
 {
     Terrain *worldTerrain = scene_->getTerrain();
+    Mesh *mesh = worldTerrain->getMesh();
+    Materials::Material mat = mesh->getMaterial();
+    worldTerrain->setSize(size);
+    mesh->setMaterial(Materials::Material::Grass());
     worldTerrain->setFrequency(frequency);
     worldTerrain->setSeed(seed);
     worldTerrain->setLacunarity(lacunarity);
@@ -108,6 +112,13 @@ void Engine::setLightColor(float r, float g, float b)
 void Engine::setAmbientLight(float ambientLightIntensity)
 {
     scene_->setAmbientLight(ambientLightIntensity);
+    renderer_->render(scene_);
+}
+
+void Engine::setMapSpacing(float mapSpacing)
+{
+    scene_->getTerrain()->setSpacing(mapSpacing);
+    calcNewCamLoc();
     renderer_->render(scene_);
 }
 

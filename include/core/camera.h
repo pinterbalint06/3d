@@ -130,7 +130,7 @@ public:
      * @param yaw The new yaw angle (in radians).
      */
     void setRotation(float pitch, float yaw);
-    
+
     /**
      * @brief Rotates the camera by adjusting its pitch and yaw angles.
      *

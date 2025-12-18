@@ -34,10 +34,10 @@ namespace Materials
      */
     struct Material
     {
-        Color albedo_;       ///< Base color of the material.
-        float diffuseness_;  ///< Diffuse reflection coefficient [0;1].
-        float specularity_;  ///< Specular reflection coefficient [0;1].
-        float shininess_;    ///< Specular exponent (shininess factor) [1; infinity[.
+        Color albedo_;      ///< Base color of the material.
+        float diffuseness_; ///< Diffuse reflection coefficient [0;1].
+        float specularity_; ///< Specular reflection coefficient [0;1].
+        float shininess_;   ///< Specular exponent (shininess factor) [1; infinity[.
 
         /**
          * @brief Creates a basic material with a specific color.

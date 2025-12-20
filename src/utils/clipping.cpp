@@ -1,13 +1,138 @@
 #include <emscripten/emscripten.h>
 #include "utils/clipping.h"
 #include "utils/mathUtils.h"
+#include <algorithm>
 
-// w - x >= 0 Right plane
-// w + x >= 0 Left plane
-// w - y >= 0 Top plane
-// w + y >= 0 Bottom plane
-// w - z >= 0 Far plane
-// z >= 0 Near plane
+namespace
+{
+    // w - x >= 0 Right plane
+    // w + x >= 0 Left plane
+    // w - y >= 0 Top plane
+    // w + y >= 0 Bottom plane
+    // w - z >= 0 Far plane
+    // z >= 0 Near plane
+    enum PlaneID
+    {
+        RIGHT_PLANE = 0,
+        LEFT_PLANE = 1,
+        TOP_PLANE = 2,
+        BOTTOM_PLANE = 3,
+        FAR_PLANE = 4,
+        NEAR_PLANE = 5
+    };
+
+    // Cohen-Sutherland algorithm like outcodes
+    const int INSIDE = 0b000000;
+    const int LEFT = 0b0001;
+    const int RIGHT = 0b0010;
+    const int BOTTOM = 0b0100;
+    const int TOP = 0b1000;
+    const int NEAR = 0b10000;
+    const int FAR = 0b100000;
+
+    // Cohen-Sutherland like outcode calculation
+    inline int computeOutCode(const float *p)
+    {
+        int code = INSIDE;
+        // Is it outside
+        // if yes set that bit to 1
+        if ((p[3] - p[0]) < 0)
+        {
+            code |= RIGHT; // w - x < 0
+        }
+        if ((p[3] + p[0]) < 0)
+        {
+            code |= LEFT; // w + x < 0
+        }
+        if ((p[3] - p[1]) < 0)
+        {
+            code |= TOP; // w - y < 0
+        }
+        if ((p[3] + p[1]) < 0)
+        {
+            code |= BOTTOM; // w + y < 0
+        }
+        if ((p[3] - p[2]) < 0)
+        {
+            code |= FAR; // w - z < 0
+        }
+        if ((p[2]) < 0)
+        {
+            code |= NEAR; // z < 0
+        }
+        return code;
+    }
+
+    template <int P>
+    inline float calculateDistance(const float *p)
+    {
+        float dist = 0.0f;
+
+        if constexpr (P == RIGHT_PLANE)
+            dist = p[3] - p[0]; /// w - x >= 0 Right plane
+        else if constexpr (P == LEFT_PLANE)
+            dist = p[3] + p[0]; /// w + x >= 0 Left plane
+        else if constexpr (P == TOP_PLANE)
+            dist = p[3] - p[1]; /// w - y >= 0 Top plane
+        else if constexpr (P == BOTTOM_PLANE)
+            dist = p[3] + p[1]; /// w + y >= 0 Bottom plane
+        else if constexpr (P == FAR_PLANE)
+            dist = p[3] - p[2]; /// w - z >= 0 Far plane
+        else if constexpr (P == NEAR_PLANE)
+            dist = p[2]; /// z >= 0 Near plane
+
+        return dist;
+    }
+
+    template <int P>
+    int clipAgainstSinglePlane(float *input, int inputSize, float *output)
+    {
+        int resultSize = 0;
+
+        float *curr = input;                 /// current vertex
+        float *prev = input + inputSize - 4; /// last vertex
+
+        float prevDist = calculateDistance<P>(prev);
+
+        for (int i = 0; i < inputSize; i += 4)
+        {
+            float dist = calculateDistance<P>(curr);
+
+            if (dist >= 0)
+            {
+                if (prevDist < 0)
+                {
+                    // calculate intersection
+                    float dDistance = prevDist * (1.0f / (prevDist - dist));
+                    output[resultSize++] = MathUtils::interpolation(prev[0], curr[0], dDistance);
+                    output[resultSize++] = MathUtils::interpolation(prev[1], curr[1], dDistance);
+                    output[resultSize++] = MathUtils::interpolation(prev[2], curr[2], dDistance);
+                    output[resultSize++] = MathUtils::interpolation(prev[3], curr[3], dDistance);
+                }
+                output[resultSize++] = curr[0];
+                output[resultSize++] = curr[1];
+                output[resultSize++] = curr[2];
+                output[resultSize++] = curr[3];
+            }
+            else
+            {
+                if (prevDist >= 0)
+                {
+                    // calculate intersection
+                    float dDistance = prevDist * (1.0f / (prevDist - dist));
+                    output[resultSize++] = MathUtils::interpolation(prev[0], curr[0], dDistance);
+                    output[resultSize++] = MathUtils::interpolation(prev[1], curr[1], dDistance);
+                    output[resultSize++] = MathUtils::interpolation(prev[2], curr[2], dDistance);
+                    output[resultSize++] = MathUtils::interpolation(prev[3], curr[3], dDistance);
+                }
+            }
+            prev = curr;
+            curr += 4;
+            prevDist = dist;
+        }
+        return resultSize;
+    }
+}
 
 Clipper::Clipper()
 {
@@ -23,7 +148,7 @@ Clipper::~Clipper()
     free(input_);
 }
 
-void Clipper::clip(float *pont0, float *pont1, float *pont2)
+void Clipper::SutherlandHodgman(const float *pont0, const float *pont1, const float *pont2)
 {
     for (int i = 0; i < 4; i++)
     {
@@ -32,85 +157,72 @@ void Clipper::clip(float *pont0, float *pont1, float *pont2)
         clipped_[i + 8] = pont2[i];
     }
     clippedSize_ = 12;
-    int k = 0;
-    while (k < 6 && clippedSize_ > 0)
+    std::swap(input_, clipped_);
+    inputSize_ = clippedSize_;
+    clippedSize_ = clipAgainstSinglePlane<RIGHT_PLANE>(input_, inputSize_, clipped_);
+    if (clippedSize_ != 0)
     {
-        float *temp;
+        std::swap(input_, clipped_);
         inputSize_ = clippedSize_;
-        temp = input_;
-        input_ = clipped_;
-        clipped_ = temp;
-        clippedSize_ = clipAgainstSinglePlane(input_, clipped_, k);
-        k++;
+        clippedSize_ = clipAgainstSinglePlane<LEFT_PLANE>(input_, inputSize_, clipped_);
+        if (clippedSize_ != 0)
+        {
+            std::swap(input_, clipped_);
+            inputSize_ = clippedSize_;
+            clippedSize_ = clipAgainstSinglePlane<TOP_PLANE>(input_, inputSize_, clipped_);
+            if (clippedSize_ != 0)
+            {
+                std::swap(input_, clipped_);
+                inputSize_ = clippedSize_;
+                clippedSize_ = clipAgainstSinglePlane<BOTTOM_PLANE>(input_, inputSize_, clipped_);
+                if (clippedSize_ != 0)
+                {
+                    std::swap(input_, clipped_);
+                    inputSize_ = clippedSize_;
+                    clippedSize_ = clipAgainstSinglePlane<FAR_PLANE>(input_, inputSize_, clipped_);
+                    if (clippedSize_ != 0)
+                    {
+                        std::swap(input_, clipped_);
+                        inputSize_ = clippedSize_;
+                        clippedSize_ = clipAgainstSinglePlane<NEAR_PLANE>(input_, inputSize_, clipped_);
+                    }
+                }
+            }
+        }
     }
 }
 
-int Clipper::clipAgainstSinglePlane(float *input, float *result, int planeInd)
+void Clipper::clip(const float *pont0, const float *pont1, const float *pont2)
 {
-    int resultSize = 0;
-    for (int i = 0; i < inputSize_; i += 4)
+    int code0 = computeOutCode(pont0);
+    int code1 = computeOutCode(pont1);
+    int code2 = computeOutCode(pont2);
+
+    // if code0 & code1 & code2 is true then all of their bits are 1 that means all of the vertices are outside
+    // -> trivial reject
+    if (code0 & code1 & code2)
     {
-        int prevInd = (i - 4 + inputSize_) % inputSize_;
-        float distance, prevDistance;
-        switch (planeInd)
+        clippedSize_ = 0;
+        return;
+    }
+    else
+    {
+        // if code0 | code1 | code2 is 0 then all off their bits are 0 that means no vertice was outside
+        // -> trivial accept
+        if (code0 | code1 | code2 == 0)
         {
-        case 0:
-            distance = input[i + 3] - input[i];                 // w - x
-            prevDistance = input[prevInd + 3] - input[prevInd]; // w - x
-            break;
-        case 1:
-            distance = input[i + 3] + input[i];                 // w + x
-            prevDistance = input[prevInd + 3] + input[prevInd]; // w + x
-            break;
-        case 2:
-            distance = input[i + 3] - input[i + 1];                 // w - y
-            prevDistance = input[prevInd + 3] - input[prevInd + 1]; // w - y
-            break;
-        case 3:
-            distance = input[i + 3] + input[i + 1];                 // w + y
-            prevDistance = input[prevInd + 3] + input[prevInd + 1]; // w + y
-            break;
-        case 4:
-            distance = input[i + 3] - input[i + 2];                 // w - z
-            prevDistance = input[prevInd + 3] - input[prevInd + 2]; // w - z
-            break;
-        case 5:
-            distance = input[i + 2];           // z
-            prevDistance = input[prevInd + 2]; // z
-            break;
-        default:
-            distance = input[i + 3] - input[i];                 // w - x
-            prevDistance = input[prevInd + 3] - input[prevInd]; // w - x
-            break;
-        }
-        if (distance >= 0)
-        {
-            if (prevDistance < 0)
+            for (int i = 0; i < 4; i++)
             {
-                // calculate intersection
-                float dDistance = prevDistance / (prevDistance - distance);
-                result[resultSize++] = MathUtils::interpolation(input[prevInd], input[i], dDistance);
-                result[resultSize++] = MathUtils::interpolation(input[prevInd + 1], input[i + 1], dDistance);
-                result[resultSize++] = MathUtils::interpolation(input[prevInd + 2], input[i + 2], dDistance);
-                result[resultSize++] = MathUtils::interpolation(input[prevInd + 3], input[i + 3], dDistance);
+                clipped_[i] = pont0[i];
+                clipped_[i + 4] = pont1[i];
+                clipped_[i + 8] = pont2[i];
             }
-            result[resultSize++] = input[i];
-            result[resultSize++] = input[i + 1];
-            result[resultSize++] = input[i + 2];
-            result[resultSize++] = input[i + 3];
+            clippedSize_ = 12;
         }
         else
         {
-            if (prevDistance >= 0)
-            {
-                // calculate intersection
-                float dDistance = prevDistance / (prevDistance - distance);
-                result[resultSize++] = MathUtils::interpolation(input[prevInd], input[i], dDistance);
-                result[resultSize++] = MathUtils::interpolation(input[prevInd + 1], input[i + 1], dDistance);
-                result[resultSize++] = MathUtils::interpolation(input[prevInd + 2], input[i + 2], dDistance);
-                result[resultSize++] = MathUtils::interpolation(input[prevInd + 3], input[i + 3], dDistance);
-            }
+            // there were vertices inside and vertices outside the triangle has to be clipped
+            SutherlandHodgman(pont0, pont1, pont2);
         }
     }
-    return resultSize;
 }

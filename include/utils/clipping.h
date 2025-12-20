@@ -9,6 +9,8 @@ private:
     int clippedSize_;
     int inputSize_;
 
+    void SutherlandHodgman(const float *pont0, const float *pont1, const float *pont2);
+
 public:
     Clipper();
     ~Clipper();
@@ -18,8 +20,7 @@ public:
     int getClippedSize() { return clippedSize_; }
 
     // Sutherland-Hodgman
-    void clip(float *pont0, float *pont1, float *pont2);
-    int clipAgainstSinglePlane(float *input, float *result, int planeInd);
+    void clip(const float *pont0, const float *pont1, const float *pont2);
 };
 
 #endif

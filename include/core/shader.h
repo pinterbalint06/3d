@@ -36,7 +36,7 @@ namespace Shaders
      * @param lightY Y component of the (normalized) light direction vector.
      * @param lightZ Z component of the (normalized) light direction vector.
      * @param material Material properties (albedo, diffuseness, specularity, shininess).
-     * @param light Pointer to the distantLight object representing the light source.
+     * @param light Pointer to the DistantLight object representing the light source.
      * @param result Pointer to a float array of size 3 where the resulting RGB color will be stored.
      */
     inline void phongReflectionModel(
@@ -45,7 +45,7 @@ namespace Shaders
         float normX, float normY, float normZ,
         float lightX, float lightY, float lightZ,
         Materials::Material material,
-        distantLight *light,
+        DistantLight *light,
         float ambientLight,
         float *result)
     {
@@ -58,15 +58,15 @@ namespace Shaders
         float lightG = light->getGreenCalculated();
         float lightB = light->getBlueCalculated();
 
-        Materials::Color color = material.albedo_;
+        Materials::Color color = material.albedo;
         // kc * kd * (L . N) * i
         // kc the color component of the material
         // kd diffuseness of the material
         // (L . N) diffuseness factor angle between the normal and light vector
         // i the color component of the light
-        float diffuseR = color.r_ * material.diffuseness_ * diffFactor * lightR;
-        float diffuseG = color.g_ * material.diffuseness_ * diffFactor * lightG;
-        float diffuseB = color.b_ * material.diffuseness_ * diffFactor * lightB;
+        float diffuseR = color.r * material.diffuseness * diffFactor * lightR;
+        float diffuseG = color.g * material.diffuseness * diffFactor * lightG;
+        float diffuseB = color.b * material.diffuseness * diffFactor * lightB;
         // END OF DIFFUSE
 
         // CALCULATE SPECULAR
@@ -75,7 +75,7 @@ namespace Shaders
         float specB = 0.0f;
 
         // if material is specular and light hits the object
-        if (material.specularity_ > 0.0f && diffFactor > 0.0f)
+        if (material.specularity > 0.0f && diffFactor > 0.0f)
         {
             // view vector (POINT -> EYE (camera))
             float viewX = camX - vertX;
@@ -101,22 +101,22 @@ namespace Shaders
             // R reflection vector
             // v view vector
             // alph shininess constant of the material
-            float specFactor = std::pow(dotRV, material.shininess_);
+            float specFactor = std::pow(dotRV, material.shininess);
 
             // ks * (R . V)^alph * i
             // ksd specularity of the material
             // (R . V)^alph specFactor variable above
             // i the color component of the light
-            specR = material.specularity_ * specFactor * lightR;
-            specG = material.specularity_ * specFactor * lightG;
-            specB = material.specularity_ * specFactor * lightB;
+            specR = material.specularity * specFactor * lightR;
+            specG = material.specularity * specFactor * lightG;
+            specB = material.specularity * specFactor * lightB;
         }
         // END OF SPECULAR
 
         // CALCULATE AMBIENT
-        float ambientR = ambientLight * light->getRed() * color.r_;
-        float ambientG = ambientLight * light->getGreen() * color.g_;
-        float ambientB = ambientLight * light->getBlue() * color.b_;
+        float ambientR = ambientLight * light->getRed() * color.r;
+        float ambientG = ambientLight * light->getGreen() * color.g;
+        float ambientB = ambientLight * light->getBlue() * color.b;
         // END OF AMBIENT
 
         // diffuse + specular + ambient
@@ -131,7 +131,7 @@ namespace Shaders
     struct FlatShader
     {
         /// @brief The color components for the triangle.
-        float r_, g_, b_;
+        float r, g, b;
 
         /**
          * @brief Stores the values required for shading in the inner loop.
@@ -149,18 +149,18 @@ namespace Shaders
          */
         inline void setupTriangle(
             float *faceNormal, Vertex *vertices, int i,
-            float *lightVec, Materials::Material material, distantLight *sun,
+            float *lightVec, Materials::Material material, DistantLight *sun,
             float z0Rec, float z1Rec, float z2Rec, float camX, float camY, float camZ, float ambientLight)
         {
-            Materials::Color albedo = material.albedo_;
-            float matR = albedo.r_;
-            float matG = albedo.g_;
-            float matB = albedo.b_;
+            Materials::Color albedo = material.albedo;
+            float matR = albedo.r;
+            float matG = albedo.g;
+            float matB = albedo.b;
 
             float dotProd = std::max(0.0f, MathUtils::dotProduct3D(faceNormal, lightVec));
-            r_ = matR * sun->getRedCalculated() * dotProd;
-            g_ = matG * sun->getGreenCalculated() * dotProd;
-            b_ = matB * sun->getBlueCalculated() * dotProd;
+            r = matR * sun->getRedCalculated() * dotProd;
+            g = matG * sun->getGreenCalculated() * dotProd;
+            b = matB * sun->getBlueCalculated() * dotProd;
         }
 
         /**
@@ -176,9 +176,9 @@ namespace Shaders
             float lambda0, float lambda1, float lambda2,
             float zDepth, float *imageAntiBuffer, int imageIndex)
         {
-            imageAntiBuffer[imageIndex] = r_;
-            imageAntiBuffer[imageIndex + 1] = g_;
-            imageAntiBuffer[imageIndex + 2] = b_;
+            imageAntiBuffer[imageIndex] = r;
+            imageAntiBuffer[imageIndex + 1] = g;
+            imageAntiBuffer[imageIndex + 2] = b;
         }
     };
 
@@ -190,13 +190,13 @@ namespace Shaders
     struct GouraudShader
     {
         /// @brief The color components for vertex 0.
-        float r0_, g0_, b0_;
+        float r0, g0, b0;
         /// @brief The color components for vertex 1.
-        float r1_, g1_, b1_;
+        float r1, g1, b1;
         /// @brief The color components for vertex 2.
-        float r2_, g2_, b2_;
+        float r2, g2, b2;
         /// @brief The inverse of the z-coordinates of the triangle's vertices.
-        float z0Rec_, z1Rec_, z2Rec_;
+        float z0Rec, z1Rec, z2Rec;
 
         /**
          * @brief Stores the values required for shading in the inner loop.
@@ -214,7 +214,7 @@ namespace Shaders
          */
         inline void setupTriangle(
             float *faceNormal, Vertex *vertices, int i,
-            float *lightVec, Materials::Material material, distantLight *sun,
+            float *lightVec, Materials::Material material, DistantLight *sun,
             float z0Rec, float z1Rec, float z2Rec, float camX, float camY, float camZ, float ambientLight)
         {
             float result[3];
@@ -231,9 +231,9 @@ namespace Shaders
                 sun,
                 ambientLight,
                 result);
-            r0_ = result[0];
-            g0_ = result[1];
-            b0_ = result[2];
+            r0 = result[0];
+            g0 = result[1];
+            b0 = result[2];
 
             phongReflectionModel(
                 vert1.x, vert1.y, vert1.z,
@@ -244,9 +244,9 @@ namespace Shaders
                 sun,
                 ambientLight,
                 result);
-            r1_ = result[0];
-            g1_ = result[1];
-            b1_ = result[2];
+            r1 = result[0];
+            g1 = result[1];
+            b1 = result[2];
 
             phongReflectionModel(
                 vert2.x, vert2.y, vert2.z,
@@ -257,13 +257,13 @@ namespace Shaders
                 sun,
                 ambientLight,
                 result);
-            r2_ = result[0];
-            g2_ = result[1];
-            b2_ = result[2];
+            r2 = result[0];
+            g2 = result[1];
+            b2 = result[2];
 
-            z0Rec_ = z0Rec;
-            z1Rec_ = z1Rec;
-            z2Rec_ = z2Rec;
+            this->z0Rec = z0Rec;
+            this->z1Rec = z1Rec;
+            this->z2Rec = z2Rec;
         }
 
         /**
@@ -280,9 +280,9 @@ namespace Shaders
             float zDepth, float *imageAntiBuffer, int imageIndex)
         {
             // perspective correct interpolation
-            imageAntiBuffer[imageIndex] = (lambda0 * r0_ * z0Rec_ + lambda1 * r1_ * z1Rec_ + lambda2 * r2_ * z2Rec_) * zDepth;
-            imageAntiBuffer[imageIndex + 1] = (lambda0 * g0_ * z0Rec_ + lambda1 * g1_ * z1Rec_ + lambda2 * g2_ * z2Rec_) * zDepth;
-            imageAntiBuffer[imageIndex + 2] = (lambda0 * b0_ * z0Rec_ + lambda1 * b1_ * z1Rec_ + lambda2 * b2_ * z2Rec_) * zDepth;
+            imageAntiBuffer[imageIndex] = (lambda0 * r0 * z0Rec + lambda1 * r1 * z1Rec + lambda2 * r2 * z2Rec) * zDepth;
+            imageAntiBuffer[imageIndex + 1] = (lambda0 * g0 * z0Rec + lambda1 * g1 * z1Rec + lambda2 * g2 * z2Rec) * zDepth;
+            imageAntiBuffer[imageIndex + 2] = (lambda0 * b0 * z0Rec + lambda1 * b1 * z1Rec + lambda2 * b2 * z2Rec) * zDepth;
         }
     };
 
@@ -295,36 +295,36 @@ namespace Shaders
     {
         /// everything is in world space
         /// @brief The coordinates of the normal at vertex 0.
-        float n0x_, n0y_, n0z_;
+        float n0x, n0y, n0z;
         /// @brief The coordinates of the normal at vertex 1.
-        float n1x_, n1y_, n1z_;
+        float n1x, n1y, n1z;
         /// @brief The coordinates of the normal at vertex 2.
-        float n2x_, n2y_, n2z_;
+        float n2x, n2y, n2z;
 
         /// @brief The coordinates of vertex 0.
-        float v0x_, v0y_, v0z_;
+        float v0x, v0y, v0z;
         /// @brief The coordinates of vertex 1.
-        float v1x_, v1y_, v1z_;
+        float v1x, v1y, v1z;
         /// @brief The coordinates of vertex 2.
-        float v2x_, v2y_, v2z_;
+        float v2x, v2y, v2z;
 
         /// @brief The coordinates of camera.
-        float cx_, cy_, cz_;
+        float cx, cy, cz;
 
         /// @brief The inverse of the z-coordinates of the triangle's vertices.
-        float z0Rec_, z1Rec_, z2Rec_;
+        float z0Rec, z1Rec, z2Rec;
 
         /// @brief The coordinates of the light vector.
-        float lx_, ly_, lz_;
+        float lx, ly, lz;
 
         /// @brief The material of the triangle.
-        Materials::Material material_;
+        Materials::Material material;
 
         /// @brief The distant light object.
-        distantLight *pSun_;
+        DistantLight *pSun;
 
         /// @brief Ambient light of the scene.
-        float ambientLight_;
+        float ambientLight;
 
         /**
          * @brief Stores the values required for shading in the inner loop.
@@ -342,53 +342,53 @@ namespace Shaders
          */
         inline void setupTriangle(
             float *faceNormal, Vertex *vertices, int i,
-            float *lightVec, Materials::Material material, distantLight *sun,
+            float *lightVec, Materials::Material material, DistantLight *sun,
             float z0Rec, float z1Rec, float z2Rec, float camX, float camY, float camZ, float ambientLight)
         {
-            pSun_ = sun;
+            pSun = sun;
             Vertex &vert0 = vertices[0];
             Vertex &vert1 = vertices[1];
             Vertex &vert2 = vertices[2];
 
-            v0x_ = vert0.x;
-            v0y_ = vert0.y;
-            v0z_ = vert0.z;
+            v0x = vert0.x;
+            v0y = vert0.y;
+            v0z = vert0.z;
 
-            v1x_ = vert1.x;
-            v1y_ = vert1.y;
-            v1z_ = vert1.z;
+            v1x = vert1.x;
+            v1y = vert1.y;
+            v1z = vert1.z;
 
-            v2x_ = vert2.x;
-            v2y_ = vert2.y;
-            v2z_ = vert2.z;
+            v2x = vert2.x;
+            v2y = vert2.y;
+            v2z = vert2.z;
 
-            n0x_ = vert0.nx;
-            n0y_ = vert0.ny;
-            n0z_ = vert0.nz;
+            n0x = vert0.nx;
+            n0y = vert0.ny;
+            n0z = vert0.nz;
 
-            n1x_ = vert1.nx;
-            n1y_ = vert1.ny;
-            n1z_ = vert1.nz;
+            n1x = vert1.nx;
+            n1y = vert1.ny;
+            n1z = vert1.nz;
 
-            n2x_ = vert2.nx;
-            n2y_ = vert2.ny;
-            n2z_ = vert2.nz;
+            n2x = vert2.nx;
+            n2y = vert2.ny;
+            n2z = vert2.nz;
 
-            cx_ = camX;
-            cy_ = camY;
-            cz_ = camZ;
+            cx = camX;
+            cy = camY;
+            cz = camZ;
 
-            lx_ = lightVec[0];
-            ly_ = lightVec[1];
-            lz_ = lightVec[2];
+            lx = lightVec[0];
+            ly = lightVec[1];
+            lz = lightVec[2];
 
-            z0Rec_ = z0Rec;
-            z1Rec_ = z1Rec;
-            z2Rec_ = z2Rec;
+            this->z0Rec = z0Rec;
+            this->z1Rec = z1Rec;
+            this->z2Rec = z2Rec;
 
-            material_ = material;
+            this->material = material;
 
-            ambientLight_ = ambientLight;
+            this->ambientLight = ambientLight;
         }
 
         /**
@@ -405,9 +405,9 @@ namespace Shaders
             float zDepth, float *imageAntiBuffer, int imageIndex)
         {
             // perspective correct interpolation
-            float nx = (lambda0 * n0x_ * z0Rec_ + lambda1 * n1x_ * z1Rec_ + lambda2 * n2x_ * z2Rec_) * zDepth;
-            float ny = (lambda0 * n0y_ * z0Rec_ + lambda1 * n1y_ * z1Rec_ + lambda2 * n2y_ * z2Rec_) * zDepth;
-            float nz = (lambda0 * n0z_ * z0Rec_ + lambda1 * n1z_ * z1Rec_ + lambda2 * n2z_ * z2Rec_) * zDepth;
+            float nx = (lambda0 * n0x * z0Rec + lambda1 * n1x * z1Rec + lambda2 * n2x * z2Rec) * zDepth;
+            float ny = (lambda0 * n0y * z0Rec + lambda1 * n1y * z1Rec + lambda2 * n2y * z2Rec) * zDepth;
+            float nz = (lambda0 * n0z * z0Rec + lambda1 * n1z * z1Rec + lambda2 * n2z * z2Rec) * zDepth;
 
             // normalize normal
             float normalLengthInv = 1.0f / std::sqrt(nx * nx + ny * ny + nz * nz);
@@ -416,17 +416,17 @@ namespace Shaders
             nz *= normalLengthInv;
 
             // perspective correct interpolation
-            float px = (lambda0 * v0x_ * z0Rec_ + lambda1 * v1x_ * z1Rec_ + lambda2 * v2x_ * z2Rec_) * zDepth;
-            float py = (lambda0 * v0y_ * z0Rec_ + lambda1 * v1y_ * z1Rec_ + lambda2 * v2y_ * z2Rec_) * zDepth;
-            float pz = (lambda0 * v0z_ * z0Rec_ + lambda1 * v1z_ * z1Rec_ + lambda2 * v2z_ * z2Rec_) * zDepth;
+            float px = (lambda0 * v0x * z0Rec + lambda1 * v1x * z1Rec + lambda2 * v2x * z2Rec) * zDepth;
+            float py = (lambda0 * v0y * z0Rec + lambda1 * v1y * z1Rec + lambda2 * v2y * z2Rec) * zDepth;
+            float pz = (lambda0 * v0z * z0Rec + lambda1 * v1z * z1Rec + lambda2 * v2z * z2Rec) * zDepth;
             phongReflectionModel(
                 px, py, pz,
-                cx_, cy_, cz_,
+                cx, cy, cz,
                 nx, ny, nz,
-                lx_, ly_, lz_,
-                material_,
-                pSun_,
-                ambientLight_,
+                lx, ly, lz,
+                material,
+                pSun,
+                ambientLight,
                 &imageAntiBuffer[imageIndex]);
         }
     };

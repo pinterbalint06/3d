@@ -13,16 +13,12 @@ Terrain::Terrain(int size)
     frequency_ = 1.0f;
     seed_ = 0;
     spacing_ = 1.0f;
-    perlinValues_ = (float *)malloc(size_ * size_ * sizeof(float));
+    perlinNoise_ = new PerlinNoise::Perlin(seed_);
     mesh_ = new Mesh(size * size, (size - 1) * (size - 1) * 6);
 }
 
 void Terrain::cleanup()
 {
-    if (perlinValues_)
-    {
-        free(perlinValues_);
-    }
     if (mesh_)
     {
         delete mesh_;
@@ -34,6 +30,16 @@ Terrain::~Terrain()
     cleanup();
 }
 
+void Terrain::setSeed(int seed)
+{
+    if (perlinNoise_)
+    {
+        delete perlinNoise_;
+    }
+    seed_ = seed;
+    perlinNoise_ = new PerlinNoise::Perlin(seed_);
+}
+
 void Terrain::setSize(int size)
 {
     Materials::Material currentMaterial = Materials::Material::Grass();
@@ -43,15 +49,12 @@ void Terrain::setSize(int size)
     }
     size_ = size;
     cleanup();
-    perlinValues_ = (float *)malloc(size_ * size_ * sizeof(float));
     mesh_ = new Mesh(size * size, (size - 1) * (size - 1) * 6);
     mesh_->setMaterial(currentMaterial);
 }
 
 void Terrain::regenerate()
 {
-    std::memset(perlinValues_, 0, size_ * size_ * sizeof(float));
-    PerlinNoise::generatePerlinNoise(perlinValues_, mesh_->getVertices(), frequency_, size_, seed_, 2, octaves_, lacunarity_, persistence_, 0.0f, heightMultiplier_);
     buildTerrain();
 }
 
@@ -59,15 +62,45 @@ void Terrain::buildTerrain()
 {
     int i;
     Vertex *vertices = mesh_->getVertices();
+    float scale = 1.0f / 128.0f;
+    // generate heightmap
     for (int y = 0; y < size_; y++)
     {
         for (int x = 0; x < size_; x++)
         {
             i = y * size_ + x;
             vertices[i].x = x * spacing_;
-            vertices[i].y = perlinValues_[i];
+            vertices[i].y = perlinNoise_->fbm(x * scale, y * scale, octaves_, frequency_, 2.0f, persistence_, lacunarity_) * heightMultiplier_;
             vertices[i].z = -y * spacing_;
             vertices[i].w = 1.0f;
+        }
+    }
+
+    float spacingInv = 1.0f / spacing_;
+    // calculate normals
+    for (int y = 0; y < size_; y++)
+    {
+        for (int x = 0; x < size_; x++)
+        {
+            i = y * size_ + x;
+            // if it is already calculated get it from the heightmap if not calculate it
+            float prevValueX = x - 1 < 0 ? perlinNoise_->fbm(x * scale, y * scale, octaves_, frequency_, 2.0f, persistence_, lacunarity_) * heightMultiplier_ : vertices[y * size_ + x - 1].y;
+            float nxtValueX = x + 1 > size_ - 1 ? perlinNoise_->fbm(x * scale, y * scale, octaves_, frequency_, 2.0f, persistence_, lacunarity_) * heightMultiplier_ : vertices[y * size_ + x + 1].y;
+            float centralDifferenceX = (nxtValueX - prevValueX) * 0.5f * spacingInv;
+
+            // if it is already calculated get it from the heightmap if not calculate it
+            float prevValueY = y - 1 < 0 ? perlinNoise_->fbm(x * scale, y * scale, octaves_, frequency_, 2.0f, persistence_, lacunarity_) * heightMultiplier_ : vertices[(y - 1) * size_ + x].y;
+            float nxtValueY = y + 1 > size_ - 1 ? perlinNoise_->fbm(x * scale, y * scale, octaves_, frequency_, 2.0f, persistence_, lacunarity_) * heightMultiplier_ : vertices[(y + 1) * size_ + x].y;
+            float centralDifferenceY = (nxtValueY - prevValueY) * 0.5f * spacingInv;
+
+            vertices[i].nx = -centralDifferenceX;
+            vertices[i].ny = 1.0f;
+            vertices[i].nz = centralDifferenceY;
+
+            float normLen = std::sqrt(vertices[i].nx * vertices[i].nx + vertices[i].ny * vertices[i].ny + vertices[i].nz * vertices[i].nz);
+            vertices[i].nx /= normLen;
+            vertices[i].ny /= normLen;
+            vertices[i].nz /= normLen;
         }
     }
 

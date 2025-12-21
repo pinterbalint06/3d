@@ -9,12 +9,12 @@ namespace MathUtils
 {
     constexpr float INV_PI = 0.318309886f;
 
-    inline float dotProduct(const float x0, const float y0, const float x1, const float y1)
+    inline float dotProduct(const float &x0, const float &y0, const float &x1, const float &y1)
     {
         return x0 * x1 + y0 * y1;
     }
 
-    inline bool isSquareNumber(int n)
+    inline bool isSquareNumber(const int &n)
     {
         return n >= 0 && std::sqrt(n) == (int)std::sqrt(n);
     }
@@ -24,14 +24,14 @@ namespace MathUtils
         return vec0[0] * vec1[0] + vec0[1] * vec1[1] + vec0[2] * vec1[2];
     }
 
-    inline float smoothingFunction(const float d)
+    inline float smoothingFunction(const float &d)
     {
         //  6 * t^5 - 15 * t^4 + 10 * t^3 = t * t * t * (t * (t * 6 - 15) + 10);
         // Horner's method
         return d * d * d * (d * (d * 6.0f - 15.0f) + 10.0f);
     }
 
-    inline float interpolation(const float a1, const float a2, const float d)
+    inline float interpolation(const float &a1, const float &a2, const float &d)
     {
         return a1 + (a2 - a1) * d;
     }
@@ -69,13 +69,6 @@ namespace MathUtils
         vector[0] *= vectorLengthInv;
         vector[1] *= vectorLengthInv;
         vector[2] *= vectorLengthInv;
-    }
-
-    inline void randVector(pcgRand *random, float *vecX, float *vecY)
-    {
-        float angle = random->randomFloat() * 2 * M_PI;
-        *vecX = cosf(angle);
-        *vecY = sinf(angle);
     }
 }
 

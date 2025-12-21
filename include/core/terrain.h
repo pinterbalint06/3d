@@ -1,6 +1,7 @@
 #ifndef TERRAIN_H
 #define TERRAIN_H
 
+#include "utils/perlin.h"
 class Mesh;
 
 class Terrain
@@ -14,7 +15,7 @@ private:
     int octaves_, seed_;
 
     Mesh *mesh_ = nullptr;
-    float *perlinValues_ = nullptr;
+    PerlinNoise::Perlin *perlinNoise_ = nullptr;
 
     void cleanup();
     void buildTerrain();
@@ -35,7 +36,7 @@ public:
     void setFrequency(float frequency) { frequency_ = frequency; }
     void setHeightMultiplier(float heightMultiplier) { heightMultiplier_ = heightMultiplier; }
     void setOctaves(int octaves) { octaves_ = octaves; }
-    void setSeed(int seed) { seed_ = seed; }
+    void setSeed(int seed);
     void setSize(int size);
     void setSpacing(float spacing);
 };

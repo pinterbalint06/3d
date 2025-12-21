@@ -2,7 +2,7 @@
 #include "core/distantLight.h"
 #define INV_PI 0.318309886f
 
-distantLight::distantLight(float r, float g, float b, float intensity, float x, float y, float z)
+DistantLight::DistantLight(float r, float g, float b, float intensity, float x, float y, float z)
 {
     red_ = r;
     green_ = g;
@@ -16,30 +16,30 @@ distantLight::distantLight(float r, float g, float b, float intensity, float x, 
     bluePreCalc_ = blue_ * INV_PI * intensity_;
 }
 
-distantLight::~distantLight()
+DistantLight::~DistantLight()
 {
     free(direction_);
 }
 
-void distantLight::setRed(float red)
+void DistantLight::setRed(float red)
 {
     red_ = red;
     redPreCalc_ = red_ * INV_PI * intensity_;
 }
 
-void distantLight::setGreen(float green)
+void DistantLight::setGreen(float green)
 {
     green_ = green;
     greenPreCalc_ = green_ * INV_PI * intensity_;
 }
 
-void distantLight::setBlue(float blue)
+void DistantLight::setBlue(float blue)
 {
     blue_ = blue;
     bluePreCalc_ = blue_ * INV_PI * intensity_;
 }
 
-void distantLight::setColor(float red, float green, float blue)
+void DistantLight::setColor(float red, float green, float blue)
 {
     red_ = red;
     green_ = green;
@@ -49,7 +49,7 @@ void distantLight::setColor(float red, float green, float blue)
     bluePreCalc_ = blue_ * INV_PI * intensity_;
 }
 
-void distantLight::setIntensity(float intensity)
+void DistantLight::setIntensity(float intensity)
 {
     intensity_ = intensity;
     redPreCalc_ = red_ * INV_PI * intensity_;
@@ -57,7 +57,7 @@ void distantLight::setIntensity(float intensity)
     bluePreCalc_ = blue_ * INV_PI * intensity_;
 }
 
-void distantLight::setDirection(float x, float y, float z)
+void DistantLight::setDirection(float x, float y, float z)
 {
     direction_[0] = x;
     direction_[1] = y;

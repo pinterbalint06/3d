@@ -50,10 +50,7 @@ void Engine::setAntialias(int antialias)
 void Engine::setTerrainParams(int size, int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier)
 {
     Terrain *worldTerrain = scene_->getTerrain();
-    Mesh *mesh = worldTerrain->getMesh();
-    Materials::Material mat = mesh->getMaterial();
     worldTerrain->setSize(size);
-    mesh->setMaterial(Materials::Material::Grass());
     worldTerrain->setFrequency(frequency);
     worldTerrain->setSeed(seed);
     worldTerrain->setLacunarity(lacunarity);

@@ -11,7 +11,7 @@ void pcgRand::LCG()
     state_ = (6364136223846793005 * state_ + 1442695040888963407);
 }
 
-uint32_t pcgRand::RR(uint32_t x, unsigned r)
+uint32_t pcgRand::RR(const uint32_t &x, const unsigned &r)
 {
     // (x >> r) eltoljuk k bittel jobbra az alap szamot (0101 >> 2 = 0010)
     // (x << (32 - k)) az elozo lepesnel jobbra "leesett" biteket eltolja bal vegere (0101 << 30 = 01 (0 30db))

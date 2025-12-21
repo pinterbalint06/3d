@@ -6,4 +6,6 @@
 6. Random szám generátor dokumentálása
 7. Shading dokumentálása, Phong reflection model
 8. Mozgás logika C++-ba
-9. Perlin zaj átírása!!!!!!!!
+9. Hierarchikus z-buffer
+10. 3 dimenziós perlin zaj
+11. Domborzatra gyakrabban kiszámolni a perlin zajt, így részletesebb térképet kapnánk

@@ -9,7 +9,7 @@ namespace Materials
      */
     struct Color
     {
-        float r_, g_, b_; ///< Red, Green, Blue components in range [0, 1].
+        float r, g, b; ///< Red, Green, Blue components in range [0, 1].
 
         /**
          * @brief Creates a Color object from 0-255 integer RGB values.
@@ -22,9 +22,9 @@ namespace Materials
         static Color fromRGB(float r, float g, float b)
         {
             Color returnColor;
-            returnColor.r_ = std::pow(r / 255.0f, 2.2f);
-            returnColor.g_ = std::pow(g / 255.0f, 2.2f);
-            returnColor.b_ = std::pow(b / 255.0f, 2.2f);
+            returnColor.r = std::pow(r / 255.0f, 2.2f);
+            returnColor.g = std::pow(g / 255.0f, 2.2f);
+            returnColor.b = std::pow(b / 255.0f, 2.2f);
             return returnColor;
         }
     };
@@ -34,10 +34,10 @@ namespace Materials
      */
     struct Material
     {
-        Color albedo_;      ///< Base color of the material.
-        float diffuseness_; ///< Diffuse reflection coefficient [0;1].
-        float specularity_; ///< Specular reflection coefficient [0;1].
-        float shininess_;   ///< Specular exponent (shininess factor) [1; infinity[.
+        Color albedo;      ///< Base color of the material.
+        float diffuseness; ///< Diffuse reflection coefficient [0;1].
+        float specularity; ///< Specular reflection coefficient [0;1].
+        float shininess;   ///< Specular exponent (shininess factor) [1; infinity[.
 
         /**
          * @brief Creates a basic material with a specific color.
@@ -49,7 +49,7 @@ namespace Materials
         static Material createMaterial(float r, float g, float b)
         {
             Material returnMat;
-            returnMat.albedo_ = Color::fromRGB(r, g, b);
+            returnMat.albedo = Color::fromRGB(r, g, b);
             return returnMat;
         }
 
@@ -60,10 +60,10 @@ namespace Materials
         static Material Grass()
         {
             Material returnMat;
-            returnMat.albedo_ = Color::fromRGB(65, 152, 10);
-            returnMat.diffuseness_ = 1.0f;
-            returnMat.specularity_ = 0.02f;
-            returnMat.shininess_ = 10.0f;
+            returnMat.albedo = Color::fromRGB(65, 152, 10);
+            returnMat.diffuseness = 1.0f;
+            returnMat.specularity = 0.02f;
+            returnMat.shininess = 10.0f;
             return returnMat;
         }
 
@@ -74,10 +74,10 @@ namespace Materials
         static Material Dirt()
         {
             Material returnMat;
-            returnMat.albedo_ = Color::fromRGB(155, 118, 83);
-            returnMat.diffuseness_ = 1.0f;
-            returnMat.specularity_ = 0.01f;
-            returnMat.shininess_ = 10.0f;
+            returnMat.albedo = Color::fromRGB(155, 118, 83);
+            returnMat.diffuseness = 1.0f;
+            returnMat.specularity = 0.01f;
+            returnMat.shininess = 10.0f;
             return returnMat;
         }
     };

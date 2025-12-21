@@ -72,10 +72,10 @@ void setGroundMaterial(int r, int g, int b, float diff, float spec, float shin)
     if (gEngine)
     {
         Materials::Material ground;
-        ground.albedo_ = Materials::Color::fromRGB(r, g, b);
-        ground.diffuseness_ = diff;
-        ground.specularity_ = spec;
-        ground.shininess_ = shin;
+        ground.albedo = Materials::Color::fromRGB(r, g, b);
+        ground.diffuseness = diff;
+        ground.specularity = spec;
+        ground.shininess = shin;
         gEngine->setGroundMaterial(ground);
     }
 }

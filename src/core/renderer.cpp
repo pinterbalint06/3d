@@ -153,7 +153,7 @@ void Renderer::renderTemplate(const Scene *scene)
     float camY = mainCamera->getYPosition();
     float camZ = mainCamera->getZPosition();
     // light
-    distantLight *sun = scene->getLight();
+    DistantLight *sun = scene->getLight();
     float ambientLight = scene->getAmbientLight();
     float lightVec[3];
     const float *lightDir = sun->getDirection();
@@ -166,10 +166,10 @@ void Renderer::renderTemplate(const Scene *scene)
     float *imageAntiBuffer = frameBuffer_->getAntialiasImageBuffer();
     Mesh *mesh = scene->getTerrain()->getMesh();
     Materials::Material meshMat = mesh->getMaterial();
-    Materials::Color meshCol = meshMat.albedo_;
-    float rGround = meshCol.r_;
-    float gGround = meshCol.g_;
-    float bGround = meshCol.b_;
+    Materials::Color meshCol = meshMat.albedo;
+    float rGround = meshCol.r;
+    float gGround = meshCol.g;
+    float bGround = meshCol.b;
     int32_t *currIndices = mesh->getIndices();
     Vertex *currVertices = mesh->getVertices();
     int indicesCount = mesh->getIndexCount();

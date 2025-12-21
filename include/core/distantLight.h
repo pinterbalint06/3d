@@ -1,7 +1,7 @@
 #ifndef DISTANT_LIGHT_H
 #define DISTANT_LIGHT_H
 
-class distantLight
+class DistantLight
 {
 private:
     /// @brief The color values of the light
@@ -18,7 +18,7 @@ private:
 
 public:
     /**
-     * @brief Constructs a distantLight object with specified color, intensity, and direction.
+     * @brief Constructs a DistantLight object with specified color, intensity, and direction.
      *
      * @param r         Red component of the light color [0.0; 1.0].
      * @param g         Green component of the light color [0.0; 1.0].
@@ -32,13 +32,13 @@ public:
      * scaled by the inverse of PI and intensity for efficient lighting calculations.
      */
 
-    distantLight(float r, float g, float b, float intensity, float x, float y, float z);
+    DistantLight(float r, float g, float b, float intensity, float x, float y, float z);
     /**
      * @brief Destructor for the Distant Light class.
      *
      * Releases the memory allocated for the direction vector.
      */
-    ~distantLight();
+    ~DistantLight();
     // getters
     /**
      * @brief Returns the red component of the distant light.

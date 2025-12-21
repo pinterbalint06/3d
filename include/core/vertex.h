@@ -26,7 +26,7 @@ struct Vertex
         w = tempW;
     }
 
-    static Vertex interpolate(const Vertex &v1, const Vertex &v2, float t)
+    static Vertex interpolate(const Vertex &v1, const Vertex &v2, const float &t)
     {
         Vertex returnVertex;
         // Interpolate position

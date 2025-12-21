@@ -138,7 +138,6 @@ namespace Shaders
          *
          * @param faceNormal Pointer to the face normal vector.
          * @param vertices Pointer to the triangle's vertices. (unused here but needed so the same function can be used in the rendering loop)
-         * @param indices Pointer to the triangle's vertex indices. (unused here)
          * @param i Index of the current triangle. (unused here)
          * @param lightVec Pointer to the light direction vector.
          * @param material The material of the triangle.
@@ -149,7 +148,7 @@ namespace Shaders
          * @param ambientLight The ambient light of the environment. (unused here)
          */
         inline void setupTriangle(
-            float *faceNormal, Vertex *vertices, int32_t *indices, int i,
+            float *faceNormal, Vertex *vertices, int i,
             float *lightVec, Materials::Material material, distantLight *sun,
             float z0Rec, float z1Rec, float z2Rec, float camX, float camY, float camZ, float ambientLight)
         {
@@ -204,7 +203,6 @@ namespace Shaders
          *
          * @param faceNormal Pointer to the face normal vector (unused here but needed so the same function can be used in the rendering loop).
          * @param vertices Pointer to the triangle's vertices.
-         * @param indices Pointer to the triangle's vertex indices.
          * @param i Index of the current triangle.
          * @param lightVec Pointer to the light direction vector.
          * @param material The material of the triangle.
@@ -215,14 +213,14 @@ namespace Shaders
          * @param ambientLight The ambient light of the environment.
          */
         inline void setupTriangle(
-            float *faceNormal, Vertex *vertices, int32_t *indices, int i,
+            float *faceNormal, Vertex *vertices, int i,
             float *lightVec, Materials::Material material, distantLight *sun,
             float z0Rec, float z1Rec, float z2Rec, float camX, float camY, float camZ, float ambientLight)
         {
             float result[3];
-            Vertex &vert0 = vertices[indices[i]];
-            Vertex &vert1 = vertices[indices[i + 1]];
-            Vertex &vert2 = vertices[indices[i + 2]];
+            Vertex &vert0 = vertices[0];
+            Vertex &vert1 = vertices[1];
+            Vertex &vert2 = vertices[2];
 
             phongReflectionModel(
                 vert0.x, vert0.y, vert0.z,
@@ -333,7 +331,6 @@ namespace Shaders
          *
          * @param faceNormal Pointer to the face normal vector (unused here but needed so the same function can be used in the rendering loop).
          * @param vertices Pointer to the triangle's vertices.
-         * @param indices Pointer to the triangle's vertex indices.
          * @param i Index of the current triangle.
          * @param lightVec Pointer to the light direction vector.
          * @param material The material of the triangle.
@@ -344,14 +341,14 @@ namespace Shaders
          * @param ambientLight The ambient light of the environment.
          */
         inline void setupTriangle(
-            float *faceNormal, Vertex *vertices, int32_t *indices, int i,
+            float *faceNormal, Vertex *vertices, int i,
             float *lightVec, Materials::Material material, distantLight *sun,
             float z0Rec, float z1Rec, float z2Rec, float camX, float camY, float camZ, float ambientLight)
         {
             pSun_ = sun;
-            Vertex &vert0 = vertices[indices[i]];
-            Vertex &vert1 = vertices[indices[i + 1]];
-            Vertex &vert2 = vertices[indices[i + 2]];
+            Vertex &vert0 = vertices[0];
+            Vertex &vert1 = vertices[1];
+            Vertex &vert2 = vertices[2];
 
             v0x_ = vert0.x;
             v0y_ = vert0.y;

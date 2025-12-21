@@ -218,7 +218,7 @@ void Renderer::renderTemplate(const Scene *scene)
                 z2Rec = 1.0f / projectedTriangles_[j + 2].z;
 
                 // initialize shader for triangle
-                shader.setupTriangle(normal_, currVertices, currIndices,
+                shader.setupTriangle(normal_, &projectedTriangles_[j],
                                      i, lightVec, meshMat, sun,
                                      z0Rec, z1Rec, z2Rec,
                                      camX, camY, camZ, ambientLight);

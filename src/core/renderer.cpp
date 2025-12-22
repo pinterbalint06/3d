@@ -138,6 +138,7 @@ void Renderer::projectAndClipTriangle(const int &i0, const int &i1, const int &i
 template <typename StructShader>
 void Renderer::renderTemplate(const Scene *scene)
 {
+    const int TILE_SIZE = 8;
     frameBuffer_->clear();
     // bounding box
     float htminx, htmaxx, htminy, htmaxy;
@@ -224,53 +225,121 @@ void Renderer::renderTemplate(const Scene *scene)
                                      camX, camY, camZ, ambientLight);
 
                 // setup step values for inside test
-                ef.setupStepValues(bbminx, bbminy, inc_, sqrAntialiasRec_);
+                ef.setupStepValues(bbminx, bbminy, inc_, sqrAntialiasRec_, TILE_SIZE);
 
                 // precalculate inverse of triangle's area
                 float invTriArea = 1.0f / (float)ef.triArea_;
-                for (int y = bbminy; y <= bbmaxy; y++)
+                for (int ty = bbminy; ty <= bbmaxy; ty += TILE_SIZE)
                 {
-                    ef.backToRowStart();
-                    for (int x = bbminx; x <= bbmaxx; x++)
+                    for (int tx = bbminx; tx <= bbmaxx; tx += TILE_SIZE)
                     {
-                        ef.backToColStart();
-                        for (int ya = 0; ya < sqrAntialias_; ya++)
+                        int64_t c[3][4];
+                        ef.calculateTileCorners(tx, ty, c);
+                        // c[0][0] & c[0][1] & c[0][2] & c[0][3] is only < 0 if all numbers are negative
+                        // the result is only negative if it's sign bit is 1 which is only 1 if all the numbers negative bits were one (and)
+                        if (((c[0][0] & c[0][1] & c[0][2] & c[0][3]) < 0) ||
+                            ((c[1][0] & c[1][1] & c[1][2] & c[1][3]) < 0) ||
+                            ((c[2][0] & c[2][1] & c[2][2] & c[2][3]) < 0))
                         {
-                            ef.backToSubRowStart();
-                            for (int xa = 0; xa < sqrAntialias_; xa++)
-                            {
-                                // the sign bit is one if the number is negative
-                                // if all three number is positive all of their sign bit is zero so in an OR operator the result's sign bit is also 0 and positive
-                                // if any of  the number is negative (their sign bit is 1) then the result's sign bit will also be 1 and will be negative
-                                if (ef.isInside())
-                                {
-                                    // barycentric coordinates
-                                    float lambda0 = (float)ef.w0Sub_ * invTriArea;
-                                    float lambda1 = (float)ef.w1Sub_ * invTriArea;
-                                    float lambda2 = (float)ef.w2Sub_ * invTriArea;
-                                    // hyperbolic interpolation for z-coordinate
-                                    zDepth = 1.0f / (lambda0 * z0Rec + lambda1 * z1Rec + lambda2 * z2Rec);
-                                    bufferIndex = (y * imageWidth_ + x) * antialias_ + ya * sqrAntialias_ + xa;
-                                    if (zDepth < zBuffer[bufferIndex])
-                                    {
-                                        zBuffer[bufferIndex] = zDepth;
-                                        imageIndex = bufferIndex * 3;
-                                        // shade current pixel
-                                        shader.shadePixel(lambda0, lambda1, lambda2,
-                                                          zDepth, imageAntiBuffer, imageIndex);
-                                    }
-                                }
-                                // step one subpixel to the right
-                                ef.oneSubColRight();
-                            }
-                            // step down one subpixel
-                            ef.oneSubRowDown();
+                            continue;
                         }
-                        // step one pixel to the right
-                        ef.oneColRight();
+
+                        // clamp tile ends to boundary box edges
+                        int yEnd = std::min(ty + TILE_SIZE - 1, bbmaxy);
+                        int xEnd = std::min(tx + TILE_SIZE - 1, bbmaxx);
+                        // set edgefunction to the correct location
+                        ef.setTileStart(tx, ty, inc_);
+                        // if any of the negative bits were one the result will also be negative
+                        // if none of the negative bits were one (all of the numberes were positive) the result will be positive
+                        // if all of them are positive it means they are completely in the triangle (trivial accept)
+                        if (((c[0][0] | c[0][1] | c[0][2] | c[0][3]) >= 0) &&
+                            ((c[1][0] | c[1][1] | c[1][2] | c[1][3]) >= 0) &&
+                            ((c[2][0] | c[2][1] | c[2][2] | c[2][3]) >= 0))
+                        {
+                            for (int y = ty; y <= yEnd; y++)
+                            {
+                                ef.backToRowStart();
+                                for (int x = tx; x <= xEnd; x++)
+                                {
+                                    ef.backToColStart();
+                                    for (int ya = 0; ya < sqrAntialias_; ya++)
+                                    {
+                                        ef.backToSubRowStart();
+                                        for (int xa = 0; xa < sqrAntialias_; xa++)
+                                        {
+                                            // barycentric coordinates
+                                            float lambda0 = (float)ef.w0Sub_ * invTriArea;
+                                            float lambda1 = (float)ef.w1Sub_ * invTriArea;
+                                            float lambda2 = (float)ef.w2Sub_ * invTriArea;
+                                            // hyperbolic interpolation for z-coordinate
+                                            zDepth = lambda0 * z0Rec + lambda1 * z1Rec + lambda2 * z2Rec;
+                                            bufferIndex = (y * imageWidth_ + x) * antialias_ + ya * sqrAntialias_ + xa;
+                                            if (zDepth > zBuffer[bufferIndex])
+                                            {
+                                                zBuffer[bufferIndex] = zDepth;
+                                                imageIndex = bufferIndex * 3;
+                                                // shade current pixel
+                                                shader.shadePixel(lambda0, lambda1, lambda2,
+                                                                  1.0f / zDepth, imageAntiBuffer, imageIndex);
+                                            }
+                                            // step one subpixel to the right
+                                            ef.oneSubColRight();
+                                        }
+                                        // step down one subpixel
+                                        ef.oneSubRowDown();
+                                    }
+                                    // step one pixel to the right
+                                    ef.oneColRight();
+                                }
+                                // step down one pixel
+                                ef.oneRowDown();
+                            }
+                        }
+                        else
+                        {
+                            for (int y = ty; y <= yEnd; y++)
+                            {
+                                ef.backToRowStart();
+                                for (int x = tx; x <= xEnd; x++)
+                                {
+                                    ef.backToColStart();
+                                    for (int ya = 0; ya < sqrAntialias_; ya++)
+                                    {
+                                        ef.backToSubRowStart();
+                                        for (int xa = 0; xa < sqrAntialias_; xa++)
+                                        {
+                                            if (ef.isInside())
+                                            {
+                                                // barycentric coordinates
+                                                float lambda0 = (float)ef.w0Sub_ * invTriArea;
+                                                float lambda1 = (float)ef.w1Sub_ * invTriArea;
+                                                float lambda2 = (float)ef.w2Sub_ * invTriArea;
+                                                // hyperbolic interpolation for z-coordinate
+                                                zDepth = lambda0 * z0Rec + lambda1 * z1Rec + lambda2 * z2Rec;
+                                                bufferIndex = (y * imageWidth_ + x) * antialias_ + ya * sqrAntialias_ + xa;
+                                                if (zDepth > zBuffer[bufferIndex])
+                                                {
+                                                    zBuffer[bufferIndex] = zDepth;
+                                                    imageIndex = bufferIndex * 3;
+                                                    // shade current pixel
+                                                    shader.shadePixel(lambda0, lambda1, lambda2,
+                                                                      1.0f / zDepth, imageAntiBuffer, imageIndex);
+                                                }
+                                            }
+                                            // step one subpixel to the right
+                                            ef.oneSubColRight();
+                                        }
+                                        // step down one subpixel
+                                        ef.oneSubRowDown();
+                                    }
+                                    // step one pixel to the right
+                                    ef.oneColRight();
+                                }
+                                // step down one pixel
+                                ef.oneRowDown();
+                            }
+                        }
                     }
-                    // step down one pixel
-                    ef.oneRowDown();
                 }
             }
         }

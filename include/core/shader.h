@@ -195,8 +195,6 @@ namespace Shaders
         float r1, g1, b1;
         /// @brief The color components for vertex 2.
         float r2, g2, b2;
-        /// @brief The inverse of the z-coordinates of the triangle's vertices.
-        float z0Rec, z1Rec, z2Rec;
 
         /**
          * @brief Stores the values required for shading in the inner loop.
@@ -231,9 +229,10 @@ namespace Shaders
                 sun,
                 ambientLight,
                 result);
-            r0 = result[0];
-            g0 = result[1];
-            b0 = result[2];
+            // predivide with z for perspective-correct interpolation
+            r0 = result[0] * z0Rec;
+            g0 = result[1] * z0Rec;
+            b0 = result[2] * z0Rec;
 
             phongReflectionModel(
                 vert1.x, vert1.y, vert1.z,
@@ -244,9 +243,10 @@ namespace Shaders
                 sun,
                 ambientLight,
                 result);
-            r1 = result[0];
-            g1 = result[1];
-            b1 = result[2];
+            // predivide with z for perspective-correct interpolation
+            r1 = result[0] * z1Rec;
+            g1 = result[1] * z1Rec;
+            b1 = result[2] * z1Rec;
 
             phongReflectionModel(
                 vert2.x, vert2.y, vert2.z,
@@ -257,13 +257,10 @@ namespace Shaders
                 sun,
                 ambientLight,
                 result);
-            r2 = result[0];
-            g2 = result[1];
-            b2 = result[2];
-
-            this->z0Rec = z0Rec;
-            this->z1Rec = z1Rec;
-            this->z2Rec = z2Rec;
+            // predivide with z for perspective-correct interpolation
+            r2 = result[0] * z2Rec;
+            g2 = result[1] * z2Rec;
+            b2 = result[2] * z2Rec;
         }
 
         /**
@@ -280,9 +277,9 @@ namespace Shaders
             float zDepth, float *imageAntiBuffer, int imageIndex)
         {
             // perspective correct interpolation
-            imageAntiBuffer[imageIndex] = (lambda0 * r0 * z0Rec + lambda1 * r1 * z1Rec + lambda2 * r2 * z2Rec) * zDepth;
-            imageAntiBuffer[imageIndex + 1] = (lambda0 * g0 * z0Rec + lambda1 * g1 * z1Rec + lambda2 * g2 * z2Rec) * zDepth;
-            imageAntiBuffer[imageIndex + 2] = (lambda0 * b0 * z0Rec + lambda1 * b1 * z1Rec + lambda2 * b2 * z2Rec) * zDepth;
+            imageAntiBuffer[imageIndex] = (lambda0 * r0 + lambda1 * r1 + lambda2 * r2) * zDepth;
+            imageAntiBuffer[imageIndex + 1] = (lambda0 * g0 + lambda1 * g1 + lambda2 * g2) * zDepth;
+            imageAntiBuffer[imageIndex + 2] = (lambda0 * b0 + lambda1 * b1 + lambda2 * b2) * zDepth;
         }
     };
 
@@ -310,9 +307,6 @@ namespace Shaders
 
         /// @brief The coordinates of camera.
         float cx, cy, cz;
-
-        /// @brief The inverse of the z-coordinates of the triangle's vertices.
-        float z0Rec, z1Rec, z2Rec;
 
         /// @brief The coordinates of the light vector.
         float lx, ly, lz;
@@ -350,29 +344,30 @@ namespace Shaders
             Vertex &vert1 = vertices[1];
             Vertex &vert2 = vertices[2];
 
-            v0x = vert0.x;
-            v0y = vert0.y;
-            v0z = vert0.z;
+            // predivide with z for perspective-correct interpolation
+            v0x = vert0.x * z0Rec;
+            v0y = vert0.y * z0Rec;
+            v0z = vert0.z * z0Rec;
 
-            v1x = vert1.x;
-            v1y = vert1.y;
-            v1z = vert1.z;
+            v1x = vert1.x * z1Rec;
+            v1y = vert1.y * z1Rec;
+            v1z = vert1.z * z1Rec;
 
-            v2x = vert2.x;
-            v2y = vert2.y;
-            v2z = vert2.z;
+            v2x = vert2.x * z2Rec;
+            v2y = vert2.y * z2Rec;
+            v2z = vert2.z * z2Rec;
 
-            n0x = vert0.nx;
-            n0y = vert0.ny;
-            n0z = vert0.nz;
+            n0x = vert0.nx * z0Rec;
+            n0y = vert0.ny * z0Rec;
+            n0z = vert0.nz * z0Rec;
 
-            n1x = vert1.nx;
-            n1y = vert1.ny;
-            n1z = vert1.nz;
+            n1x = vert1.nx * z1Rec;
+            n1y = vert1.ny * z1Rec;
+            n1z = vert1.nz * z1Rec;
 
-            n2x = vert2.nx;
-            n2y = vert2.ny;
-            n2z = vert2.nz;
+            n2x = vert2.nx * z2Rec;
+            n2y = vert2.ny * z2Rec;
+            n2z = vert2.nz * z2Rec;
 
             cx = camX;
             cy = camY;
@@ -381,10 +376,6 @@ namespace Shaders
             lx = lightVec[0];
             ly = lightVec[1];
             lz = lightVec[2];
-
-            this->z0Rec = z0Rec;
-            this->z1Rec = z1Rec;
-            this->z2Rec = z2Rec;
 
             this->material = material;
 
@@ -405,9 +396,9 @@ namespace Shaders
             float zDepth, float *imageAntiBuffer, int imageIndex)
         {
             // perspective correct interpolation
-            float nx = (lambda0 * n0x * z0Rec + lambda1 * n1x * z1Rec + lambda2 * n2x * z2Rec) * zDepth;
-            float ny = (lambda0 * n0y * z0Rec + lambda1 * n1y * z1Rec + lambda2 * n2y * z2Rec) * zDepth;
-            float nz = (lambda0 * n0z * z0Rec + lambda1 * n1z * z1Rec + lambda2 * n2z * z2Rec) * zDepth;
+            float nx = (lambda0 * n0x + lambda1 * n1x + lambda2 * n2x) * zDepth;
+            float ny = (lambda0 * n0y + lambda1 * n1y + lambda2 * n2y) * zDepth;
+            float nz = (lambda0 * n0z + lambda1 * n1z + lambda2 * n2z) * zDepth;
 
             // normalize normal
             float normalLengthInv = 1.0f / std::sqrt(nx * nx + ny * ny + nz * nz);
@@ -416,9 +407,9 @@ namespace Shaders
             nz *= normalLengthInv;
 
             // perspective correct interpolation
-            float px = (lambda0 * v0x * z0Rec + lambda1 * v1x * z1Rec + lambda2 * v2x * z2Rec) * zDepth;
-            float py = (lambda0 * v0y * z0Rec + lambda1 * v1y * z1Rec + lambda2 * v2y * z2Rec) * zDepth;
-            float pz = (lambda0 * v0z * z0Rec + lambda1 * v1z * z1Rec + lambda2 * v2z * z2Rec) * zDepth;
+            float px = (lambda0 * v0x + lambda1 * v1x + lambda2 * v2x) * zDepth;
+            float py = (lambda0 * v0y + lambda1 * v1y + lambda2 * v2y) * zDepth;
+            float pz = (lambda0 * v0z + lambda1 * v1z + lambda2 * v2z) * zDepth;
             phongReflectionModel(
                 px, py, pz,
                 cx, cy, cz,

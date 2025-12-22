@@ -25,6 +25,7 @@ namespace EdgeFunction
         int64_t stepDownOnePixel0_, stepDownOnePixel1_, stepDownOnePixel2_;
         int64_t stepRightOneSubPixel0_, stepRightOneSubPixel1_, stepRightOneSubPixel2_;
         int64_t stepDownOneSubPixel0_, stepDownOneSubPixel1_, stepDownOneSubPixel2_;
+        int64_t stepTileX0, stepTileY0, stepTileX1, stepTileY1, stepTileX2, stepTileY2;
 
         inline int64_t edgeFunction(int32_t X, int32_t Y, int32_t dX, int32_t dY, int32_t x, int32_t y)
         {
@@ -60,7 +61,7 @@ namespace EdgeFunction
                 v2x_, v2y_);
         }
 
-        inline void setupStepValues(int bbminx, int bbminy, int32_t inc, int32_t sqrAntialiasRec)
+        inline void setupStepValues(int bbminx, int bbminy, int32_t inc, int32_t sqrAntialiasRec, int tileSize)
         {
             // first pixel's center
             int32_t startX = FixedPoint::Int2Fix(bbminx) + inc;
@@ -97,9 +98,46 @@ namespace EdgeFunction
             stepDownOneSubPixel1_ = (stepDownOnePixel1_ * sqrAntialiasRec) >> FIX_BITS;
             stepDownOneSubPixel2_ = (stepDownOnePixel2_ * sqrAntialiasRec) >> FIX_BITS;
 
+            stepTileX0 = stepRightOnePixel0_ * tileSize;
+            stepTileY0 = stepDownOnePixel0_ * tileSize;
+            stepTileX1 = stepRightOnePixel1_ * tileSize;
+            stepTileY1 = stepDownOnePixel1_ * tileSize;
+            stepTileX2 = stepRightOnePixel2_ * tileSize;
+            stepTileY2 = stepDownOnePixel2_ * tileSize;
+
             w0Row_ = w0_;
             w1Row_ = w1_;
             w2Row_ = w2_;
+        }
+
+        inline void setTileStart(int tx, int ty, int32_t inc)
+        {
+            int32_t startX = FixedPoint::Int2Fix(tx) + inc;
+            int32_t startY = FixedPoint::Int2Fix(ty) + inc;
+
+            w0Row_ = edgeFunction(v1x_, v1y_, dX0_, dY0_, startX, startY);
+            w1Row_ = edgeFunction(v2x_, v2y_, dX1_, dY1_, startX, startY);
+            w2Row_ = edgeFunction(v0x_, v0y_, dX2_, dY2_, startX, startY);
+        }
+
+        inline void calculateTileCorners(int tx, int ty, int64_t corners[3][4])
+        {
+            // Top-Left (tx, ty)
+            corners[0][0] = edgeFunction(v1x_, v1y_, dX0_, dY0_, FixedPoint::Int2Fix(tx), FixedPoint::Int2Fix(ty));
+            corners[1][0] = edgeFunction(v2x_, v2y_, dX1_, dY1_, FixedPoint::Int2Fix(tx), FixedPoint::Int2Fix(ty));
+            corners[2][0] = edgeFunction(v0x_, v0y_, dX2_, dY2_, FixedPoint::Int2Fix(tx), FixedPoint::Int2Fix(ty));
+            // first edge
+            corners[0][1] = corners[0][0] + stepTileX0;
+            corners[0][2] = corners[0][0] + stepTileY0;
+            corners[0][3] = corners[0][2] + stepTileX0;
+            // second edge
+            corners[1][1] = corners[1][0] + stepTileX1;
+            corners[1][2] = corners[1][0] + stepTileY1;
+            corners[1][3] = corners[1][2] + stepTileX1;
+            // third edge
+            corners[2][1] = corners[2][0] + stepTileX2;
+            corners[2][2] = corners[2][0] + stepTileY2;
+            corners[2][3] = corners[2][2] + stepTileX2;
         }
 
         inline void backToRowStart()
@@ -157,6 +195,9 @@ namespace EdgeFunction
 
         inline bool isInside()
         {
+            // the sign bit is one if the number is negative
+            // if all three number is positive all of their sign bit is zero so in an OR operator the result's sign bit is also 0 and positive
+            // if any of  the number is negative (their sign bit is 1) then the result's sign bit will also be 1 and will be negative
             return (w0Sub_ | w1Sub_ | w2Sub_) >= 0;
         }
     };

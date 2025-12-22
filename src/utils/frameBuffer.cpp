@@ -44,7 +44,7 @@ void FrameBuffer::clear()
 {
     int size = width_ * height_;
     std::memset(imageBuffer_, 0, size * 4 * sizeof(uint8_t));
-    std::fill(zBuffer_, zBuffer_ + size * antialias_, 1.0f);
+    std::memset(zBuffer_, 0, size * antialias_ * sizeof(float));
     std::memset(antialiasImgBuff_, 0, size * antialias_ * 3 * sizeof(float));
 }
 
@@ -77,7 +77,7 @@ void FrameBuffer::calculateAntialias()
             }
             // accumulated z-buffer equals to antialias
             // that means there is no mesh at this pixel -> set it to sky color
-            if (zBufferSum == antialias_)
+            if (zBufferSum == 0.0f)
             {
 
                 imageBuffer_[imageBufferIndex] = 135;

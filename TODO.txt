@@ -1,11 +1,10 @@
-1. Perlin zaj dokumentálása1
+1. Perlin zaj dokumentálása
 2. Texturing
 3. Kód kommentelése (függvények, változók magyarázata (doxygen))
-4. Edge function további optimalizálása (bejárás)
-5. Teljes graphics pipeline dokumentálása
-6. Random szám generátor dokumentálása
-7. Shading dokumentálása, Phong reflection model
-8. Mozgás logika C++-ba
-9. Hierarchikus z-buffer
-10. 3 dimenziós perlin zaj
-11. Domborzatra gyakrabban kiszámolni a perlin zajt, így részletesebb térképet kapnánk
+4. Teljes graphics pipeline dokumentálása
+5. Random szám generátor dokumentálása
+6. Shading dokumentálása, Phong reflection model
+7. Mozgás logika C++-ba
+8. 3 dimenziós perlin zaj
+9. Domborzatra gyakrabban kiszámolni a perlin zajt, így részletesebb térképet kapnánk
+10. Parallelizáció

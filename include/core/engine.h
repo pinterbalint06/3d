@@ -36,6 +36,7 @@ public:
     void setLightColor(float r, float g, float b);
     void setAmbientLight(float ambientLightIntensity);
     void setMapSpacing(float mapSpacing);
+    void setFocalLength(float focal);
 
     void moveCamera(int x, int z);
     void rotateCamera(float dPitch, float dYaw);

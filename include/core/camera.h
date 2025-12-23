@@ -36,6 +36,19 @@ private:
     /// @brief Indicates whether the camera view has to be updated
     bool newView_;
 
+    /// @brief Camera properties
+    float focalLength_, filmW_, filmH_, imageW_, imageH_, n_, f_;
+
+    /**
+     * @brief Sets the perspective projection matrix for the camera.
+     *
+     * Configures the camera's projection matrix based on focal length, film size,
+     * image size, and near/far clipping planes. Adjusts for differences between the film and image
+     * aspect ratios to ensure correct field of view and image coverage.
+     *
+     */
+    void updatePerspective();
+
 public:
     /**
      * @brief Default constructor for the Camera class.
@@ -106,6 +119,18 @@ public:
      */
     float getPitch() const { return pitch_; }
 
+    // camera propery sett
+    /**
+     * @brief Sets the focal length of the camera.
+     *
+     * Updates the camera's focal length to the specified value,
+     * and calls updatePerspective().
+     *
+     * @param pitch The new pitch angle (in radians).
+     * @param yaw The new yaw angle (in radians).
+     */
+    void setFocalLength(float focalLength);
+
     // position setter
     /**
      * @brief Sets the position of the camera in 3D space.
@@ -154,11 +179,7 @@ public:
     void updateViewMatrix();
 
     /**
-     * @brief Sets the perspective projection matrix for the camera.
-     *
-     * Configures the camera's projection matrix based on the provided focal length, film size,
-     * image size, and near/far clipping planes. Adjusts for differences between the film and image
-     * aspect ratios to ensure correct field of view and image coverage.
+     * @brief Sets the camera's properties and calls updatePerspective().
      *
      * @param focal   The focal length of the camera lens.
      * @param filmW   The width of the film/sensor.

@@ -116,6 +116,11 @@ void Engine::setMapSpacing(float mapSpacing)
     calcNewCamLoc();
 }
 
+void Engine::setFocalLength(float focal)
+{
+    scene_->getCamera()->setFocalLength(focal);
+}
+
 void Engine::moveCamera(int x, int z)
 {
     int size = terrain_->getSize();

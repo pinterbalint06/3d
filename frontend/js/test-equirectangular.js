@@ -1,5 +1,8 @@
 // kamera tulajdonsagai
-const fokuszTavolsag = 12.7; // mm focalLength
+let fokuszTavolsag = 12.7; // mm focalLength
+const minfokuszTavolsag = 7.5;
+const maxfokuszTavolsag = 150.0;
+const zoomSpeed = 0.05;
 const filmSzel = 25.4;
 const filmMag = 25.4;
 const jsCanvasSzelesseg = 1000;
@@ -60,10 +63,64 @@ document.addEventListener("DOMContentLoaded", async function () {
     let canvas = document.getElementById(canvasId);
     canvas.width = jsCanvasSzelesseg;
     canvas.height = jsCanvasMagassag;
+
+    let fogva = false;
+    let utolsoX = 0;
+    let utolsoY = 0;
+    const sensitivity = 0.15;
+
+    canvas.style.cursor = "grab";
+
     Module.onRuntimeInitialized = function () {
         Module.init(256, fokuszTavolsag, filmSzel, filmMag, jsCanvasSzelesseg, jsCanvasMagassag, n, f);
         Module.setShadingTexture();
         imgFromUrl("../imgs/cathedral.jpg");
+        canvas.addEventListener('mousedown', (e) => {
+            fogva = true;
+            utolsoX = e.clientX;
+            utolsoY = e.clientY;
+            canvas.style.cursor = "grabbing";
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (fogva) {
+                fogva = false;
+                canvas.style.cursor = "grab";
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (fogva) {
+
+                let dX = e.clientX - utolsoX;
+                let dY = e.clientY - utolsoY;
+
+                utolsoX = e.clientX;
+                utolsoY = e.clientY;
+
+                // jobbra huzza balra mozogjon -> invertalni kell
+                const rotX = -dY * sensitivity;
+                const rotY = -dX * sensitivity;
+
+                xyForgas(rotX, rotY);
+            }
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+
+            const d = e.deltaY * -zoomSpeed;
+            fokuszTavolsag += d;
+
+            if (fokuszTavolsag < minfokuszTavolsag) {
+                fokuszTavolsag = minfokuszTavolsag;
+            };
+            if (fokuszTavolsag > maxfokuszTavolsag) {
+                fokuszTavolsag = maxfokuszTavolsag;
+            };
+
+            Module.changeFocalLength(fokuszTavolsag);
+        });
     };
 });
 

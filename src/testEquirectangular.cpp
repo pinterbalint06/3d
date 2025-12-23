@@ -143,6 +143,15 @@ void setAntialias(int antialias)
     }
 }
 
+void changeFocalLength(float focal)
+{
+    if (scene && renderer)
+    {
+        scene->getCamera()->setFocalLength(focal);
+        renderer->render(scene);
+    }
+}
+
 EMSCRIPTEN_BINDINGS(my_module)
 {
     emscripten::function("init", &init);
@@ -152,4 +161,5 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("render", &render);
     emscripten::function("setShadingTexture", &setShadingTexture);
     emscripten::function("setAntialias", &setAntialias);
+    emscripten::function("changeFocalLength", &changeFocalLength);
 }

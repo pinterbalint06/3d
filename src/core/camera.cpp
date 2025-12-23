@@ -105,12 +105,30 @@ void Camera::updateViewMatrix()
 
 void Camera::setPerspective(float focal, float filmW, float filmH, int imageW, int imageH, float n, float f)
 {
+    focalLength_ = focal;
+    filmW_ = filmW;
+    filmH_ = filmH;
+    imageW_ = imageW;
+    imageH_ = imageH;
+    n_ = n;
+    f_ = f;
+    updatePerspective();
+}
+
+void Camera::setFocalLength(float focalLength)
+{
+    focalLength_ = focalLength;
+    updatePerspective();
+}
+
+void Camera::updatePerspective()
+{
     float xFill = 1.0f;
     float yFill = 1.0f;
 
     // aspect ratios
-    float imageAspect = (float)imageW / imageH;
-    float filmAspect = filmW / filmH;
+    float imageAspect = (float)imageW_ / imageH_;
+    float filmAspect = filmW_ / filmH_;
 
     // if film aspect ratio is different from image aspect ratio
     if (filmAspect > imageAspect)
@@ -122,18 +140,18 @@ void Camera::setPerspective(float focal, float filmW, float filmH, int imageW, i
         yFill = filmAspect / imageAspect;
     }
 
-    float t = ((filmH / 2.0f) / focal * n) * yFill;
+    float t = ((filmH_ / 2.0f) / focalLength_ * n_) * yFill;
     float r = t * filmAspect * xFill;
     float b = -t;
     float l = -r;
 
     // reset perspective projection matrix
     memset(projMatrix_, 0, 16 * sizeof(float));
-    projMatrix_[0] = 2.0f * n / (r - l);
-    projMatrix_[5] = 2.0f * n / (t - b);
+    projMatrix_[0] = 2.0f * n_ / (r - l);
+    projMatrix_[5] = 2.0f * n_ / (t - b);
     projMatrix_[8] = (r + l) / (r - l);
     projMatrix_[9] = (t + b) / (t - b);
-    projMatrix_[10] = f / (n - f);
+    projMatrix_[10] = f_ / (n_ - f_);
     projMatrix_[11] = -1.0f;
-    projMatrix_[14] = n * f / (n - f);
+    projMatrix_[14] = n_ * f_ / (n_ - f_);
 }

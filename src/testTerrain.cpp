@@ -190,6 +190,14 @@ void render()
     }
 }
 
+void changeFocalLength(float focal)
+{
+    if (gEngine)
+    {
+        gEngine->setFocalLength(focal);
+    }
+}
+
 EMSCRIPTEN_BINDINGS(my_module)
 {
     emscripten::function("init", &init);
@@ -214,4 +222,5 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("getImageLocation", &getImageBufferLocation);
     emscripten::function("setMapSpacing", &setMapSpacing);
     emscripten::function("render", &render);
+    emscripten::function("changeFocalLength", &changeFocalLength);
 }

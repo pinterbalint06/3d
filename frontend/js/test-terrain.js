@@ -111,6 +111,23 @@ document.addEventListener("DOMContentLoaded", async function () {
             Module.changeFocalLength(fokuszTavolsag);
         });
     };
+
+    window.addEventListener('keyup', (e) => {
+        switch (e.key) {
+            case ("w"):
+                mozgas(1, 0);
+                break;
+            case ("s"):
+                mozgas(-1, 0);
+                break;
+            case ("d"):
+                mozgas(0, 1);
+                break;
+            case ("a"):
+                mozgas(0, -1);
+                break;
+        }
+    });
 });
 
 const meret = 256;

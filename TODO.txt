@@ -1,16 +1,14 @@
 1. Perlin zaj dokumentálása
 2. Kód kommentelése (függvények, változók magyarázata (doxygen))
-3. Teljes graphics pipeline dokumentálása
-4. Random szám generátor dokumentálása
-5. Shading dokumentálása, Phong reflection model
-6. Mozgás logika C++-ba
-7. 3 dimenziós perlin zaj
-8. Domborzatra gyakrabban kiszámolni a perlin zajt, így részletesebb térképet kapnánk
-9. Parallelizáció
-10. Fizikailag helyes árnyalás és pbr textúrák
-11. Equirectangular kép renderelése
-12. Kód újrastrukturálása (engine class, test equi es terrain értelmes elválasztása)
-13. Gömb generálás dokumentálása (RÖVID csak gömb koordináta -> Descartes koordináta szemléltetése és gömbkoordináták előállítása)
-14. Frustum Culling
-15. Domborzat valósághűbb (erózió)
-16. Blinn-Phong
+3. Random szám generátor dokumentálása
+4. Shading dokumentálása, Phong reflection model
+5. Mozgás logika C++-ba
+6. 3 dimenziós perlin zaj
+7. Domborzatra gyakrabban kiszámolni a perlin zajt, így részletesebb térképet kapnánk
+8. Fizikailag helyes árnyalás és pbr textúrák
+9. Equirectangular kép renderelése
+10. Kód újrastrukturálása (engine class, test equi es terrain értelmes elválasztása)
+11. Gömb generálás dokumentálása (RÖVID csak gömb koordináta -> Descartes koordináta szemléltetése és gömbkoordináták előállítása)
+12. Domborzat valósághűbb (erózió)
+13. Blinn-Phong
+14. Váltás OpenGL-re

@@ -70,11 +70,14 @@ namespace Shaders
         }
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
-    } 
+    }
 
     Shader::~Shader()
     {
-        glDeleteProgram(programID_);
+        if (programID_ != 0)
+        {
+            glDeleteProgram(programID_);
+        }
     }
 
     void Shader::use()

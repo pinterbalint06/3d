@@ -115,6 +115,13 @@ void Camera::setPerspective(float focal, float filmW, float filmH, int imageW, i
     updatePerspective();
 }
 
+void Camera::setImageDimensions(int imageW, int imageH)
+{
+    imageW_ = imageW;
+    imageH_ = imageH;
+    updatePerspective();
+}
+
 void Camera::setFocalLength(float focalLength)
 {
     focalLength_ = focalLength;
@@ -123,25 +130,22 @@ void Camera::setFocalLength(float focalLength)
 
 void Camera::updatePerspective()
 {
-    float xFill = 1.0f;
-    float yFill = 1.0f;
-
     // aspect ratios
     float imageAspect = (float)imageW_ / imageH_;
     float filmAspect = filmW_ / filmH_;
 
+    float t = (filmH_ / 2.0f) / focalLength_ * n_;
+    float r = t * filmAspect;
+
     // if film aspect ratio is different from image aspect ratio
     if (filmAspect > imageAspect)
     {
-        xFill = imageAspect / filmAspect;
+        r *= imageAspect / filmAspect;
     }
     else
     {
-        yFill = filmAspect / imageAspect;
+        t *= filmAspect / imageAspect;
     }
-
-    float t = ((filmH_ / 2.0f) / focalLength_ * n_) * yFill;
-    float r = t * filmAspect * xFill;
     float b = -t;
     float l = -r;
 

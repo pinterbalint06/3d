@@ -60,15 +60,15 @@ void Mesh::cleanup()
         free(indices_);
         indices_ = nullptr;
     }
-    if (vbo_)
+    if (vbo_ != 0)
     {
         glDeleteBuffers(1, &vbo_);
     }
-    if (vao_)
+    if (vao_ != 0)
     {
         glDeleteVertexArrays(1, &vao_);
     }
-    if (ebo_)
+    if (ebo_ != 0)
     {
         glDeleteBuffers(1, &ebo_);
     }

@@ -37,7 +37,8 @@ private:
     bool newView_;
 
     /// @brief Camera properties
-    float focalLength_, filmW_, filmH_, imageW_, imageH_, n_, f_;
+    float focalLength_, filmW_, filmH_, n_, f_;
+    int imageW_, imageH_;
 
     /**
      * @brief Sets the perspective projection matrix for the camera.
@@ -191,6 +192,14 @@ public:
      */
     void setPerspective(float focal, float filmW, float filmH,
                         int imageW, int imageH, float n, float f);
+
+    /**
+     * @brief Sets the camera's image dimensions and calls updatePerspective().
+     *
+     * @param imageW  The width of the output image in pixels.
+     * @param imageH  The height of the output image in pixels.
+     */
+    void setImageDimensions(int imageW, int imageH);
 };
 
 #endif

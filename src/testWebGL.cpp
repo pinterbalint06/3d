@@ -5,20 +5,29 @@
 #include <GLES3/gl3.h>
 #include <core/terrain.h>
 #include <core/mesh.h>
+#include <core/camera.h>
 #include <core/shader.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
+
+EM_JS(int, getWindowWidth, (), {
+    return window.innerWidth;
+});
+
+EM_JS(int, getWindowHeight, (), {
+    return window.innerHeight;
+});
 
 Shaders::Shader *shaderProgram;
 Terrain *terrain;
+Camera *cam;
+GLuint mvpLoc;
 double lastTime;
 int frameCount;
 
 void setCanvasSize(int width, int height)
 {
+    cam->setImageDimensions(width, height);
     emscripten_set_canvas_element_size("#canvas", width, height);
+    glViewport(0, 0, width, height);
 }
 
 void fpsCounter()
@@ -39,6 +48,9 @@ void render()
     fpsCounter();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, cam->getProjMatrix());
+
     glBindVertexArray(terrain->getMesh()->getVAO());
 
     glDrawElements(GL_TRIANGLES, terrain->getMesh()->getIndexCount(), GL_UNSIGNED_INT, 0);
@@ -54,7 +66,7 @@ int main()
     if (!ctx)
     {
         EM_ASM(
-            console.log('A böngésződ nem támogatja a WebGL-t!'););
+            throw('A böngésződ nem támogatja a WebGL-t!'););
     }
     else
     {
@@ -73,6 +85,16 @@ int main()
         glEnable(GL_DEPTH_TEST);
         lastTime = emscripten_get_now();
         frameCount = 0;
+
+        cam = new Camera();
+        int width = getWindowWidth();
+        int height = getWindowHeight();
+        cam->setPerspective(12.7f, 25.4f, 25.4f, width, height, 0.1f, 1000.0f);
+        emscripten_set_canvas_element_size("#canvas", width, height);
+        glViewport(0, 0, width, height);
+
+        mvpLoc = glGetUniformLocation(shaderProgram->getProgramID(), "uMVP");
+
         emscripten_set_main_loop(render, 0, 1);
     }
     return 0;

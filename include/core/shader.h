@@ -6,9 +6,23 @@
 #include "core/material.h"
 #include "core/vertex.h"
 #include "core/texture.h"
+#include <GLES3/gl3.h>
 
 namespace Shaders
 {
+    class Shader
+    {
+    private:
+        GLuint programID_;
+        GLuint compileShader(const char *src, GLuint type);
+
+    public:
+        Shader(const char *pathToVertex, const char *pathToFragment);
+        ~Shader();
+        void use();
+
+        GLuint getProgramID() { return programID_; }
+    };
     /// @brief The SHADINGMODE enum for selecting shading algorithms
     enum SHADINGMODE
     {

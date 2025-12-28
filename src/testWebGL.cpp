@@ -5,12 +5,13 @@
 #include <GLES3/gl3.h>
 #include <core/terrain.h>
 #include <core/mesh.h>
+#include <core/shader.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 
-GLuint program;
+Shaders::Shader *shaderProgram;
 // vertex buffer object
 GLuint vbo;
 // element buffer object
@@ -26,15 +27,7 @@ void setCanvasSize(int width, int height)
     emscripten_set_canvas_element_size("#canvas", width, height);
 }
 
-std::string ReadFile(const std::string &path)
-{
-    std::ifstream file(path);
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
-}
-
-void render()
+void fpsCounter()
 {
     frameCount++;
     double currentTime = emscripten_get_now();
@@ -45,6 +38,11 @@ void render()
         frameCount = 0;
         lastTime = currentTime;
     }
+}
+
+void render()
+{
+    fpsCounter();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glBindVertexArray(vao);
@@ -68,29 +66,11 @@ int main()
     {
         emscripten_webgl_make_context_current(ctx);
         glClearColor(0, 0, 0, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
         EM_ASM(
             console.log('WebGL sikeresen inicializálva!'););
 
-        std::string vertexShaderString = ReadFile("shaders/vertex.vert");
-        const char *vertexSrc = vertexShaderString.c_str();
-        GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vs, 1, &vertexSrc, NULL);
-        glCompileShader(vs);
-
-        std::string fragmentShaderString = ReadFile("shaders/fragment.frag");
-        const char *fragSrc = fragmentShaderString.c_str();
-        GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fs, 1, &fragSrc, NULL);
-        glCompileShader(fs);
-
-        program = glCreateProgram();
-        glAttachShader(program, vs);
-        glAttachShader(program, fs);
-        glLinkProgram(program);
-        glUseProgram(program);
-        glDeleteShader(vs);
-        glDeleteShader(fs);
+        shaderProgram = new Shaders::Shader("shaders/vertex.vert", "shaders/fragment.frag");
+        shaderProgram->use();
 
         terrain = new Terrain(2048);
         terrain->regenerate();
@@ -104,24 +84,16 @@ int main()
         glGenBuffers(1, &ebo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, terrain->getMesh()->getIndexCount() * sizeof(uint32_t), terrain->getMesh()->getIndices(), GL_STATIC_DRAW);
-        GLint posAttrib = glGetAttribLocation(program, "aPosition");
-        if (posAttrib != -1)
-        {
-            glVertexAttribPointer(posAttrib, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
-            glEnableVertexAttribArray(posAttrib);
-        }
-        GLint normVec = glGetAttribLocation(program, "aNormal");
-        if (normVec != -1)
-        {
-            glVertexAttribPointer(normVec, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(4 * sizeof(float)));
-            glEnableVertexAttribArray(normVec);
-        }
-        GLint textureCoords = glGetAttribLocation(program, "aTexCoords");
-        if (textureCoords != -1)
-        {
-            glVertexAttribPointer(textureCoords, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(7 * sizeof(float)));
-            glEnableVertexAttribArray(textureCoords);
-        }
+
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+        glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(4 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(7 * sizeof(float)));
+        glEnableVertexAttribArray(2);
+
         glBindVertexArray(0);
 
         glEnable(GL_DEPTH_TEST);

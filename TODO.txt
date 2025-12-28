@@ -13,3 +13,4 @@
 13. Blinn-Phong
 14. Váltás WebGL-re (OpenGL ES)
 15. WebGL MVP Mátrix megírása
+16. GPU Memory leakage a meshben?

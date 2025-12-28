@@ -1,4 +1,4 @@
-#include <emscripten/emscripten.h>
+#include <emscripten.h>
 #include <emscripten/bind.h>
 #include "core/engine.h"
 
@@ -179,6 +179,13 @@ void changeFocalLength(float focal)
         gEngine->setFocalLength(focal);
     }
 }
+void startRenderingLoop()
+{
+    if (gEngine)
+    {
+        emscripten_set_main_loop(render, 0, 0);
+    }
+}
 
 EMSCRIPTEN_BINDINGS(my_module)
 {
@@ -203,4 +210,5 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("setMapSpacing", &setMapSpacing);
     emscripten::function("render", &render);
     emscripten::function("changeFocalLength", &changeFocalLength);
+    emscripten::function("startRenderingLoop", &startRenderingLoop);
 }

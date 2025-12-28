@@ -70,6 +70,8 @@ void Renderer::renderTemplate(const Scene *scene)
     float camY = mainCamera->getYPosition();
     float camZ = mainCamera->getZPosition();
     mainCamera->updateViewMatrix();
+    float VP[16];
+    MathUtils::multiplyMatrix(mainCamera->getViewMatrix(), mainCamera->getProjMatrix(), VP);
 
     // light
     DistantLight *sun = scene->getLight();
@@ -93,7 +95,7 @@ void Renderer::renderTemplate(const Scene *scene)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     GLuint mvpLoc = glGetUniformLocation(shaderProgram_->getProgramID(), "uMVP");
-    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, mainCamera->getProjMatrix());
+    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, VP);
 
     glBindVertexArray(mesh->getVAO());
 

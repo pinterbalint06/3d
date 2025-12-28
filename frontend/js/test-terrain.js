@@ -13,39 +13,6 @@ const n = 0.1;
 const f = 1000;
 const canvasId = "canvas";
 
-const TARGET_FPS = 30;
-const FRAME_MIN_TIME = 1000 / TARGET_FPS;
-let lastFrameTime = 0;
-let frameCount = 0;
-let lastFpsUpdate = 0;
-let fps = 0;
-
-
-function updateFPS(currentTime) {
-    frameCount++;
-
-    if (currentTime - lastFpsUpdate >= 1000) {
-        fps = frameCount;
-        frameCount = 0;
-        lastFpsUpdate = currentTime;
-
-        document.getElementById("fps").innerText = fps;
-    }
-}
-
-function mainLoop(currentTime) {
-    requestAnimationFrame(mainLoop);
-
-    const deltaTime = currentTime - lastFrameTime;
-
-    if (deltaTime >= FRAME_MIN_TIME) {
-        Module.render();
-        drawImage();
-        updateFPS(currentTime);
-        lastFrameTime = currentTime - (deltaTime % FRAME_MIN_TIME);
-    }
-}
-
 document.addEventListener("DOMContentLoaded", async function () {
     korRajzol(0, -1);
     let canvas = document.getElementById(canvasId);
@@ -63,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     Module.onRuntimeInitialized = function () {
         Module.init(meret, fokuszTavolsag, filmSzel, filmMag, jsCanvasSzelesseg, jsCanvasMagassag, n, f);
         ujTerkep();
-        requestAnimationFrame(mainLoop);
+        Module.startRenderingLoop();
         canvas.addEventListener('mousedown', (e) => {
             fogva = true;
             utolsoX = e.clientX;

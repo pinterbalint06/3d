@@ -25,26 +25,36 @@ GLuint Mesh::setUpOpenGL()
     if (vao_ == 0)
     {
         glGenVertexArrays(1, &vao_);
+        glGenBuffers(1, &vbo_);
+        glGenBuffers(1, &ebo_);
 
         glBindVertexArray(vao_);
-        glGenBuffers(1, &vbo_);
+
         glBindBuffer(GL_ARRAY_BUFFER, vbo_);
         glBufferData(GL_ARRAY_BUFFER, vertexCount_ * sizeof(Vertex), vertices_, GL_STATIC_DRAW);
-        glGenBuffers(1, &ebo_);
+
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount_ * sizeof(uint32_t), indices_, GL_STATIC_DRAW);
 
         glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
         glEnableVertexAttribArray(0);
-
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(4 * sizeof(float)));
         glEnableVertexAttribArray(1);
-
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(7 * sizeof(float)));
         glEnableVertexAttribArray(2);
     }
-    glBindVertexArray(0);
+    else
+    {
+        glBindVertexArray(vao_);
 
+        glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+        glBufferData(GL_ARRAY_BUFFER, vertexCount_ * sizeof(Vertex), vertices_, GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount_ * sizeof(uint32_t), indices_, GL_STATIC_DRAW);
+    }
+
+    glBindVertexArray(0);
     return vao_;
 }
 

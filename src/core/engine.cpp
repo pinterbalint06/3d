@@ -63,6 +63,7 @@ void Engine::setTerrainParams(int size, int seed, float frequency, float lacunar
     terrain_->setOctaves(octaves);
     terrain_->setHeightMultiplier(heightMultiplier);
     terrain_->regenerate();
+    terrain_->getMesh()->setUpOpenGL();
     calcNewCamLoc();
 }
 

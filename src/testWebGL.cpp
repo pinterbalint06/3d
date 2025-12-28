@@ -12,12 +12,6 @@
 #include <string>
 
 Shaders::Shader *shaderProgram;
-// vertex buffer object
-GLuint vbo;
-// element buffer object
-GLuint ebo;
-// vertax array object
-GLuint vao;
 Terrain *terrain;
 double lastTime;
 int frameCount;
@@ -45,7 +39,7 @@ void render()
     fpsCounter();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glBindVertexArray(vao);
+    glBindVertexArray(terrain->getMesh()->getVAO());
 
     glDrawElements(GL_TRIANGLES, terrain->getMesh()->getIndexCount(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
@@ -74,27 +68,7 @@ int main()
 
         terrain = new Terrain(2048);
         terrain->regenerate();
-
-        glGenVertexArrays(1, &vao);
-
-        glBindVertexArray(vao);
-        glGenBuffers(1, &vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, terrain->getMesh()->getVertexCount() * sizeof(Vertex), terrain->getMesh()->getVertices(), GL_STATIC_DRAW);
-        glGenBuffers(1, &ebo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, terrain->getMesh()->getIndexCount() * sizeof(uint32_t), terrain->getMesh()->getIndices(), GL_STATIC_DRAW);
-
-        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
-        glEnableVertexAttribArray(0);
-
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(4 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(7 * sizeof(float)));
-        glEnableVertexAttribArray(2);
-
-        glBindVertexArray(0);
+        terrain->getMesh()->setUpOpenGL();
 
         glEnable(GL_DEPTH_TEST);
         lastTime = emscripten_get_now();

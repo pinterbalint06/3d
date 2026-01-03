@@ -1,8 +1,7 @@
+import { CanvasInput } from './CanvasInput.js';
+
 // kamera tulajdonsagai
-let fokuszTavolsag = 12.7; // mm focalLength
-const minfokuszTavolsag = 7.5;
-const maxfokuszTavolsag = 150.0;
-const zoomSpeed = 0.05;
+let fokuszTavolsag = 18.0; // mm focalLength
 const filmSzel = 25.4;
 const filmMag = 25.4;
 const jsCanvasSzelesseg = 1000;
@@ -12,72 +11,24 @@ const n = 0.1;
 // far clipping plane - tavol vagasi sik
 const f = 1000;
 const canvasId = "canvas";
+const meret = 256;
 
-document.addEventListener("DOMContentLoaded", async function () {
-    korRajzol(0, -1);
+function initModule() {
+    console.log("module betoltve");
+    Module.init(meret, fokuszTavolsag, filmSzel, filmMag, jsCanvasSzelesseg, jsCanvasMagassag, n, f);
+    ujTerkep();
+    Module.startRenderingLoop();
+
     let canvas = document.getElementById(canvasId);
-    canvas.width = jsCanvasSzelesseg;
-    canvas.height = jsCanvasMagassag;
-    let sd = document.getElementById("seed");
-    let seed = Math.floor(Math.random() * 10000) + 1;
-    sd.value = seed;
-    sd.nextElementSibling.value = sd.value;
-
-    let fogva = false;
-    let utolsoX = 0;
-    let utolsoY = 0;
-    const sensitivity = 0.15;
-    Module.onRuntimeInitialized = function () {
-        Module.init(meret, fokuszTavolsag, filmSzel, filmMag, jsCanvasSzelesseg, jsCanvasMagassag, n, f);
-        ujTerkep();
-        Module.startRenderingLoop();
-        canvas.addEventListener('mousedown', (e) => {
-            fogva = true;
-            utolsoX = e.clientX;
-            utolsoY = e.clientY;
-            canvas.style.cursor = "grabbing";
-        });
-
-        window.addEventListener('mouseup', () => {
-            if (fogva) {
-                fogva = false;
-                canvas.style.cursor = "grab";
-            }
-        });
-
-        canvas.addEventListener('mousemove', (e) => {
-            if (fogva) {
-
-                let dX = e.clientX - utolsoX;
-                let dY = e.clientY - utolsoY;
-
-                utolsoX = e.clientX;
-                utolsoY = e.clientY;
-
-                // jobbra huzza balra mozogjon -> invertalni kell
-                const rotX = -dY * sensitivity;
-                const rotY = -dX * sensitivity;
-
-                xyForgas(rotX, rotY);
-            }
-        });
-
-        canvas.addEventListener('wheel', (e) => {
-            e.preventDefault();
-
-            const d = e.deltaY * -zoomSpeed;
-            fokuszTavolsag += d;
-
-            if (fokuszTavolsag < minfokuszTavolsag) {
-                fokuszTavolsag = minfokuszTavolsag;
-            };
-            if (fokuszTavolsag > maxfokuszTavolsag) {
-                fokuszTavolsag = maxfokuszTavolsag;
-            };
-
-            Module.changeFocalLength(fokuszTavolsag);
-        });
-    };
+    let inputControls = new CanvasInput(canvas, {
+        focalLength: fokuszTavolsag,
+        onRotate: (x, y) => {
+            xyForgas(x, y);
+        },
+        onZoom: (ujFokuszTavolsag) => {
+            Module.changeFocalLength(ujFokuszTavolsag);
+        }
+    });
 
     window.addEventListener('keyup', (e) => {
         switch (e.key) {
@@ -95,9 +46,24 @@ document.addEventListener("DOMContentLoaded", async function () {
                 break;
         }
     });
-});
+}
 
-const meret = 256;
+document.addEventListener("DOMContentLoaded", async function () {
+    korRajzol(0, -1);
+    let canvas = document.getElementById(canvasId);
+    canvas.width = jsCanvasSzelesseg;
+    canvas.height = jsCanvasMagassag;
+    let sd = document.getElementById("seed");
+    let seed = Math.floor(Math.random() * 10000) + 1;
+    sd.value = seed;
+    sd.nextElementSibling.value = sd.value;
+
+    if (Module.calledRun) {
+        initModule();
+    } else {
+        Module.onRuntimeInitialized = initModule;
+    }
+});
 
 function xyForgas(xszoggel, yszoggel) {
     Module.xyForog(xszoggel * (Math.PI / 180), yszoggel * (Math.PI / 180));
@@ -110,22 +76,16 @@ function teszt() {
     let most = performance.now();
     irany(90, 0);
     Module.render();
-    drawImage();
     irany(-90, 0);
     Module.render();
-    drawImage();
     irany(0, 0);
     Module.render();
-    drawImage();
     irany(0, 180);
     Module.render();
-    drawImage();
     irany(0, 90);
     Module.render();
-    drawImage();
     irany(0, -90);
     Module.render();
-    drawImage();
     document.getElementById("ido").innerText = Math.round(performance.now() - most);
     irany(tempX, tempY);
 }
@@ -174,11 +134,6 @@ function UjFenyIrany() {
 function ujArnyalas() {
     let type = document.querySelector('input[name="shading"]:checked').value;
     Module.setShadingTechnique(parseInt(type));
-}
-
-function UjNormalSzamitas() {
-    let type = document.querySelector('input[name="normalCalc"]:checked').value;
-    Module.setNormalCalculationMode(parseInt(type));
 }
 
 function ujElsmitas() {
@@ -321,3 +276,21 @@ function drawImage() {
     let ctx = document.getElementById(canvasId).getContext("2d");
     ctx.putImageData(new ImageData(clampedArray, jsCanvasSzelesseg, jsCanvasMagassag), 0, 0);
 }
+
+window.UjPerlinParam = UjPerlinParam;
+window.ujKameraMagassag = ujKameraMagassag;
+window.ujhely = ujhely;
+window.irany = irany;
+window.xyForgas = xyForgas;
+window.mozgas = mozgas;
+window.ujElsmitas = ujElsmitas;
+window.teszt = teszt;
+window.ujArnyalas = ujArnyalas;
+window.UjTerkoz = UjTerkoz;
+window.UjFenyIntenzitas = UjFenyIntenzitas;
+window.UjFenyIrany = UjFenyIrany;
+window.ujFenyszin = ujFenyszin;
+window.ujKornyezetiFeny = ujKornyezetiFeny;
+window.talajFu = talajFu;
+window.talajFold = talajFold;
+window.ujAnyag = ujAnyag;

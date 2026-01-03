@@ -1,6 +1,6 @@
 // kamera tulajdonsagai
-let fokuszTavolsag = 12.7; // mm focalLength
-const minfokuszTavolsag = 7.5;
+let fokuszTavolsag = 18.0; // mm focalLength
+const minfokuszTavolsag = 10.5;
 const maxfokuszTavolsag = 150.0;
 const zoomSpeed = 0.05;
 const filmSzel = 25.4;
@@ -18,34 +18,70 @@ document.addEventListener("DOMContentLoaded", async function () {
     canvas.width = jsCanvasSzelesseg;
     canvas.height = jsCanvasMagassag;
 
-    let fogva = false;
     let utolsoX = 0;
     let utolsoY = 0;
-    const sensitivity = 0.15;
+    let prevDiff = 0;
+    const sensitivity = 0.2;
+    let pointers = [];
 
     canvas.style.cursor = "grab";
 
     Module.onRuntimeInitialized = function () {
+        console.log("module betoltve");
         Module.init(256, fokuszTavolsag, filmSzel, filmMag, jsCanvasSzelesseg, jsCanvasMagassag, n, f);
         Module.setShadingTexture();
         imgFromUrl("../imgs/cathedral.jpg");
         Module.startRenderingLoop();
-        canvas.addEventListener('mousedown', (e) => {
-            fogva = true;
-            utolsoX = e.clientX;
-            utolsoY = e.clientY;
-            canvas.style.cursor = "grabbing";
+
+        canvas.addEventListener('pointerdown', (e) => {
+            if (pointers.length < 2) {
+                pointers.push(e);
+                if (pointers.length == 1) {
+                    utolsoX = e.clientX;
+                    utolsoY = e.clientY;
+                } else {
+                    if (pointers.length == 2) {
+                        // két pont távolsága
+                        prevDiff = Math.sqrt(
+                            Math.pow(pointers[0].clientX - pointers[1].clientX, 2) +
+                            Math.pow(pointers[0].clientY - pointers[1].clientY, 2)
+                        );
+                    }
+                }
+            }
+
+            canvas.style.cursor = pointers.length == 1 ? "grabbing" : "grab";
         });
 
-        window.addEventListener('mouseup', () => {
-            if (fogva) {
-                fogva = false;
+        canvas.addEventListener('pointerup', (e) => {
+            let i = 0;
+            while (i < pointers.length && pointers[i].pointerId != e.pointerId) {
+                i++;
+            }
+            if (i < pointers.length) {
+                pointers.splice(i, 1);
+            }
+
+            if (pointers.length == 1) {
+                prevDiff = 0;
+                utolsoX = pointers[0].clientX;
+                utolsoY = pointers[0].clientY;
+            }
+
+            if (pointers.length == 0) {
                 canvas.style.cursor = "grab";
             }
         });
 
-        canvas.addEventListener('mousemove', (e) => {
-            if (fogva) {
+        canvas.addEventListener('pointermove', (e) => {
+            let i = 0;
+            while (i < pointers.length && pointers[i].pointerId != e.pointerId) {
+                i++;
+            }
+            if (i < pointers.length) {
+                pointers[i] = e;
+            }
+            if (pointers.length == 1) {
 
                 let dX = e.clientX - utolsoX;
                 let dY = e.clientY - utolsoY;
@@ -54,10 +90,29 @@ document.addEventListener("DOMContentLoaded", async function () {
                 utolsoY = e.clientY;
 
                 // jobbra huzza balra mozogjon -> invertalni kell
-                const rotX = -dY * sensitivity;
-                const rotY = -dX * sensitivity;
+                const rotX = -dY * sensitivity * (minfokuszTavolsag / fokuszTavolsag);
+                const rotY = -dX * sensitivity * (minfokuszTavolsag / fokuszTavolsag);
 
                 xyForgas(rotX, rotY);
+            } else {
+                if (pointers.length == 2) {
+                    let currDiff = Math.sqrt(
+                        Math.pow(pointers[0].clientX - pointers[1].clientX, 2) +
+                        Math.pow(pointers[0].clientY - pointers[1].clientY, 2)
+                    );
+                    let valtozas = (currDiff - prevDiff) * sensitivity;
+                    fokuszTavolsag += valtozas;
+
+                    if (fokuszTavolsag < minfokuszTavolsag) {
+                        fokuszTavolsag = minfokuszTavolsag;
+                    };
+                    if (fokuszTavolsag > maxfokuszTavolsag) {
+                        fokuszTavolsag = maxfokuszTavolsag;
+                    };
+
+                    prevDiff = currDiff;
+                    Module.changeFocalLength(fokuszTavolsag);
+                }
             }
         });
 

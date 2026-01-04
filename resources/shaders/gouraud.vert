@@ -26,11 +26,11 @@ layout(std140) uniform SceneData {
 };
 
 layout(std140) uniform MaterialData {
-    vec4 uMatAlbedo;       // 0
-    float uMatDiffuseness; // 16
-    float uMatSpecularity; // 20
-    float uMatShininess;   // 24
-                           // 32
+    vec3 uMatAlbedo;       // 0-12
+    float uMatDiffuseness; // 12-16
+    float uMatSpecularity; // 16-20
+    float uMatShininess;   // 20-24
+                           // 24-28-32
 };
 
 out vec3 vColor;
@@ -39,7 +39,7 @@ void main() {
     // diffuse
     float dotNL = dot(aNormal, uLightVec);
     float diffFactor = max(0.0f, dotNL);
-    vec3 diffuseColor = diffFactor * uMatAlbedo.rgb * uMatDiffuseness * uLightColorPreCalc;
+    vec3 diffuseColor = diffFactor * uMatAlbedo * uMatDiffuseness * uLightColorPreCalc;
     //specular
     vec3 reflectionV = reflect(-uLightVec, aNormal);
     vec3 viewVec = normalize(uCamPos - aPosition.xyz);
@@ -47,7 +47,7 @@ void main() {
     float specFactor = pow(dotRV, uMatShininess);
     vec3 specColor = uMatSpecularity * specFactor * uLightColorPreCalc;
     // ambient
-    vec3 ambientColor = uAmbientLight * uLightColor * uMatAlbedo.rgb;
+    vec3 ambientColor = uAmbientLight * uLightColor * uMatAlbedo;
 
     vColor = (diffuseColor + specColor + ambientColor) / 255.0f;
     gl_Position = uMVP * aPosition;

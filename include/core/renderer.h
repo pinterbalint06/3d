@@ -23,7 +23,6 @@ struct SceneData
     float lightColor[3];        // 96
     float pad2;                 // 108
     float lightColorPreCalc[3]; // 112
-    float pad3;                 // 124
     float ambientLight;         // 128
     float pad4[3];              // 132->144
 };

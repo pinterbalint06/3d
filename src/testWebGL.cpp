@@ -51,6 +51,7 @@ int main()
     terrain = new Terrain(2048);
     terrain->regenerate();
     scene->setMesh(terrain->getMesh());
+    terrain->getMesh()->setMaterial(Materials::Material::Grass());
     terrain->getMesh()->setUpOpenGL();
     glViewport(0, 0, width, height);
 

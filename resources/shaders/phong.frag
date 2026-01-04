@@ -4,6 +4,7 @@ precision mediump float;
 
 in vec4 vPosition;
 in vec3 vNormal;
+in vec2 vTexCoords;
 
 layout(std140) uniform SceneData {
     mat4 uMVP;                  // View-Projection Matrix (not used here but needed for padding)
@@ -34,8 +35,17 @@ layout(std140) uniform MaterialData {
                            // 24-28-32
 };
 
+uniform mediump int uUseTexture;
+uniform sampler2D texture1;
+
 out vec4 outColor;
 
 void main() {
-    outColor = phongReflectionModel(vNormal, vPosition.xyz, uCamPos, uLightVec, uLightColorPreCalc, uLightColor, uAmbientLight, uMatAlbedo, uMatDiffuseness, uMatSpecularity, uMatShininess);
+    vec3 baseColor;
+    if(uUseTexture == 1) {
+        baseColor = texture(texture1, vTexCoords).rgb;
+    } else {
+        baseColor = uMatAlbedo;
+    }
+    outColor = phongReflectionModel(vNormal, vPosition.xyz, uCamPos, uLightVec, uLightColorPreCalc, uLightColor, uAmbientLight, baseColor, uMatDiffuseness, uMatSpecularity, uMatShininess);
 }

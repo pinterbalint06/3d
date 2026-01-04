@@ -27,10 +27,16 @@ layout(std140) uniform SceneData {
                                 // total size is 144 bytes
 };
 
+uniform mediump int uUseTexture;
+
 out vec4 vPosition;
 out vec3 vNormal;
+out vec2 vTexCoords;
 
 void main() {
+    if(uUseTexture == 1) {
+        vTexCoords = aTexCoords;
+    }
     vPosition = aPosition;
     vNormal = aNormal;
     gl_Position = uMVP * aPosition;

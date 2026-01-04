@@ -64,8 +64,8 @@ void Renderer::createShadingPrograms()
         std::make_unique<Shaders::Shader>("shaders/gouraud.vert", "shaders/gouraud.frag");
     shaderPrograms_[Shaders::SHADINGMODE::PHONG] =
         std::make_unique<Shaders::Shader>("shaders/phong.vert", "shaders/phong.frag");
-    shaderPrograms_[Shaders::SHADINGMODE::TEXTURE] =
-        std::make_unique<Shaders::Shader>("shaders/texture.vert", "shaders/texture.frag");
+    shaderPrograms_[Shaders::SHADINGMODE::NO_SHADING] =
+        std::make_unique<Shaders::Shader>("shaders/noShader.vert", "shaders/noShader.frag");
 }
 
 void Renderer::setShadingMode(Shaders::SHADINGMODE shadingMode)
@@ -125,6 +125,21 @@ void Renderer::render(const Scene *scene)
     currMatData.diffuseness = meshMat.diffuseness;
     currMatData.specularity = meshMat.specularity;
     currMatData.shininess = meshMat.shininess;
+
+    int useTexture = 0;
+
+    if (meshMat.texture != nullptr)
+    {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, meshMat.texture->getGPULoc());
+        useTexture = 1;
+    }
+    else
+    {
+        useTexture = 0;
+    }
+
+    shaderPrograms_[currShadingMode_]->setUniformInt("uUseTexture", useTexture);
 
     glBindBuffer(GL_UNIFORM_BUFFER, uboMat_);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(Materials::MaterialData), &currMatData);

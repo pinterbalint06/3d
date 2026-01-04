@@ -7,6 +7,7 @@
 #include "core/vertex.h"
 #include "core/texture.h"
 #include <GLES3/gl3.h>
+#include <string>
 
 namespace Shaders
 {
@@ -23,15 +24,16 @@ namespace Shaders
         void use();
 
         GLuint getProgramID() { return programID_; }
+
+        void setUniformInt(std::string variableName, int value);
     };
     /// @brief The SHADINGMODE enum for selecting shading algorithms
     enum SHADINGMODE
     {
-        PHONG = 0,      /// Phong shading
-        GOURAUD = 1,    /// Gouraud shading
-        FLAT = 2,       /// Flat shading
-        NO_SHADING = 3, /// No shading
-        TEXTURE = 4     /// Texture shading
+        PHONG = 0,     /// Phong shading
+        GOURAUD = 1,   /// Gouraud shading
+        FLAT = 2,      /// Flat shading
+        NO_SHADING = 3 /// No shading
     };
 }
 

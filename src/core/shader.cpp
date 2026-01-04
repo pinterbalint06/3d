@@ -120,4 +120,13 @@ namespace Shaders
     {
         glUseProgram(programID_);
     }
+
+    void Shader::setUniformInt(std::string variableName, int value)
+    {
+        int uniformLoc = glGetUniformLocation(programID_, variableName.c_str());
+        if (uniformLoc != -1)
+        {
+            glUniform1i(uniformLoc, value);
+        }
+    }
 }

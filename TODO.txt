@@ -12,3 +12,4 @@
 12. Blinn-Phong reflection model GLSL-ben
 13. GPU Memory leakage a meshben?
 14. Strukturálás
+15. Kód átnézése nem használt függvényekre, váltózokra

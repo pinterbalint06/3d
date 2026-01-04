@@ -36,12 +36,16 @@ public:
     void setAmbientLight(float ambientLightIntensity);
     void setMapSpacing(float mapSpacing);
     void setFocalLength(float focal);
+    void setTextureSpacing(float textureSpacing);
 
     void moveCamera(int x, int z);
     void rotateCamera(float dPitch, float dYaw);
     void setCameraRotation(float pitch, float yaw);
     void randomizeLocation();
     void render() { renderer_->render(scene_); };
+    uint8_t *initTexture(int width, int height);
+    void uploadTextureToGPU();
+    void deleteTexture();
 
     float getPitch() { return scene_->getCamera()->getPitch(); }
     float getYaw() { return scene_->getCamera()->getYaw(); }

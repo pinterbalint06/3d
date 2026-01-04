@@ -4,6 +4,7 @@
 #include "core/renderer.h"
 #include "core/terrain.h"
 #include "core/vertex.h"
+#include "core/texture.h"
 #include <string>
 
 Engine::Engine(int size)
@@ -63,7 +64,6 @@ void Engine::setTerrainParams(int size, int seed, float frequency, float lacunar
     terrain_->setOctaves(octaves);
     terrain_->setHeightMultiplier(heightMultiplier);
     terrain_->regenerate();
-    terrain_->getMesh()->setUpOpenGL();
     calcNewCamLoc();
 }
 
@@ -120,6 +120,11 @@ void Engine::setFocalLength(float focal)
     scene_->getCamera()->setFocalLength(focal);
 }
 
+void Engine::setTextureSpacing(float textureSpacing)
+{
+    terrain_->setTextureSpacing(textureSpacing);
+}
+
 void Engine::moveCamera(int x, int z)
 {
     int size = terrain_->getSize();
@@ -141,4 +146,30 @@ void Engine::setCameraRotation(float pitch, float yaw)
 {
 
     scene_->getCamera()->setRotation(pitch, yaw);
+}
+
+uint8_t *Engine::initTexture(int width, int height)
+{
+    deleteTexture();
+    Texture *texture = new Texture(width, height);
+    Materials::Material newTexMat = scene_->getMesh()->getMaterial();
+    newTexMat.texture = texture;
+    scene_->getMesh()->setMaterial(newTexMat);
+    return texture->getImgData();
+}
+
+void Engine::uploadTextureToGPU()
+{
+    scene_->getMesh()->getMaterial().texture->uploadToGPU();
+}
+
+void Engine::deleteTexture()
+{
+    if (scene_->getMesh()->getMaterial().texture != nullptr)
+    {
+        delete scene_->getMesh()->getMaterial().texture;
+        Materials::Material newTexMat = scene_->getMesh()->getMaterial();
+        newTexMat.texture = nullptr;
+        scene_->getMesh()->setMaterial(newTexMat);
+    }
 }

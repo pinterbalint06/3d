@@ -33,9 +33,18 @@ layout(std140) uniform MaterialData {
                            // 24-28-32
 };
 
+uniform int uUseTexture;
+uniform sampler2D texture1;
+
 out vec4 vColor;
 
 void main() {
-    vColor = phongReflectionModel(aNormal, aPosition.xyz, uCamPos, uLightVec, uLightColorPreCalc, uLightColor, uAmbientLight, uMatAlbedo, uMatDiffuseness, uMatSpecularity, uMatShininess);
+    vec3 baseColor;
+    if(uUseTexture == 1) {
+        baseColor = texture(texture1, aTexCoords).rgb;
+    } else {
+        baseColor = uMatAlbedo;
+    }
+    vColor = phongReflectionModel(aNormal, aPosition.xyz, uCamPos, uLightVec, uLightColorPreCalc, uLightColor, uAmbientLight, baseColor, uMatDiffuseness, uMatSpecularity, uMatShininess);
     gl_Position = uMVP * aPosition;
 }

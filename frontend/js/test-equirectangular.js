@@ -15,9 +15,7 @@ const canvasId = "canvas";
 function initModule() {
     console.log("module betoltve");
     Module.init(256, fokuszTavolsag, filmSzel, filmMag, jsCanvasSzelesseg, jsCanvasMagassag, n, f);
-    Module.setShadingTexture();
     imgFromUrl("../imgs/cathedral.jpg");
-    Module.startRenderingLoop();
 
     let canvas = document.getElementById(canvasId);
     let inputControls = new CanvasInput(canvas, {
@@ -83,6 +81,7 @@ function imgFromUrl(url) {
             index++;
         }
         Module.uploadTextureToGPU();
+        Module.startRenderingLoop();
     };
     img.src = url;
 }

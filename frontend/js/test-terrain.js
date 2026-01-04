@@ -266,15 +266,49 @@ function mozgas(iranyZ, iranyX) {
     Module.mozgas(mozgasZ, mozgasX);
 }
 
-function drawImage() {
-    let imageBufferHely = Module.getImageLocation();
-    let clampedArray = new Uint8ClampedArray(
-        Module.HEAPU8.buffer,
-        imageBufferHely,
-        jsCanvasSzelesseg * jsCanvasMagassag * 4
-    );
-    let ctx = document.getElementById(canvasId).getContext("2d");
-    ctx.putImageData(new ImageData(clampedArray, jsCanvasSzelesseg, jsCanvasMagassag), 0, 0);
+function ujUrlbol() {
+    imgFromUrl(document.getElementById("url").value);
+}
+
+function imgFromUrl(url) {
+    let img = new Image;
+    img.crossOrigin = "anonymous";
+    img.onload = function () {
+        let canvas = document.createElement('canvas');
+        canvas.width = this.width;
+        canvas.height = this.height;
+        let ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        let imgData = ctx.getImageData(0, 0, this.width, this.height);
+        let rgbaData = imgData.data;
+
+        const ptr = Module.initTexture(this.width, this.height);
+        let rgbData = new Uint8Array(
+            Module.HEAPU8.buffer,
+            ptr,
+            this.width * this.height * 3
+        );
+        let index = 0;
+        for (let i = 0; i < rgbaData.length; i += 4) {
+            rgbData[index] = rgbaData[i];
+            index++;
+            rgbData[index] = rgbaData[i + 1];
+            index++;
+            rgbData[index] = rgbaData[i + 2];
+            index++;
+        }
+        Module.uploadTextureToGPU();
+    };
+    img.src = url;
+}
+
+function texturaTorles() {
+    Module.deleteTexture();
+}
+
+function setTexturaMeret() {
+    let textureSpacing = document.getElementById("textureSpacing");
+    Module.setTextureSpacing(1.0 / parseFloat(textureSpacing.value));
 }
 
 window.UjPerlinParam = UjPerlinParam;
@@ -294,3 +328,6 @@ window.ujKornyezetiFeny = ujKornyezetiFeny;
 window.talajFu = talajFu;
 window.talajFold = talajFold;
 window.ujAnyag = ujAnyag;
+window.ujUrlbol = ujUrlbol;
+window.texturaTorles = texturaTorles;
+window.setTexturaMeret = setTexturaMeret;

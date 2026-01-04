@@ -13,6 +13,7 @@ Terrain::Terrain(int size)
     frequency_ = 1.0f;
     seed_ = 0;
     spacing_ = 1.0f;
+    textureSpacing_ = 1.0f;
     perlinNoise_ = new PerlinNoise::Perlin(seed_);
     mesh_ = new Mesh(size * size, (size - 1) * (size - 1) * 6);
 }
@@ -56,6 +57,7 @@ void Terrain::setSize(int size)
 void Terrain::regenerate()
 {
     buildTerrain();
+    mesh_->setUpOpenGL();
 }
 
 void Terrain::buildTerrain()
@@ -73,6 +75,8 @@ void Terrain::buildTerrain()
             vertices[i].y = perlinNoise_->fbm(x * scale, y * scale, octaves_, frequency_, 2.0f, persistence_, lacunarity_) * heightMultiplier_;
             vertices[i].z = -y * spacing_;
             vertices[i].w = 1.0f;
+            vertices[i].u = (float)x * textureSpacing_;
+            vertices[i].v = (float)y * textureSpacing_;
         }
     }
 
@@ -128,5 +132,23 @@ void Terrain::buildTerrain()
 void Terrain::setSpacing(float spacing)
 {
     spacing_ = spacing;
-    buildTerrain();
+    regenerate();
+}
+
+void Terrain::setTextureSpacing(float textureSpacing)
+{
+    textureSpacing_ = textureSpacing;
+    // recalculate uvs
+    Vertex *vertices = mesh_->getVertices();
+    for (int y = 0; y < size_; y++)
+    {
+        for (int x = 0; x < size_; x++)
+        {
+            int i = y * size_ + x;
+            vertices[i].u = (float)x * textureSpacing_;
+            vertices[i].v = (float)y * textureSpacing_;
+        }
+    }
+    // upload to GPU
+    mesh_->setUpOpenGL();
 }

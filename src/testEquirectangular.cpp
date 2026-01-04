@@ -16,6 +16,7 @@
 Renderer *renderer = nullptr;
 Scene *scene = nullptr;
 Texture *texture = nullptr;
+int start = 0;
 
 Mesh *generateSphere(int rings, int segments, float radius)
 {
@@ -89,7 +90,7 @@ void init(int size, float focal, float filmW, float filmH, int imageW, int image
     scene = new Scene();
     renderer->setImageDimensions(imageW, imageH);
     scene->getCamera()->setPerspective(focal, filmW, filmH, imageW, imageH, n, f);
-    renderer->setShadingMode(Shaders::SHADINGMODE::TEXTURE);
+    renderer->setShadingMode(Shaders::SHADINGMODE::NO_SHADING);
     scene->setMesh(generateSphere(32, 32, 10.0f));
     scene->getMesh()->setUpOpenGL();
 }
@@ -113,13 +114,7 @@ int initTexture(int width, int height)
 
 void uploadTextureToGPU()
 {
-    GLuint textureGL;
-    glGenTextures(1, &textureGL);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureGL);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture->getWidth(), texture->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, texture->getImgData());
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    texture->uploadToGPU();
 }
 
 void render()
@@ -127,14 +122,6 @@ void render()
     if (scene && renderer)
     {
         renderer->render(scene);
-    }
-}
-
-void setShadingTexture()
-{
-    if (renderer)
-    {
-        renderer->setShadingMode(Shaders::SHADINGMODE::TEXTURE);
     }
 }
 
@@ -148,7 +135,11 @@ void changeFocalLength(float focal)
 
 void startRenderingLoop()
 {
-    emscripten_set_main_loop(render, 0, 0);
+    if (start == 0)
+    {
+        emscripten_set_main_loop(render, 0, 0);
+        start++;
+    }
 }
 
 EMSCRIPTEN_BINDINGS(my_module)
@@ -157,7 +148,6 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("xyForog", &rotateCamera);
     emscripten::function("initTexture", &initTexture);
     emscripten::function("render", &render);
-    emscripten::function("setShadingTexture", &setShadingTexture);
     emscripten::function("changeFocalLength", &changeFocalLength);
     emscripten::function("startRenderingLoop", &startRenderingLoop);
     emscripten::function("uploadTextureToGPU", &uploadTextureToGPU);

@@ -210,6 +210,16 @@
                 <input type="range" id="shininess" min="1" max="1000" value="1" step="1"
                     oninput="this.nextElementSibling.value = this.value;ujAnyag();">
                 <output>1</output>
+                <div>
+                    <label for="url">Textúra link</label>
+                    <input type="text" id="url">
+                    <button onclick="ujUrlbol();">Betölt</button>
+                </div>
+                <button onclick="texturaTorles();">Textúra törlése</button>
+                <label for="textureSpacing">Textúra méret:</label>
+                <input type="range" id="textureSpacing" min="0.5" max="50.0" value="1.0" step="0.5"
+                    oninput="this.nextElementSibling.value = this.value;setTexturaMeret();">
+                <output>1.0</output>
             </div>
         </div>
         <div class="col">

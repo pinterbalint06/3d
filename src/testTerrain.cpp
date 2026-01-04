@@ -188,6 +188,41 @@ void startRenderingLoop()
     }
 }
 
+int initTexture(int width, int height)
+{
+    uint8_t *returnPtr = nullptr;
+    if (gEngine)
+    {
+        returnPtr = gEngine->initTexture(width, height);
+    }
+
+    return (int)returnPtr;
+}
+
+void uploadTextureToGPU()
+{
+    if (gEngine)
+    {
+        gEngine->uploadTextureToGPU();
+    }
+}
+
+void deleteTexture()
+{
+    if (gEngine)
+    {
+        gEngine->deleteTexture();
+    }
+}
+
+void setTextureSpacing(float textureSpacing)
+{
+    if (gEngine)
+    {
+        gEngine->setTextureSpacing(textureSpacing);
+    }
+}
+
 EMSCRIPTEN_BINDINGS(my_module)
 {
     emscripten::function("init", &init);
@@ -212,4 +247,8 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("render", &render);
     emscripten::function("changeFocalLength", &changeFocalLength);
     emscripten::function("startRenderingLoop", &startRenderingLoop);
+    emscripten::function("initTexture", &initTexture);
+    emscripten::function("uploadTextureToGPU", &uploadTextureToGPU);
+    emscripten::function("deleteTexture", &deleteTexture);
+    emscripten::function("setTextureSpacing", &setTextureSpacing);
 }

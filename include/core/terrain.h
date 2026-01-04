@@ -10,6 +10,7 @@ private:
     float *perlinHeightMap_;
     int size_;
     float spacing_;
+    float textureSpacing_;
     // Perlin parameters
     float lacunarity_, persistence_, frequency_, heightMultiplier_;
     int octaves_, seed_;
@@ -39,6 +40,7 @@ public:
     void setSeed(int seed);
     void setSize(int size);
     void setSpacing(float spacing);
+    void setTextureSpacing(float textureSpacing);
 };
 
 #endif

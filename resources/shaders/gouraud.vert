@@ -33,27 +33,9 @@ layout(std140) uniform MaterialData {
                            // 24-28-32
 };
 
-out vec3 vColor;
+out vec4 vColor;
 
 void main() {
-    // diffuse
-    float dotNL = dot(aNormal, uLightVec);
-    float diffFactor = max(0.0f, dotNL);
-    if(diffFactor > 0.0f) {
-        vec3 diffuseColor = diffFactor * uMatAlbedo * uMatDiffuseness * uLightColorPreCalc;
-        //specular
-        vec3 reflectionV = reflect(-uLightVec, aNormal);
-        vec3 viewVec = normalize(uCamPos - aPosition.xyz);
-        float dotRV = max(0.0f, dot(reflectionV, viewVec));
-        float specFactor = pow(dotRV, uMatShininess);
-        vec3 specColor = uMatSpecularity * specFactor * uLightColorPreCalc;
-        // ambient
-        vec3 ambientColor = uAmbientLight * uLightColor * uMatAlbedo;
-
-        vColor = (diffuseColor + specColor + ambientColor) / 255.0f;
-    } else {
-        // no light is shone on the surface
-        vColor = vec3(0.0f);
-    }
+    vColor = phongReflectionModel(aNormal, aPosition.xyz, uCamPos, uLightVec, uLightColorPreCalc, uLightColor, uAmbientLight, uMatAlbedo, uMatDiffuseness, uMatSpecularity, uMatShininess);
     gl_Position = uMVP * aPosition;
 }

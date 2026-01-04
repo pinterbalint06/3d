@@ -15,15 +15,17 @@ class Mesh;
 
 struct SceneData
 {
-    float MVP[16];       // 0
-    float camPos[3];     // 64
-    float pad0;          // 76
-    float lightVec[3];   // 80
-    float pad1;          // 92
-    float lightColor[3]; // 96
-    float pad2;          // 108
-    float ambientLight;  // 112
-    float pad3[3];       // 116->128
+    float MVP[16];              // 0
+    float camPos[3];            // 64
+    float pad0;                 // 76
+    float lightVec[3];          // 80
+    float pad1;                 // 92
+    float lightColor[3];        // 96
+    float pad2;                 // 108
+    float lightColorPreCalc[3]; // 112
+    float pad3;                 // 124
+    float ambientLight;         // 128
+    float pad4[3];              // 132->144
 };
 
 class Renderer
@@ -33,10 +35,10 @@ private:
     Shaders::SHADINGMODE currShadingMode_;
     std::map<Shaders::SHADINGMODE, std::unique_ptr<Shaders::Shader>> shaderPrograms_;
     fpsCounter *fps;
-    GLuint ubo_;
+    GLuint uboScene_, uboMat_;
     float rBuffer_, gBuffer_, bBuffer_;
 
-    void createShadingPrograms(GLuint ubo);
+    void createShadingPrograms();
 
 public:
     Renderer(std::string &canvasID);

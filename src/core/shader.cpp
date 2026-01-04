@@ -24,7 +24,7 @@ namespace Shaders
         };
         return shader;
     }
-    Shader::Shader(const char *pathToVertex, const char *pathToFragment, GLuint ubo)
+    Shader::Shader(const char *pathToVertex, const char *pathToFragment)
     {
         std::string vCode;
         std::string fCode;
@@ -71,11 +71,14 @@ namespace Shaders
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
 
-        GLuint uniformBlockIndex = glGetUniformBlockIndex(programID_, "SceneData");
-        glUniformBlockBinding(programID_, uniformBlockIndex, 0);
+        GLuint uniformBlockIndexScene = glGetUniformBlockIndex(programID_, "SceneData");
+        glUniformBlockBinding(programID_, uniformBlockIndexScene, 0);
+
+        GLuint uniformBlockIndexMat = glGetUniformBlockIndex(programID_, "MaterialData");
+        glUniformBlockBinding(programID_, uniformBlockIndexMat, 1);
     }
 
-    Shader::~Shader() 
+    Shader::~Shader()
     {
         if (programID_ != 0)
         {

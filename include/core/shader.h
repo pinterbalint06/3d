@@ -17,7 +17,7 @@ namespace Shaders
         GLuint compileShader(const char *src, GLuint type);
 
     public:
-        Shader(const char *pathToVertex, const char *pathToFragment, GLuint ubo);
+        Shader(const char *pathToVertex, const char *pathToFragment);
         ~Shader();
         void use();
 

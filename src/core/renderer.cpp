@@ -36,26 +36,34 @@ Renderer::Renderer(std::string &canvasID)
     emscripten_webgl_make_context_current(ctx);
     glClearColor(rBuffer_, gBuffer_, bBuffer_, 1);
 
-    glGenBuffers(1, &ubo_);
-    glBindBuffer(GL_UNIFORM_BUFFER, ubo_);
-    glBufferData(GL_UNIFORM_BUFFER, 128, NULL, GL_STATIC_DRAW);
+    // scene ubo
+    glGenBuffers(1, &uboScene_);
+    glBindBuffer(GL_UNIFORM_BUFFER, uboScene_);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(SceneData), NULL, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    glBindBufferRange(GL_UNIFORM_BUFFER, 0, ubo_, 0, sizeof(SceneData));
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboScene_, 0, sizeof(SceneData));
 
-    createShadingPrograms(ubo_);
-    shaderPrograms_[currShadingMode_]->use(); 
+    // material ubo
+    glGenBuffers(1, &uboMat_);
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMat_);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(Materials::MaterialData), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 1, uboMat_, 0, sizeof(Materials::MaterialData));
+
+    createShadingPrograms();
+    shaderPrograms_[currShadingMode_]->use();
 
     glEnable(GL_DEPTH_TEST);
 
     fps = new fpsCounter();
 }
 
-void Renderer::createShadingPrograms(GLuint ubo)
+void Renderer::createShadingPrograms()
 {
     shaderPrograms_[Shaders::SHADINGMODE::GOURAUD] =
-        std::make_unique<Shaders::Shader>("shaders/gouraud.vert", "shaders/gouraud.frag", ubo);
+        std::make_unique<Shaders::Shader>("shaders/gouraud.vert", "shaders/gouraud.frag");
     shaderPrograms_[Shaders::SHADINGMODE::TEXTURE] =
-        std::make_unique<Shaders::Shader>("shaders/texture.vert", "shaders/texture.frag", ubo);
+        std::make_unique<Shaders::Shader>("shaders/texture.vert", "shaders/texture.frag");
 }
 
 void Renderer::setShadingMode(Shaders::SHADINGMODE shadingMode)
@@ -91,21 +99,34 @@ void Renderer::render(const Scene *scene)
     currSceneData.lightVec[1] = -lightDir[1];
     currSceneData.lightVec[2] = -lightDir[2];
 
-    currSceneData.lightColor[0] = 255.0f;
-    currSceneData.lightColor[1] = 255.0f;
-    currSceneData.lightColor[2] = 255.0f;
-    currSceneData.ambientLight = 0.0f;
+    currSceneData.lightColor[0] = sun->getRed();
+    currSceneData.lightColor[1] = sun->getGreen();
+    currSceneData.lightColor[2] = sun->getBlue();
 
-    glBindBuffer(GL_UNIFORM_BUFFER, ubo_);
+    currSceneData.lightColorPreCalc[0] = sun->getRedCalculated();
+    currSceneData.lightColorPreCalc[1] = sun->getGreenCalculated();
+    currSceneData.lightColorPreCalc[2] = sun->getBlueCalculated();
+    currSceneData.ambientLight = scene->getAmbientLight();
+
+    glBindBuffer(GL_UNIFORM_BUFFER, uboScene_);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(SceneData), &currSceneData);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     Mesh *mesh = scene->getMesh();
     Materials::Material meshMat = mesh->getMaterial();
     Materials::Color meshCol = meshMat.albedo;
-    float rGround = meshCol.r;
-    float gGround = meshCol.g;
-    float bGround = meshCol.b;
+    Materials::MaterialData currMatData;
+    currMatData.albedo[0] = meshCol.r;
+    currMatData.albedo[1] = meshCol.g;
+    currMatData.albedo[2] = meshCol.b;
+
+    currMatData.diffuseness = meshMat.diffuseness;
+    currMatData.specularity = meshMat.specularity;
+    currMatData.shininess = meshMat.shininess;
+
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMat_);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(Materials::MaterialData), &currMatData);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

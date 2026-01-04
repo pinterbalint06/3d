@@ -62,6 +62,8 @@ void Renderer::createShadingPrograms()
 {
     shaderPrograms_[Shaders::SHADINGMODE::GOURAUD] =
         std::make_unique<Shaders::Shader>("shaders/gouraud.vert", "shaders/gouraud.frag");
+    shaderPrograms_[Shaders::SHADINGMODE::PHONG] =
+        std::make_unique<Shaders::Shader>("shaders/phong.vert", "shaders/phong.frag");
     shaderPrograms_[Shaders::SHADINGMODE::TEXTURE] =
         std::make_unique<Shaders::Shader>("shaders/texture.vert", "shaders/texture.frag");
 }

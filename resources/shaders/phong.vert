@@ -1,5 +1,7 @@
 #version 300 es
 
+precision mediump float;
+
 layout(location = 0) in vec4 aPosition;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTexCoords;
@@ -17,7 +19,7 @@ layout(std140) uniform SceneData {
                                 // at 80 bytes
     vec3 uLightColor;           // Light Color
                                 // at 96 bytes
-    vec3 uLightColorPreCalc;    // Light Color pre calc 
+    vec3 uLightColorPreCalc;    // Light Color pre calc
                                 // at 112 bytes
     float uAmbientLight;        // Ambient Intensity
                                 // at 128 bytes until 132 bytes
@@ -25,35 +27,11 @@ layout(std140) uniform SceneData {
                                 // total size is 144 bytes
 };
 
-layout(std140) uniform MaterialData {
-    vec3 uMatAlbedo;       // 0-12
-    float uMatDiffuseness; // 12-16
-    float uMatSpecularity; // 16-20
-    float uMatShininess;   // 20-24
-                           // 24-28-32
-};
-
-out vec3 vColor;
+out vec4 vPosition;
+out vec3 vNormal;
 
 void main() {
-    // diffuse
-    float dotNL = dot(aNormal, uLightVec);
-    float diffFactor = max(0.0f, dotNL);
-    if(diffFactor > 0.0f) {
-        vec3 diffuseColor = diffFactor * uMatAlbedo * uMatDiffuseness * uLightColorPreCalc;
-        //specular
-        vec3 reflectionV = reflect(-uLightVec, aNormal);
-        vec3 viewVec = normalize(uCamPos - aPosition.xyz);
-        float dotRV = max(0.0f, dot(reflectionV, viewVec));
-        float specFactor = pow(dotRV, uMatShininess);
-        vec3 specColor = uMatSpecularity * specFactor * uLightColorPreCalc;
-        // ambient
-        vec3 ambientColor = uAmbientLight * uLightColor * uMatAlbedo;
-
-        vColor = (diffuseColor + specColor + ambientColor) / 255.0f;
-    } else {
-        // no light is shone on the surface
-        vColor = vec3(0.0f);
-    }
+    vPosition = aPosition;
+    vNormal = aNormal;
     gl_Position = uMVP * aPosition;
 }

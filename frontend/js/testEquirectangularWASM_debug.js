@@ -4664,6 +4664,23 @@ async function createWasm() {
     };
 
   
+  
+  var __emscripten_fs_load_embedded_files = (ptr) => {
+      do {
+        var name_addr = HEAPU32[((ptr)>>2)];
+        ptr += 4;
+        var len = HEAPU32[((ptr)>>2)];
+        ptr += 4;
+        var content = HEAPU32[((ptr)>>2)];
+        ptr += 4;
+        var name = UTF8ToString(name_addr)
+        FS.createPath('/', PATH.dirname(name), true, true);
+        // canOwn this data in the filesystem, it is a slice of wasm memory that will never change
+        FS.createDataFile(name, null, HEAP8.subarray(content, content + len), true, true, true);
+      } while (HEAPU32[((ptr)>>2)]);
+    };
+
+  
   var __tzset_js = (timezone, daylight, std_name, dst_name) => {
       // TODO: Use (malleable) environment variables instead of system settings.
       var currentYear = new Date().getFullYear();
@@ -6028,6 +6045,19 @@ async function createWasm() {
     };
   var _glVertexAttribPointer = _emscripten_glVertexAttribPointer;
 
+
+  var FS_createPath = (...args) => FS.createPath(...args);
+
+
+
+  var FS_unlink = (...args) => FS.unlink(...args);
+
+  var FS_createLazyFile = (...args) => FS.createLazyFile(...args);
+
+  var FS_createDevice = (...args) => FS.createDevice(...args);
+
+
+
   FS.createPreloadedFile = FS_createPreloadedFile;
   FS.preloadFile = FS_preloadFile;
   FS.staticInit();;
@@ -6084,6 +6114,14 @@ if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
 }
 
 // Begin runtime exports
+  Module['addRunDependency'] = addRunDependency;
+  Module['removeRunDependency'] = removeRunDependency;
+  Module['FS_preloadFile'] = FS_preloadFile;
+  Module['FS_unlink'] = FS_unlink;
+  Module['FS_createPath'] = FS_createPath;
+  Module['FS_createDevice'] = FS_createDevice;
+  Module['FS_createDataFile'] = FS_createDataFile;
+  Module['FS_createLazyFile'] = FS_createLazyFile;
   var missingLibrarySymbols = [
   'writeI53ToI64',
   'writeI53ToI64Clamped',
@@ -6315,8 +6353,6 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'wasmMemory',
   'getUniqueRunDependency',
   'noExitRuntime',
-  'addRunDependency',
-  'removeRunDependency',
   'addOnPreRun',
   'addOnPostRun',
   'freeTableIndexes',
@@ -6377,14 +6413,10 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'SYSCALLS',
   'preloadPlugins',
   'FS_createPreloadedFile',
-  'FS_preloadFile',
   'FS_modeStringToFlags',
   'FS_getMode',
   'FS_stdin_getChar_buffer',
   'FS_stdin_getChar',
-  'FS_unlink',
-  'FS_createPath',
-  'FS_createDevice',
   'FS_readFile',
   'FS',
   'FS_root',
@@ -6490,9 +6522,7 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'FS_findObject',
   'FS_analyzePath',
   'FS_createFile',
-  'FS_createDataFile',
   'FS_forceLoadFile',
-  'FS_createLazyFile',
   'FS_absolutePath',
   'FS_createFolder',
   'FS_createLink',
@@ -6586,10 +6616,10 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var ASM_CONSTS = {
-  88496: () => { throw('A böngésződ nem támogatja a WebGL-t!'); },  
- 88547: ($0) => { throw("Sikertelen shader fordítás: " + UTF8ToString($0)); },  
- 88611: ($0) => { throw("Sikertelen shader összekapcsolás: " + UTF8ToString($0)); },  
- 88681: ($0) => { console.log('FPS: ' + $0); }
+  96848: () => { throw('A böngésződ nem támogatja a WebGL-t!'); },  
+ 96899: ($0) => { throw("Sikertelen shader fordítás: " + UTF8ToString($0)); },  
+ 96963: ($0) => { throw("Sikertelen shader összekapcsolás: " + UTF8ToString($0)); },  
+ 97033: ($0) => { console.log('FPS: ' + $0); }
 };
 
 // Imports from the Wasm binary.
@@ -6672,6 +6702,8 @@ var wasmImports = {
   _embind_register_std_wstring: __embind_register_std_wstring,
   /** @export */
   _embind_register_void: __embind_register_void,
+  /** @export */
+  _emscripten_fs_load_embedded_files: __emscripten_fs_load_embedded_files,
   /** @export */
   _tzset_js: __tzset_js,
   /** @export */

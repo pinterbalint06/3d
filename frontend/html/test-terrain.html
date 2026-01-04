@@ -183,7 +183,7 @@
                 <canvas id="canvasAngle" width="250" height="250"></canvas>
                 <div>
                     <label for="lightColor">Fény színe:</label>
-                    <input type="color" name="color" id="lightColor" value="#ffffff" onchange="ujFenyszin();">
+                    <input type="color" name="color" id="lightColor" value="#ffffff" oninput="ujFenyszin();">
                 </div>
                 <label for="ambientLight">Környezeti fény:</label>
                 <input type="range" id="ambientLight" min="0.0" max="100.0" value="4.0" step="1"
@@ -196,7 +196,7 @@
                 </div>
                 <div>
                     <label for="groundColor">Anyag színe:</label>
-                    <input type="color" name="color" id="groundColor" value="#41980a" onchange="ujAnyag();">
+                    <input type="color" name="color" id="groundColor" value="#41980a" oninput="ujAnyag();">
                 </div>
                 <label for="diffuseness">Diffuseness:</label>
                 <input type="range" id="diffuseness" min="0" max="1" value="1.0" step="0.01"

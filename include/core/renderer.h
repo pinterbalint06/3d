@@ -13,31 +13,17 @@ class Camera;
 class fpsCounter;
 class Mesh;
 
-struct SceneData
-{
-    float MVP[16];              // 0
-    float camPos[3];            // 64
-    float pad0;                 // 76
-    float lightVec[3];          // 80
-    float pad1;                 // 92
-    float lightColor[3];        // 96
-    float pad2;                 // 108
-    float lightColorPreCalc[3]; // 112
-    float ambientLight;         // 128
-    float pad4[3];              // 132->144
-};
-
 class Renderer
 {
 private:
     int imageWidth_, imageHeight_;
     Shaders::SHADINGMODE currShadingMode_;
     std::map<Shaders::SHADINGMODE, std::unique_ptr<Shaders::Shader>> shaderPrograms_;
-    fpsCounter *fps;
+    fpsCounter *fps; 
     GLuint uboScene_, uboMat_;
     float rBuffer_, gBuffer_, bBuffer_;
 
-    void createShadingPrograms();
+    void createShadingPrograms(); 
 
 public:
     Renderer(std::string &canvasID);

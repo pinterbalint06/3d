@@ -24,6 +24,29 @@ namespace Shaders
         };
         return shader;
     }
+
+    std::string Shader::loadHelperFiles()
+    {
+        std::string hCode;
+        std::ifstream hFile;
+
+        hFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        try
+        {
+            hFile.open("shaders/phongReflectionModel.glsl");
+            std::stringstream hBuffer;
+            hBuffer << hFile.rdbuf();
+            hFile.close();
+            hCode = hBuffer.str();
+        }
+        catch (std::ifstream::failure e)
+        {
+            EM_ASM(
+                throw("Sikertelen shader helper fájl beolvasás"));
+        }
+        return hCode;
+    }
+
     Shader::Shader(const char *pathToVertex, const char *pathToFragment)
     {
         std::string vCode;
@@ -50,6 +73,13 @@ namespace Shaders
             EM_ASM(
                 throw("Sikertelen shader fájl beolvasás"));
         }
+
+        std::string helperFiles = loadHelperFiles();
+        int vFirstEndOfLine = vCode.find("\n");
+        vCode.insert(vFirstEndOfLine + 1, helperFiles);
+        int fFirstEndOfLine = fCode.find("\n");
+        fCode.insert(fFirstEndOfLine + 1, helperFiles);
+
         const char *vertSrc = vCode.c_str();
         const char *fragSrc = fCode.c_str();
         GLuint vertexShader = compileShader(vertSrc, GL_VERTEX_SHADER);

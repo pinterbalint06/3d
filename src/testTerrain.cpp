@@ -207,6 +207,14 @@ void uploadTextureToGPU()
     }
 }
 
+void deleteTexture()
+{
+    if (gEngine)
+    {
+        gEngine->deleteTexture();
+    }
+}
+
 EMSCRIPTEN_BINDINGS(my_module)
 {
     emscripten::function("init", &init);
@@ -233,4 +241,5 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("startRenderingLoop", &startRenderingLoop);
     emscripten::function("initTexture", &initTexture);
     emscripten::function("uploadTextureToGPU", &uploadTextureToGPU);
+    emscripten::function("deleteTexture", &deleteTexture);
 }

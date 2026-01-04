@@ -146,8 +146,9 @@ void Engine::setCameraRotation(float pitch, float yaw)
 
 uint8_t *Engine::initTexture(int width, int height)
 {
+    deleteTexture();
     Texture *texture = new Texture(width, height);
-    Materials::Material newTexMat = Materials::Material::Grass();
+    Materials::Material newTexMat = scene_->getMesh()->getMaterial();
     newTexMat.texture = texture;
     scene_->getMesh()->setMaterial(newTexMat);
     return texture->getImgData();
@@ -156,4 +157,15 @@ uint8_t *Engine::initTexture(int width, int height)
 void Engine::uploadTextureToGPU()
 {
     scene_->getMesh()->getMaterial().texture->uploadToGPU();
+}
+
+void Engine::deleteTexture()
+{
+    if (scene_->getMesh()->getMaterial().texture != nullptr)
+    {
+        delete scene_->getMesh()->getMaterial().texture;
+        Materials::Material newTexMat = scene_->getMesh()->getMaterial();
+        newTexMat.texture = nullptr;
+        scene_->getMesh()->setMaterial(newTexMat);
+    }
 }

@@ -10,6 +10,7 @@ Texture::Texture(int width, int height)
     width_ = width;
     height_ = height;
     imgData_ = (uint8_t *)malloc(width_ * height_ * 3 * sizeof(uint8_t));
+    textureGL_ = 0;
 }
 
 Texture::~Texture()
@@ -17,6 +18,11 @@ Texture::~Texture()
     if (imgData_)
     {
         free(imgData_);
+    }
+    if (textureGL_ != 0)
+    {
+        glDeleteTextures(1, &textureGL_);
+        textureGL_ = 0;
     }
 }
 

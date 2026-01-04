@@ -302,6 +302,10 @@ function imgFromUrl(url) {
     img.src = url;
 }
 
+function texturaTorles() {
+    Module.deleteTexture();
+}
+
 window.UjPerlinParam = UjPerlinParam;
 window.ujKameraMagassag = ujKameraMagassag;
 window.ujhely = ujhely;
@@ -320,3 +324,4 @@ window.talajFu = talajFu;
 window.talajFold = talajFold;
 window.ujAnyag = ujAnyag;
 window.ujUrlbol = ujUrlbol;
+window.texturaTorles = texturaTorles;

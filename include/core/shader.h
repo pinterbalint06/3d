@@ -30,10 +30,10 @@ namespace Shaders
     /// @brief The SHADINGMODE enum for selecting shading algorithms
     enum SHADINGMODE
     {
-        PHONG = 0,     /// Phong shading
-        GOURAUD = 1,   /// Gouraud shading
-        FLAT = 2,      /// Flat shading
-        NO_SHADING = 3 /// No shading
+        PHONG = 0,      /// Phong shading
+        GOURAUD = 1,    /// Gouraud shading
+        NO_SHADING = 2, /// No shading
+        // FLAT = 3      /// Flat shading
     };
 }
 

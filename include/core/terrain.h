@@ -12,8 +12,7 @@ private:
     float spacing_;
     float textureSpacing_;
     // Perlin parameters
-    float lacunarity_, persistence_, frequency_, heightMultiplier_;
-    int octaves_, seed_;
+    float heightMultiplier_;
 
     Mesh *mesh_ = nullptr;
     PerlinNoise::Perlin *perlinNoise_ = nullptr;
@@ -32,11 +31,11 @@ public:
     int getSize() { return size_; }
 
     // setters
-    void setLacunarity(float lacunarity) { lacunarity_ = lacunarity; }
-    void setPersistence(float persistence) { persistence_ = persistence; }
-    void setFrequency(float frequency) { frequency_ = frequency; }
-    void setHeightMultiplier(float heightMultiplier) { heightMultiplier_ = heightMultiplier; }
-    void setOctaves(int octaves) { octaves_ = octaves; }
+    void setLacunarity(float lacunarity) { perlinNoise_->setLacunarity(lacunarity); }
+    void setPersistence(float persistence) { perlinNoise_->setPersistence(persistence); }
+    void setFrequency(float frequency) { perlinNoise_->setFrequency(frequency); }
+    void setHeightMultiplier(float heightMultiplier) { perlinNoise_->setNoiseSize(heightMultiplier); }
+    void setOctaves(int octaves) { perlinNoise_->setOctaves(octaves); }
     void setSeed(int seed);
     void setSize(int size);
     void setSpacing(float spacing);

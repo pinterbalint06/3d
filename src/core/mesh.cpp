@@ -13,6 +13,7 @@ Mesh::Mesh(int vertexCount, int indexCount)
     vbo_ = 0;
     vao_ = 0;
     ebo_ = 0;
+    material_ = Materials::Material::Error();
 }
 
 Mesh::~Mesh()

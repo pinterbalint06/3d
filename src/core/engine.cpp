@@ -10,12 +10,12 @@
 Engine::Engine(int size)
 {
     scene_ = new Scene();
+    std::string canvID = "canvas";
+    renderer_ = new Renderer(canvID);
     terrain_ = new Terrain(size);
     Mesh *mesh = terrain_->getMesh();
     mesh->setMaterial(Materials::Material::Grass());
     scene_->setMesh(mesh);
-    std::string canvID = "canvas";
-    renderer_ = new Renderer(canvID);
     renderer_->setDefaultColor(135.0f, 206.0f, 235.0f);
     cameraHeight_ = 3.8;
     cameraLocation_ = 0;

@@ -27,13 +27,13 @@ Renderer::Renderer(std::string &canvasID)
     EmscriptenWebGLContextAttributes attrs;
     emscripten_webgl_init_context_attributes(&attrs);
     attrs.majorVersion = 2;
-    int ctx = emscripten_webgl_create_context(("#" + canvasID).c_str(), &attrs);
-    if (!ctx)
+    ctx_ = emscripten_webgl_create_context(("#" + canvasID).c_str(), &attrs);
+    if (!ctx_)
     {
         EM_ASM(
             throw('A böngésződ nem támogatja a WebGL-t!'););
     }
-    emscripten_webgl_make_context_current(ctx);
+    emscripten_webgl_make_context_current(ctx_);
     glClearColor(rBuffer_, gBuffer_, bBuffer_, 1);
 
     // scene ubo
@@ -56,6 +56,26 @@ Renderer::Renderer(std::string &canvasID)
     glEnable(GL_DEPTH_TEST);
 
     fps = new fpsCounter();
+}
+
+Renderer::~Renderer()
+{
+    if (uboScene_ != 0)
+    {
+        glDeleteBuffers(1, &uboScene_);
+    }
+    if (uboMat_ != 0)
+    {
+        glDeleteBuffers(1, &uboMat_);
+    }
+    if (fps)
+    {
+        delete fps;
+    }
+    if (ctx_)
+    {
+        emscripten_webgl_destroy_context(ctx_);
+    }
 }
 
 void Renderer::createShadingPrograms()

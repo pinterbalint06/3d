@@ -6,15 +6,17 @@
 Terrain::Terrain(int size)
 {
     size_ = size;
-    heightMultiplier_ = 150.0f;
-    lacunarity_ = 2.0f;
-    persistence_ = 0.4f;
-    octaves_ = 8;
-    frequency_ = 1.0f;
-    seed_ = 0;
+    PerlinNoise::PerlinParameters parameters;
+    parameters.amplitude = 2.0f;
+    parameters.lacunarity = 2.0f;
+    parameters.persistence = 0.4f;
+    parameters.octaveCount = 8;
+    parameters.frequency = 1.0f;
+    parameters.seed = 0;
+    parameters.noiseSize = 150.0f;
     spacing_ = 1.0f;
     textureSpacing_ = 1.0f;
-    perlinNoise_ = new PerlinNoise::Perlin(seed_);
+    perlinNoise_ = new PerlinNoise::Perlin(parameters, true);
     mesh_ = new Mesh(size * size, (size - 1) * (size - 1) * 6);
 }
 
@@ -33,12 +35,13 @@ Terrain::~Terrain()
 
 void Terrain::setSeed(int seed)
 {
+    PerlinNoise::PerlinParameters parameters = perlinNoise_->getParameters();
+    parameters.seed = seed;
     if (perlinNoise_)
     {
         delete perlinNoise_;
     }
-    seed_ = seed;
-    perlinNoise_ = new PerlinNoise::Perlin(seed_);
+    perlinNoise_ = new PerlinNoise::Perlin(parameters, true);
 }
 
 void Terrain::setSize(int size)
@@ -72,7 +75,7 @@ void Terrain::buildTerrain()
         {
             i = y * size_ + x;
             vertices[i].x = x * spacing_;
-            vertices[i].y = perlinNoise_->fbm(x * scale, y * scale, octaves_, frequency_, 2.0f, persistence_, lacunarity_) * heightMultiplier_;
+            vertices[i].y = perlinNoise_->fbm(x * scale, y * scale);
             vertices[i].z = -y * spacing_;
             vertices[i].w = 1.0f;
             vertices[i].u = (float)x * textureSpacing_;
@@ -88,13 +91,13 @@ void Terrain::buildTerrain()
         {
             i = y * size_ + x;
             // if it is already calculated get it from the heightmap if not calculate it
-            float prevValueX = x - 1 < 0 ? perlinNoise_->fbm(x * scale, y * scale, octaves_, frequency_, 2.0f, persistence_, lacunarity_) * heightMultiplier_ : vertices[y * size_ + x - 1].y;
-            float nxtValueX = x + 1 > size_ - 1 ? perlinNoise_->fbm(x * scale, y * scale, octaves_, frequency_, 2.0f, persistence_, lacunarity_) * heightMultiplier_ : vertices[y * size_ + x + 1].y;
+            float prevValueX = x - 1 < 0 ? perlinNoise_->fbm(x * scale, y * scale) : vertices[y * size_ + x - 1].y;
+            float nxtValueX = x + 1 > size_ - 1 ? perlinNoise_->fbm(x * scale, y * scale) : vertices[y * size_ + x + 1].y;
             float centralDifferenceX = (nxtValueX - prevValueX) * 0.5f * spacingInv;
 
             // if it is already calculated get it from the heightmap if not calculate it
-            float prevValueY = y - 1 < 0 ? perlinNoise_->fbm(x * scale, y * scale, octaves_, frequency_, 2.0f, persistence_, lacunarity_) * heightMultiplier_ : vertices[(y - 1) * size_ + x].y;
-            float nxtValueY = y + 1 > size_ - 1 ? perlinNoise_->fbm(x * scale, y * scale, octaves_, frequency_, 2.0f, persistence_, lacunarity_) * heightMultiplier_ : vertices[(y + 1) * size_ + x].y;
+            float prevValueY = y - 1 < 0 ? perlinNoise_->fbm(x * scale, y * scale) : vertices[(y - 1) * size_ + x].y;
+            float nxtValueY = y + 1 > size_ - 1 ? perlinNoise_->fbm(x * scale, y * scale) : vertices[(y + 1) * size_ + x].y;
             float centralDifferenceY = (nxtValueY - prevValueY) * 0.5f * spacingInv;
 
             vertices[i].nx = -centralDifferenceX;

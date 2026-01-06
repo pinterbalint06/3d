@@ -4,6 +4,7 @@
 #include <cstdint>
 #include "utils/mathUtils.h"
 #include "core/vector.h"
+#include <GLES3/gl3.h>
 
 namespace PerlinNoise
 {
@@ -14,33 +15,35 @@ namespace PerlinNoise
 
     uint8_t Perlin::hash(const int x, const int y)
     {
-        return p_[p_[x] + y];
+        return permuTable_[permuTable_[x] + y];
     }
 
-    Perlin::Perlin(uint32_t seed)
+    Perlin::Perlin(PerlinParameters params, bool uploadGPU)
     {
-        p_ = (uint8_t *)malloc(512 * sizeof(uint8_t));
+        uplToGPU_ = uploadGPU;
+        params_ = params;
+        permuTable_ = (uint8_t *)malloc(512 * sizeof(uint8_t));
         gradients_ = (Vec2 *)malloc(256 * sizeof(Vec2));
-        pcgRand pcgRandGen(seed);
+        pcgRand pcgRandGen(params_.seed);
 
         // setup permutation table
         for (int i = 0; i < 256; i++)
         {
-            p_[i] = i;
+            permuTable_[i] = i;
         }
 
         // shuffle the permutation table
         for (int i = 255; i > 0; i--)
         {
             uint8_t j = pcgRandGen.random() % (i + 1);
-            uint8_t temp = p_[i];
-            p_[i] = p_[j];
-            p_[j] = temp;
+            uint8_t temp = permuTable_[i];
+            permuTable_[i] = permuTable_[j];
+            permuTable_[j] = temp;
         }
 
         for (int i = 0; i < 256; i++)
         {
-            p_[i + 256] = p_[i];
+            permuTable_[i + 256] = permuTable_[i];
         }
 
         // generate gradients
@@ -48,17 +51,76 @@ namespace PerlinNoise
         {
             gradients_[i] = Vec2::randVector(pcgRandGen);
         }
+
+        permuTableTex_ = 0;
+        gradientsTex_ = 0;
+        parametersUBO_ = 0;
+        if (uplToGPU_)
+        {
+            uploadToGPU();
+        }
     }
 
     Perlin::~Perlin()
     {
-        if (p_)
+        if (permuTable_)
         {
-            free(p_);
+            free(permuTable_);
         }
         if (gradients_)
         {
             free(gradients_);
+        }
+        if (permuTableTex_ != 0)
+        {
+            glDeleteTextures(1, &permuTableTex_);
+            permuTableTex_ = 0;
+        }
+        if (gradientsTex_ != 0)
+        {
+            glDeleteTextures(1, &gradientsTex_);
+            gradientsTex_ = 0;
+        }
+    }
+
+    void Perlin::setLacunarity(float lacunarity)
+    {
+        params_.lacunarity = lacunarity;
+        if (uplToGPU_)
+        {
+            uploadParametersToGPU();
+        }
+    }
+    void Perlin::setPersistence(float persistence)
+    {
+        params_.persistence = persistence;
+        if (uplToGPU_)
+        {
+            uploadParametersToGPU();
+        }
+    }
+    void Perlin::setFrequency(float frequency)
+    {
+        params_.frequency = frequency;
+        if (uplToGPU_)
+        {
+            uploadParametersToGPU();
+        }
+    }
+    void Perlin::setNoiseSize(float noiseSize)
+    {
+        params_.noiseSize = noiseSize;
+        if (uplToGPU_)
+        {
+            uploadParametersToGPU();
+        }
+    }
+    void Perlin::setOctaves(int octaves)
+    {
+        params_.octaveCount = octaves;
+        if (uplToGPU_)
+        {
+            uploadParametersToGPU();
         }
     }
 
@@ -80,7 +142,7 @@ namespace PerlinNoise
         float v = MathUtils::smoothingFunction(py);
 
         // find gradients_ based on hashed value
-        // p_[index] is a value between 0-255
+        // permuTable_[index] is a value between 0-255
         Vec2 g00 = gradients_[hash(x0, y0)];
         Vec2 g10 = gradients_[hash(x1, y0)];
         Vec2 g01 = gradients_[hash(x0, y1)];
@@ -102,19 +164,54 @@ namespace PerlinNoise
         return MathUtils::interpolation(a, b, v);
     }
 
-    float Perlin::fbm(const float x, const float y, int octaveCount, float frequency, float amplitude, float persistence, float lacunarity)
+    float Perlin::fbm(const float x, const float y)
     {
         float total = 0;
         float maxValue = 0;
+        float amp = params_.amplitude;
+        float freq = params_.frequency;
 
-        for (int i = 0; i < octaveCount; i++)
+        for (int i = 0; i < params_.octaveCount; i++)
         {
-            total += noise(x * frequency, y * frequency) * amplitude;
-            maxValue += amplitude;
-            amplitude *= persistence;
-            frequency *= lacunarity;
+            total += noise(x * freq, y * freq) * amp;
+            maxValue += amp;
+            amp *= params_.persistence;
+            freq *= params_.lacunarity;
         }
 
-        return total / maxValue;
+        return (total / maxValue) * params_.noiseSize;
+    }
+
+    void Perlin::uploadParametersToGPU()
+    {
+        if (parametersUBO_ == 0)
+        {
+            glGenBuffers(1, &parametersUBO_);
+            glBindBuffer(GL_UNIFORM_BUFFER, parametersUBO_);
+            glBufferData(GL_UNIFORM_BUFFER, sizeof(PerlinParameters), NULL, GL_STATIC_DRAW);
+            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+            glBindBufferRange(GL_UNIFORM_BUFFER, 2, parametersUBO_, 0, sizeof(PerlinParameters));
+        }
+        glBindBuffer(GL_UNIFORM_BUFFER, parametersUBO_);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(PerlinParameters), &params_);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    }
+
+    void Perlin::uploadToGPU()
+    {
+        glGenTextures(1, &permuTableTex_);
+        glBindTexture(GL_TEXTURE_2D, permuTableTex_);
+        // the overwrap doesn't have to be uploaded opengl wraps textures by default
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8UI, 256, 1, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, permuTable_);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        glGenTextures(1, &gradientsTex_);
+        glBindTexture(GL_TEXTURE_2D, gradientsTex_);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, 256, 1, 0, GL_RG, GL_FLOAT, gradients_);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        uploadParametersToGPU();
     }
 }

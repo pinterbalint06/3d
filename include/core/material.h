@@ -61,6 +61,7 @@ namespace Materials
         {
             Material returnMat;
             returnMat.albedo = Color::fromRGB(r, g, b);
+            returnMat.texture = nullptr;
             return returnMat;
         }
 
@@ -75,6 +76,7 @@ namespace Materials
             returnMat.diffuseness = 1.0f;
             returnMat.specularity = 0.02f;
             returnMat.shininess = 10.0f;
+            returnMat.texture = nullptr;
             return returnMat;
         }
 
@@ -89,6 +91,22 @@ namespace Materials
             returnMat.diffuseness = 1.0f;
             returnMat.specularity = 0.01f;
             returnMat.shininess = 10.0f;
+            returnMat.texture = nullptr;
+            return returnMat;
+        }
+
+        /**
+         * @brief Predefined material resembling purple error.
+         * @return Material The purple error.
+         */
+        static Material Error()
+        {
+            Material returnMat;
+            returnMat.albedo = Color::fromRGB(255, 0, 255);
+            returnMat.diffuseness = 1.0f;
+            returnMat.specularity = 0.0f;
+            returnMat.shininess = 1.0f;
+            returnMat.texture = nullptr;
             return returnMat;
         }
     };

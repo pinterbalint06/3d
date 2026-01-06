@@ -17,16 +17,18 @@ class Renderer
 {
 private:
     int imageWidth_, imageHeight_;
+    int ctx_;
     Shaders::SHADINGMODE currShadingMode_;
     std::map<Shaders::SHADINGMODE, std::unique_ptr<Shaders::Shader>> shaderPrograms_;
-    fpsCounter *fps; 
+    fpsCounter *fps;
     GLuint uboScene_, uboMat_;
     float rBuffer_, gBuffer_, bBuffer_;
 
-    void createShadingPrograms(); 
+    void createShadingPrograms();
 
 public:
     Renderer(std::string &canvasID);
+    ~Renderer();
     void setShadingMode(Shaders::SHADINGMODE shadingMode);
     void setDefaultColor(float r, float g, float b)
     {

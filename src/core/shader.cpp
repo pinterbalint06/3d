@@ -111,6 +111,9 @@ namespace Shaders
 
         GLuint uniformBlockIndexMat = glGetUniformBlockIndex(programID_, "MaterialData");
         glUniformBlockBinding(programID_, uniformBlockIndexMat, 1);
+
+        GLuint uniformBlockIndexPerlin = glGetUniformBlockIndex(programID_, "PerlinData");
+        glUniformBlockBinding(programID_, uniformBlockIndexPerlin, 2);
     }
 
     Shader::~Shader()

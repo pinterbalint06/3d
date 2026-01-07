@@ -17,6 +17,8 @@ namespace PerlinNoise
         float persistence; // 16
         float lacunarity;  // 20
         float noiseSize;   // 24
+        float scaling;     // 28
+        float steepness;   // 32
     };
 
     class Perlin

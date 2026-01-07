@@ -4,6 +4,8 @@
 #include "utils/perlin.h"
 #include "core/mesh.h"
 
+typedef unsigned int GLuint;
+
 class Terrain : public Mesh
 {
 private:
@@ -26,6 +28,8 @@ public:
 
     // getters
     int getSize() { return size_; }
+    GLuint getPermGPULoc() { return perlinNoise_->getPermutationGPULoc(); }
+    GLuint getGradGPULoc() { return perlinNoise_->getGradientsGPULoc(); }
 
     // setters
     void setLacunarity(float lacunarity) { perlinNoise_->setLacunarity(lacunarity); }

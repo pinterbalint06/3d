@@ -166,8 +166,12 @@ void Renderer::updateMeshUBO(Mesh *mesh)
     if (terrain != nullptr)
     {
         isTerrain = 1;
-        // glActiveTexture(GL_TEXTURE5);
-        // glBindTexture(GL_TEXTURE_2D, meshMat.texture->getGPULoc());
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_2D, terrain->getPermGPULoc());
+        shaderPrograms_[currShadingMode_]->setUniformInt("uPermutationTable", 5);
+        glActiveTexture(GL_TEXTURE6);
+        glBindTexture(GL_TEXTURE_2D, terrain->getGradGPULoc());
+        shaderPrograms_[currShadingMode_]->setUniformInt("uGradients", 6);
     }
 
     shaderPrograms_[currShadingMode_]->setUniformInt("uIsTerrain", isTerrain);

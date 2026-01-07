@@ -74,14 +74,17 @@ void Mesh::cleanup()
     if (vbo_ != 0)
     {
         glDeleteBuffers(1, &vbo_);
+        vbo_ = 0;
     }
     if (vao_ != 0)
     {
         glDeleteVertexArrays(1, &vao_);
+        vao_ = 0;
     }
     if (ebo_ != 0)
     {
         glDeleteBuffers(1, &ebo_);
+        ebo_ = 0;
     }
     vertexCount_ = 0;
     indexCount_ = 0;

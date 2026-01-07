@@ -41,10 +41,12 @@ void Terrain::setSeed(int seed)
 
 void Terrain::setSize(int size)
 {
-    size_ = size;
-    cleanup();
-    resize(size_ * size_, (size_ - 1) * (size_ - 1) * 6);
-    regenerate();
+    if (size != size_)
+    {
+        size_ = size;
+        resize(size_ * size_, (size_ - 1) * (size_ - 1) * 6);
+        regenerate();
+    }
 }
 
 void Terrain::regenerate()

@@ -18,9 +18,9 @@ namespace PerlinNoise
         return permuTable_[permuTable_[x] + y];
     }
 
-    Perlin::Perlin(PerlinParameters params, bool uploadGPU)
+    Perlin::Perlin(PerlinParameters params)
     {
-        uplToGPU_ = uploadGPU;
+        isGPUSet_ = false;
         params_ = params;
         permuTable_ = (uint8_t *)malloc(512 * sizeof(uint8_t));
         gradients_ = (Vec2 *)malloc(256 * sizeof(Vec2));
@@ -55,10 +55,6 @@ namespace PerlinNoise
         permuTableTex_ = 0;
         gradientsTex_ = 0;
         parametersUBO_ = 0;
-        if (uplToGPU_)
-        {
-            uploadToGPU();
-        }
     }
 
     Perlin::~Perlin()
@@ -83,10 +79,20 @@ namespace PerlinNoise
         }
     }
 
+    void Perlin::setUpGPU(GLuint *uboLoc)
+    {
+        if (uboLoc != nullptr)
+        {
+            parametersUBO_ = uboLoc;
+            isGPUSet_ = true;
+            uploadToGPU();
+        }
+    }
+
     void Perlin::setLacunarity(float lacunarity)
     {
         params_.lacunarity = lacunarity;
-        if (uplToGPU_)
+        if (isGPUSet_)
         {
             uploadParametersToGPU();
         }
@@ -95,7 +101,7 @@ namespace PerlinNoise
     void Perlin::setPersistence(float persistence)
     {
         params_.persistence = persistence;
-        if (uplToGPU_)
+        if (isGPUSet_)
         {
             uploadParametersToGPU();
         }
@@ -104,7 +110,7 @@ namespace PerlinNoise
     void Perlin::setFrequency(float frequency)
     {
         params_.frequency = frequency;
-        if (uplToGPU_)
+        if (isGPUSet_)
         {
             uploadParametersToGPU();
         }
@@ -113,7 +119,7 @@ namespace PerlinNoise
     void Perlin::setNoiseSize(float noiseSize)
     {
         params_.noiseSize = noiseSize;
-        if (uplToGPU_)
+        if (isGPUSet_)
         {
             uploadParametersToGPU();
         }
@@ -122,7 +128,7 @@ namespace PerlinNoise
     void Perlin::setOctaves(int octaves)
     {
         params_.octaveCount = octaves;
-        if (uplToGPU_)
+        if (isGPUSet_)
         {
             uploadParametersToGPU();
         }
@@ -131,7 +137,7 @@ namespace PerlinNoise
     void Perlin::setSteepness(float steepness)
     {
         params_.steepness = steepness;
-        if (uplToGPU_)
+        if (isGPUSet_)
         {
             uploadParametersToGPU();
         }
@@ -197,17 +203,12 @@ namespace PerlinNoise
 
     void Perlin::uploadParametersToGPU()
     {
-        if (parametersUBO_ == 0)
+        if (parametersUBO_)
         {
-            glGenBuffers(1, &parametersUBO_);
-            glBindBuffer(GL_UNIFORM_BUFFER, parametersUBO_);
-            glBufferData(GL_UNIFORM_BUFFER, sizeof(PerlinParameters), NULL, GL_STATIC_DRAW);
+            glBindBuffer(GL_UNIFORM_BUFFER, *parametersUBO_);
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(PerlinParameters), &params_);
             glBindBuffer(GL_UNIFORM_BUFFER, 0);
-            glBindBufferRange(GL_UNIFORM_BUFFER, 2, parametersUBO_, 0, sizeof(PerlinParameters));
         }
-        glBindBuffer(GL_UNIFORM_BUFFER, parametersUBO_);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(PerlinParameters), &params_);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 
     void Perlin::uploadToGPU()

@@ -8,7 +8,7 @@ layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTexCoords;
 
 layout(std140) uniform SceneData {
-    mat4 uMVP;                  // View-Projection Matrix
+    mat4 uVP;                  // View-Projection Matrix
                                 // layout 4 vec4 so 16 * 4 = 64 bytes
                                 // row 1 : 0 bytes
                                 // row 2 : 16 bytes
@@ -36,6 +36,10 @@ layout(std140) uniform MaterialData {
                            // 24-28-32
 };
 
+layout(std140) uniform MeshData {
+    mat4 uM;
+};
+
 uniform int uUseTexture;
 uniform sampler2D uTexture0;
 
@@ -50,6 +54,7 @@ void main() {
     } else {
         baseColor = uMatAlbedo;
     }
-    vColor = phongReflectionModel(aNormal, aPosition.xyz, uCamPos, uLightVec, uLightColorPreCalc, uLightColor, uAmbientLight, baseColor, uMatDiffuseness, uMatSpecularity, uMatShininess);
-    gl_Position = uMVP * aPosition;
+    vec4 worldPos = uM * aPosition;
+    vColor = phongReflectionModel(aNormal, worldPos.xyz, uCamPos, uLightVec, uLightColorPreCalc, uLightColor, uAmbientLight, baseColor, uMatDiffuseness, uMatSpecularity, uMatShininess);
+    gl_Position = uVP * worldPos;
 }

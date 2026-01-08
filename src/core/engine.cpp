@@ -13,6 +13,7 @@ Engine::Engine(int size)
     std::string canvID = "canvas";
     renderer_ = new Renderer(canvID);
     terrain_ = new Terrain(size);
+    terrain_->setUpNoiseForGPU(renderer_->getPerlinUBOloc());
     terrain_->setMaterial(Materials::Material::Grass());
     scene_->addMesh(terrain_);
     renderer_->setDefaultColor(135.0f, 206.0f, 235.0f);
@@ -39,8 +40,16 @@ Engine::~Engine()
 
 void Engine::calcNewCamLoc()
 {
-    Vertex *vertices = terrain_->getVertices();
-    scene_->getCamera()->setPosition(vertices[cameraLocation_].x, vertices[cameraLocation_ + 1].y + cameraHeight_, vertices[cameraLocation_ + 2].z);
+    Vertex vertex = terrain_->getVertices()[cameraLocation_];
+    Vertex worldSpaceVert;
+    worldSpaceVert.x = vertex.x;
+    worldSpaceVert.y = vertex.y;
+    worldSpaceVert.z = vertex.z;
+    worldSpaceVert.w = vertex.w;
+
+    float *modelMatrix = terrain_->getModelMatrix();
+    worldSpaceVert.multWithMatrix(modelMatrix);
+    scene_->getCamera()->setPosition(worldSpaceVert.x, worldSpaceVert.y + cameraHeight_, worldSpaceVert.z);
 }
 
 void Engine::randomizeLocation()

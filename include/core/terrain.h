@@ -40,6 +40,7 @@ public:
     void setSize(int size);
     void setSteepness(float steepness) { perlinNoise_->setSteepness(steepness); }
     void setTextureSpacing(float textureSpacing);
+    void setUpNoiseForGPU(GLuint *loc);
 };
 
 #endif

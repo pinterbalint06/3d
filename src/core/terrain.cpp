@@ -17,7 +17,7 @@ Terrain::Terrain(int size) : Mesh(size * size, (size - 1) * (size - 1) * 6)
     parameters.scaling = 1.0f / 128.0f;
     parameters.steepness = 3.5f;
     textureSpacing_ = 1.0f;
-    perlinNoise_ = new PerlinNoise::Perlin(parameters, true);
+    perlinNoise_ = new PerlinNoise::Perlin(parameters);
 }
 
 Terrain::~Terrain()
@@ -32,11 +32,16 @@ void Terrain::setSeed(int seed)
 {
     PerlinNoise::PerlinParameters parameters = perlinNoise_->getParameters();
     parameters.seed = seed;
+    GLuint *uboLoc = perlinNoise_->getUBOloc();
     if (perlinNoise_)
     {
         delete perlinNoise_;
     }
-    perlinNoise_ = new PerlinNoise::Perlin(parameters, true);
+    perlinNoise_ = new PerlinNoise::Perlin(parameters);
+    if (uboLoc)
+    {
+        perlinNoise_->setUpGPU(uboLoc);
+    }
 }
 
 void Terrain::setSize(int size)
@@ -136,4 +141,9 @@ void Terrain::setTextureSpacing(float textureSpacing)
     }
     // upload to GPU
     setUpOpenGL();
+}
+
+void Terrain::setUpNoiseForGPU(GLuint *loc)
+{
+    perlinNoise_->setUpGPU(loc);
 }

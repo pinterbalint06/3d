@@ -48,9 +48,11 @@ int main()
 
     std::string canvID = "canvas";
     renderer = new Renderer(canvID);
+    renderer->setImageDimensions(width, height);
     terrain = new Terrain(2048);
+    terrain->setUpNoiseForGPU(renderer->getPerlinUBOloc());
     terrain->regenerate();
-    scene->setMesh(terrain);
+    scene->addMesh(terrain);
     terrain->setMaterial(Materials::Material::Grass());
     terrain->setUpOpenGL();
     glViewport(0, 0, width, height);

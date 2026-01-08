@@ -51,6 +51,20 @@ Renderer::Renderer(std::string &canvasID)
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     glBindBufferRange(GL_UNIFORM_BUFFER, 1, uboMat_, 0, sizeof(Materials::MaterialData));
 
+    // perlin ubo
+    glGenBuffers(1, &uboPerlin_);
+    glBindBuffer(GL_UNIFORM_BUFFER, uboPerlin_);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(PerlinNoise::PerlinParameters), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 2, uboPerlin_, 0, sizeof(PerlinNoise::PerlinParameters));
+
+    // mesh ubo
+    glGenBuffers(1, &uboMesh_);
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMesh_);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(MeshData), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 3, uboMesh_, 0, sizeof(MeshData));
+
     createShadingPrograms();
     shaderPrograms_[currShadingMode_]->use();
 
@@ -68,6 +82,14 @@ Renderer::~Renderer()
     if (uboMat_ != 0)
     {
         glDeleteBuffers(1, &uboMat_);
+    }
+    if (uboPerlin_ != 0)
+    {
+        glDeleteBuffers(1, &uboPerlin_);
+    }
+    if (uboMesh_ != 0)
+    {
+        glDeleteBuffers(1, &uboMesh_);
     }
     if (fps)
     {
@@ -110,7 +132,7 @@ void Renderer::updateSceneUBO(const Scene *scene)
     currSceneData.camPos[1] = mainCamera->getYPosition();
     currSceneData.camPos[2] = mainCamera->getZPosition();
     mainCamera->updateViewMatrix();
-    MathUtils::multiplyMatrix(mainCamera->getViewMatrix(), mainCamera->getProjMatrix(), currSceneData.MVP);
+    MathUtils::multiplyMatrix(mainCamera->getViewMatrix(), mainCamera->getProjMatrix(), currSceneData.VP);
 
     // light
     DistantLight *sun = scene->getLight();
@@ -136,9 +158,8 @@ void Renderer::updateSceneUBO(const Scene *scene)
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
-void Renderer::updateMeshUBO(Mesh *mesh)
+void Renderer::updateMaterialUBO(const Materials::Material meshMat)
 {
-    Materials::Material meshMat = mesh->getMaterial();
     Materials::Color meshCol = meshMat.albedo;
     Materials::MaterialData currMatData;
     currMatData.albedo[0] = meshCol.r;
@@ -161,6 +182,25 @@ void Renderer::updateMeshUBO(Mesh *mesh)
 
     shaderPrograms_[currShadingMode_]->setUniformInt("uUseTexture", useTexture);
 
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMat_);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(Materials::MaterialData), &currMatData);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void Renderer::updateMeshUBO(Mesh *mesh)
+{
+    // update mesh data
+    MeshData currMeshData;
+    std::memcpy(currMeshData.modelMatrix, mesh->getModelMatrix(), 16 * sizeof(float));
+
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMesh_);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(MeshData), &currMeshData);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    // update material
+    updateMaterialUBO(mesh->getMaterial());
+
+    // if terrain upload perlin noise data for analytical normal calculation
     int isTerrain = 0;
     Terrain *terrain = dynamic_cast<Terrain *>(mesh);
     if (terrain != nullptr)
@@ -175,10 +215,6 @@ void Renderer::updateMeshUBO(Mesh *mesh)
     }
 
     shaderPrograms_[currShadingMode_]->setUniformInt("uIsTerrain", isTerrain);
-
-    glBindBuffer(GL_UNIFORM_BUFFER, uboMat_);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(Materials::MaterialData), &currMatData);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void Renderer::render(const Scene *scene)

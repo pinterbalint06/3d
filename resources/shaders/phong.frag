@@ -8,7 +8,7 @@ in vec3 vNormal;
 in vec2 vTexCoords;
 
 layout(std140) uniform SceneData {
-    mat4 uMVP;                  // View-Projection Matrix (not used here but needed for padding)
+    mat4 uVP;                  // View-Projection Matrix (not used here but needed for padding)
                                 // layout 4 vec4 so 16 * 4 = 64 bytes
                                 // row 1 : 0 bytes
                                 // row 2 : 16 bytes

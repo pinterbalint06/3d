@@ -8,7 +8,7 @@ layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTexCoords;
 
 layout(std140) uniform SceneData {
-    mat4 uMVP;           // View-Projection Matrix
+    mat4 uVP;           // View-Projection Matrix
                          // layout 4 vec4 so 16 * 4 = 64 bytes
                          // row 1 : 0 bytes
                          // row 2 : 16 bytes
@@ -26,11 +26,15 @@ layout(std140) uniform SceneData {
                          // so total size is 128 bytes
 };
 
+layout(std140) uniform MeshData {
+    mat4 uM;
+};
+
 out vec3 vNormal;
 out vec2 vTex;
 
 void main() {
     vNormal = aNormal;
     vTex = aTexCoords;
-    gl_Position = uMVP * aPosition;
+    gl_Position = uVP * uM * aPosition;
 }

@@ -1,5 +1,6 @@
 #include "core/mesh.h"
 #include "core/vertex.h"
+#include "utils/mathUtils.h"
 #include <cstdint>
 #include <GLES3/gl3.h>
 
@@ -10,6 +11,8 @@ Mesh::Mesh(int vertexCount, int indexCount)
     normalCount_ = vertexCount_;
     vertices_ = (Vertex *)malloc(vertexCount_ * sizeof(Vertex));
     indices_ = (uint32_t *)malloc(indexCount_ * sizeof(uint32_t));
+    modelMatrix_ = (float *)malloc(16 * sizeof(float));
+    MathUtils::setIdentity(modelMatrix_);
     vbo_ = 0;
     vao_ = 0;
     ebo_ = 0;

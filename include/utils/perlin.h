@@ -29,15 +29,15 @@ namespace PerlinNoise
         Vec2 *gradients_;
         GLuint permuTableTex_;
         GLuint gradientsTex_;
-        GLuint parametersUBO_;
+        GLuint *parametersUBO_;
         PerlinParameters params_;
-        bool uplToGPU_;
+        bool isGPUSet_;
 
         static float dotProduct(const Vec2 &grad, const float x, const float y);
         uint8_t hash(const int x, const int y);
 
     public:
-        Perlin(PerlinParameters params, bool uploadGPU = false);
+        Perlin(PerlinParameters params);
 
         ~Perlin();
 
@@ -45,6 +45,7 @@ namespace PerlinNoise
         PerlinParameters getParameters() const { return params_; }
         GLuint getPermutationGPULoc() const { return permuTableTex_; }
         GLuint getGradientsGPULoc() const { return gradientsTex_; }
+        GLuint *getUBOloc() { return parametersUBO_; };
 
         // setters
         void setLacunarity(float lacunarity);
@@ -62,6 +63,7 @@ namespace PerlinNoise
 
         void uploadParametersToGPU();
         void uploadToGPU();
+        void setUpGPU(GLuint *uboLoc);
     };
 }
 

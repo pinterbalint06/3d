@@ -1,13 +1,15 @@
 #ifndef SCENE_H
 #define SCENE_H
 
+#include <vector>
+
 class Camera;
 class DistantLight;
 class Mesh;
 
 struct SceneData
 {
-    float MVP[16];              // 0
+    float VP[16];               // 0
     float camPos[3];            // 64
     float pad0;                 // 76
     float lightVec[3];          // 80
@@ -25,7 +27,7 @@ private:
     Camera *cam_;
     DistantLight *light_;
     float ambientLight_;
-    Mesh *mesh_;
+    std::vector<Mesh *> meshes_;
 
 public:
     Scene();
@@ -35,11 +37,13 @@ public:
     Camera *getCamera() const { return cam_; }
     DistantLight *getLight() const { return light_; }
     float getAmbientLight() const { return ambientLight_; }
-    Mesh *getMesh() const { return mesh_; }
+    int getMeshCount() const { return meshes_.size(); }
+    Mesh *getMesh(int index) const { return meshes_[index]; }
 
     // setter
     void setAmbientLight(float ambientLightIntensity);
-    void setMesh(Mesh *mesh);
+    void addMesh(Mesh *mesh);
+    void removeMesh(int index);
 };
 
 #endif

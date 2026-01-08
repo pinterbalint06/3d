@@ -91,8 +91,8 @@ void init(int size, float focal, float filmW, float filmH, int imageW, int image
     renderer->setImageDimensions(imageW, imageH);
     scene->getCamera()->setPerspective(focal, filmW, filmH, imageW, imageH, n, f);
     renderer->setShadingMode(Shaders::SHADINGMODE::NO_SHADING);
-    scene->setMesh(generateSphere(32, 32, 10.0f));
-    scene->getMesh()->setUpOpenGL();
+    scene->addMesh(generateSphere(32, 32, 10.0f));
+    scene->getMesh(0)->setUpOpenGL();
 }
 
 void rotateCamera(float dPitch, float dYaw)
@@ -108,7 +108,7 @@ int initTexture(int width, int height)
     texture = new Texture(width, height);
     Materials::Material newTexMat = Materials::Material::Grass();
     newTexMat.texture = texture;
-    scene->getMesh()->setMaterial(newTexMat);
+    scene->getMesh(0)->setMaterial(newTexMat);
     return (int)texture->getImgData();
 }
 

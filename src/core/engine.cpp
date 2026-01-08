@@ -13,8 +13,9 @@ Engine::Engine(int size)
     std::string canvID = "canvas";
     renderer_ = new Renderer(canvID);
     terrain_ = new Terrain(size);
+    terrain_->setUpNoiseForGPU(renderer_->getPerlinUBOloc());
     terrain_->setMaterial(Materials::Material::Grass());
-    scene_->setMesh(terrain_);
+    scene_->addMesh(terrain_);
     renderer_->setDefaultColor(135.0f, 206.0f, 235.0f);
     cameraHeight_ = 3.8;
     cameraLocation_ = 0;
@@ -39,8 +40,16 @@ Engine::~Engine()
 
 void Engine::calcNewCamLoc()
 {
-    Vertex *vertices = terrain_->getVertices();
-    scene_->getCamera()->setPosition(vertices[cameraLocation_].x, vertices[cameraLocation_ + 1].y + cameraHeight_, vertices[cameraLocation_ + 2].z);
+    Vertex vertex = terrain_->getVertices()[cameraLocation_];
+    Vertex worldSpaceVert;
+    worldSpaceVert.x = vertex.x;
+    worldSpaceVert.y = vertex.y;
+    worldSpaceVert.z = vertex.z;
+    worldSpaceVert.w = vertex.w;
+
+    float *modelMatrix = terrain_->getModelMatrix();
+    worldSpaceVert.multWithMatrix(modelMatrix);
+    scene_->getCamera()->setPosition(worldSpaceVert.x, worldSpaceVert.y + cameraHeight_, worldSpaceVert.z);
 }
 
 void Engine::randomizeLocation()
@@ -152,24 +161,24 @@ uint8_t *Engine::initTexture(int width, int height)
 {
     deleteTexture();
     Texture *texture = new Texture(width, height);
-    Materials::Material newTexMat = scene_->getMesh()->getMaterial();
+    Materials::Material newTexMat = scene_->getMesh(0)->getMaterial();
     newTexMat.texture = texture;
-    scene_->getMesh()->setMaterial(newTexMat);
+    scene_->getMesh(0)->setMaterial(newTexMat);
     return texture->getImgData();
 }
 
 void Engine::uploadTextureToGPU()
 {
-    scene_->getMesh()->getMaterial().texture->uploadToGPU();
+    scene_->getMesh(0)->getMaterial().texture->uploadToGPU();
 }
 
 void Engine::deleteTexture()
 {
-    if (scene_->getMesh()->getMaterial().texture != nullptr)
+    if (scene_->getMesh(0)->getMaterial().texture != nullptr)
     {
-        delete scene_->getMesh()->getMaterial().texture;
-        Materials::Material newTexMat = scene_->getMesh()->getMaterial();
+        delete scene_->getMesh(0)->getMaterial().texture;
+        Materials::Material newTexMat = scene_->getMesh(0)->getMaterial();
         newTexMat.texture = nullptr;
-        scene_->getMesh()->setMaterial(newTexMat);
+        scene_->getMesh(0)->setMaterial(newTexMat);
     }
 }

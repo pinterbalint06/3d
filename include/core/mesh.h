@@ -6,6 +6,11 @@
 #include <cstdint>
 #include <GLES3/gl3.h>
 
+struct MeshData
+{
+    float modelMatrix[16]; // 16 bytes
+};
+
 class Mesh
 {
 private:
@@ -25,6 +30,7 @@ private:
 protected:
     Vertex *vertices_;
     uint32_t *indices_;
+    float *modelMatrix_;
 
     void cleanup();
     void resize(int vertexCount, int indexCount);
@@ -47,6 +53,8 @@ public:
     Materials::Material getMaterial() const { return material_; }
 
     GLuint getVAO() const { return vao_; }
+
+    float *getModelMatrix() const { return modelMatrix_; }
 
     // setters
     void setMaterial(Materials::Material material) { material_ = material; }

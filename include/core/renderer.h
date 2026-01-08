@@ -21,16 +21,19 @@ private:
     Shaders::SHADINGMODE currShadingMode_;
     std::map<Shaders::SHADINGMODE, std::unique_ptr<Shaders::Shader>> shaderPrograms_;
     fpsCounter *fps;
-    GLuint uboScene_, uboMat_;
+    GLuint uboScene_, uboMat_, uboPerlin_, uboMesh_;
     float rBuffer_, gBuffer_, bBuffer_;
 
     void createShadingPrograms();
     void updateSceneUBO(const Scene *scene);
+    void updateMaterialUBO(const Materials::Material meshMat);
     void updateMeshUBO(Mesh *mesh);
 
 public:
     Renderer(std::string &canvasID);
     ~Renderer();
+
+    GLuint *getPerlinUBOloc() { return &uboPerlin_; };
     void setShadingMode(Shaders::SHADINGMODE shadingMode);
     void setDefaultColor(float r, float g, float b)
     {

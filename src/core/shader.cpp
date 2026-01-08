@@ -107,13 +107,28 @@ namespace Shaders
         glDeleteShader(fragmentShader);
 
         GLuint uniformBlockIndexScene = glGetUniformBlockIndex(programID_, "SceneData");
-        glUniformBlockBinding(programID_, uniformBlockIndexScene, 0);
+        if (uniformBlockIndexScene != GL_INVALID_INDEX)
+        {
+            glUniformBlockBinding(programID_, uniformBlockIndexScene, 0);
+        }
 
         GLuint uniformBlockIndexMat = glGetUniformBlockIndex(programID_, "MaterialData");
-        glUniformBlockBinding(programID_, uniformBlockIndexMat, 1);
+        if (uniformBlockIndexMat != GL_INVALID_INDEX)
+        {
+            glUniformBlockBinding(programID_, uniformBlockIndexMat, 1);
+        }
 
         GLuint uniformBlockIndexPerlin = glGetUniformBlockIndex(programID_, "PerlinData");
-        glUniformBlockBinding(programID_, uniformBlockIndexPerlin, 2);
+        if (uniformBlockIndexPerlin != GL_INVALID_INDEX)
+        {
+            glUniformBlockBinding(programID_, uniformBlockIndexPerlin, 2);
+        }
+
+        GLuint uniformBlockIndexMesh = glGetUniformBlockIndex(programID_, "MeshData");
+        if (uniformBlockIndexMesh != GL_INVALID_INDEX)
+        {
+            glUniformBlockBinding(programID_, uniformBlockIndexMesh, 3);
+        }
     }
 
     Shader::~Shader()

@@ -50,7 +50,7 @@ public:
     float getPitch() { return scene_->getCamera()->getPitch(); }
     float getYaw() { return scene_->getCamera()->getYaw(); }
 
-    void setMesh(Mesh *mesh) { scene_->setMesh(mesh); }
+    void addMesh(Mesh *mesh) { scene_->addMesh(mesh); }
 };
 
 #endif

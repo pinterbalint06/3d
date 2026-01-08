@@ -14,7 +14,7 @@ Engine::Engine(int size)
     renderer_ = new Renderer(canvID);
     terrain_ = new Terrain(size);
     terrain_->setMaterial(Materials::Material::Grass());
-    scene_->setMesh(terrain_);
+    scene_->addMesh(terrain_);
     renderer_->setDefaultColor(135.0f, 206.0f, 235.0f);
     cameraHeight_ = 3.8;
     cameraLocation_ = 0;
@@ -152,24 +152,24 @@ uint8_t *Engine::initTexture(int width, int height)
 {
     deleteTexture();
     Texture *texture = new Texture(width, height);
-    Materials::Material newTexMat = scene_->getMesh()->getMaterial();
+    Materials::Material newTexMat = scene_->getMesh(0)->getMaterial();
     newTexMat.texture = texture;
-    scene_->getMesh()->setMaterial(newTexMat);
+    scene_->getMesh(0)->setMaterial(newTexMat);
     return texture->getImgData();
 }
 
 void Engine::uploadTextureToGPU()
 {
-    scene_->getMesh()->getMaterial().texture->uploadToGPU();
+    scene_->getMesh(0)->getMaterial().texture->uploadToGPU();
 }
 
 void Engine::deleteTexture()
 {
-    if (scene_->getMesh()->getMaterial().texture != nullptr)
+    if (scene_->getMesh(0)->getMaterial().texture != nullptr)
     {
-        delete scene_->getMesh()->getMaterial().texture;
-        Materials::Material newTexMat = scene_->getMesh()->getMaterial();
+        delete scene_->getMesh(0)->getMaterial().texture;
+        Materials::Material newTexMat = scene_->getMesh(0)->getMaterial();
         newTexMat.texture = nullptr;
-        scene_->getMesh()->setMaterial(newTexMat);
+        scene_->getMesh(0)->setMaterial(newTexMat);
     }
 }

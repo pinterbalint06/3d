@@ -189,14 +189,18 @@ void Renderer::render(const Scene *scene)
 
     // update uniform buffer objects
     updateSceneUBO(scene);
-    Mesh *mesh = scene->getMesh();
-    updateMeshUBO(mesh);
 
-    // bind current mesh
-    glBindVertexArray(mesh->getVAO());
+    for (int i = 0; i < scene->getMeshCount(); i++)
+    {
+        Mesh *currMesh = scene->getMesh(i);
+        updateMeshUBO(currMesh);
 
-    // draw mesh
-    glDrawElements(GL_TRIANGLES, mesh->getIndexCount(), GL_UNSIGNED_INT, 0);
-    // unbind mesh
-    glBindVertexArray(0);
+        // bind current mesh
+        glBindVertexArray(currMesh->getVAO());
+
+        // draw mesh
+        glDrawElements(GL_TRIANGLES, currMesh->getIndexCount(), GL_UNSIGNED_INT, 0);
+        // unbind mesh
+        glBindVertexArray(0);
+    }
 }

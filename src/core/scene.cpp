@@ -10,7 +10,6 @@ Scene::Scene()
     // green: 223.0 normalize -> 223.0f/255.0 = 0.8745
     // blue: 34.0 normalize -> 34.0f/255.0 = 0.13333
     light_ = new DistantLight(1.0f, 1.0f, 1.0f, 1500.0f, 0, -1, 0);
-    mesh_ = nullptr;
     cam_ = new Camera();
     ambientLight_ = 4.0f;
 }
@@ -18,8 +17,11 @@ Scene::Scene()
 Scene::~Scene()
 {
     delete light_;
-    delete mesh_;
     delete cam_;
+    for (int i = 0; i < meshes_.size(); i++)
+    {
+        delete meshes_[i];
+    }
 }
 
 void Scene::setAmbientLight(float ambientLightIntensity)
@@ -27,7 +29,12 @@ void Scene::setAmbientLight(float ambientLightIntensity)
     ambientLight_ = ambientLightIntensity;
 }
 
-void Scene::setMesh(Mesh *mesh)
+void Scene::addMesh(Mesh *mesh)
 {
-    mesh_ = mesh;
+    meshes_.push_back(mesh);
+}
+
+void Scene::removeMesh(int index)
+{
+    meshes_.erase(meshes_.begin() + index);
 }

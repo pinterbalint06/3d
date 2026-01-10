@@ -19,11 +19,11 @@ void init(int size, float focal, float filmW, float filmH, int imageW, int image
     setFrustum(focal, filmW, filmH, imageW, imageH, n, f);
 }
 
-void setTerrainParams(int size, int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier)
+void setTerrainParams(int size, int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier, int contrast)
 {
     if (gEngine)
     {
-        gEngine->setTerrainParams(size, seed, frequency, lacunarity, persistence, octaves, heightMultiplier);
+        gEngine->setTerrainParams(size, seed, frequency, lacunarity, persistence, octaves, heightMultiplier, contrast);
     }
 }
 

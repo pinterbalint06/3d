@@ -15,6 +15,7 @@ Terrain::Terrain(int size) : Mesh(size * size, (size - 1) * (size - 1) * 6)
     parameters.seed = 0;
     parameters.noiseSize = 150.0f;
     parameters.scaling = 1.0f / 128.0f;
+    parameters.contrast = 1.0f;
     parameters.steepness = 1.0f;
     textureSpacing_ = 1.0f;
     perlinNoise_ = new PerlinNoise::Perlin(parameters);

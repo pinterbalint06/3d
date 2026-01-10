@@ -28,7 +28,7 @@ public:
     void setGroundMaterial(Materials::Material material);
     void setCameraHeight(float cameraHeight);
     void setLightDirection(float x, float y, float z);
-    void setTerrainParams(int size, int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier);
+    void setTerrainParams(int size, int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier, int contrast);
     void setLightIntensity(float intensity);
     void setShadingMode(Shaders::SHADINGMODE shadingmode);
     void setFrustum(float focal, float filmW, float filmH, int imageW, int imageH, float n, float f);

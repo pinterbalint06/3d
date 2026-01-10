@@ -110,7 +110,8 @@ function UjPerlinParam() {
     let oktav = document.getElementById("oktav");
     let frequency = document.getElementById("frequency");
     let mult = document.getElementById("multiplier");
-    Module.newPerlinMap(parseInt(size.value), parseInt(seed.value), parseFloat(frequency.value), parseFloat(lacunarity.value), parseFloat(persistence.value), parseInt(oktav.value), parseFloat(mult.value));
+    let contrast = document.getElementById("contrast");
+    Module.newPerlinMap(parseInt(size.value), parseInt(seed.value), parseFloat(frequency.value), parseFloat(lacunarity.value), parseFloat(persistence.value), parseInt(oktav.value), parseFloat(mult.value), parseInt(contrast.value));
 }
 
 function UjFenyIntenzitas() {

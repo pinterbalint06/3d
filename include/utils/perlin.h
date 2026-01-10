@@ -19,7 +19,8 @@ namespace PerlinNoise
         float noiseSize;   // 24
         float scaling;     // 28
         float steepness;   // 32
-        float padding[3];  // 36-48
+        float contrast;    // 36
+        float padding[2];  // 40-48
     };
 
     class Perlin
@@ -54,6 +55,7 @@ namespace PerlinNoise
         void setNoiseSize(float noiseSize);
         void setOctaves(int octaves);
         void setSteepness(float steepness);
+        void setContrast(int contrast);
 
         // one octave noise
         float noise(float x, float y);

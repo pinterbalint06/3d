@@ -143,6 +143,15 @@ namespace PerlinNoise
         }
     }
 
+    void Perlin::setContrast(int contrast)
+    {
+        params_.contrast = contrast;
+        if (isGPUSet_)
+        {
+            uploadParametersToGPU();
+        }
+    }
+
     float Perlin::noise(float x, float y)
     {
         // wrap to 0-255
@@ -198,7 +207,7 @@ namespace PerlinNoise
             freq *= params_.lacunarity;
         }
 
-        return (total / maxValue) * params_.noiseSize;
+        return std::pow((total / maxValue), params_.contrast) * params_.noiseSize;
     }
 
     void Perlin::uploadParametersToGPU()
@@ -218,7 +227,7 @@ namespace PerlinNoise
             glGenTextures(1, &permuTableTex_);
         }
         glBindTexture(GL_TEXTURE_2D, permuTableTex_);
-        // the overwrap doesn't have to be uploaded opengl wraps textures by default
+
         glTexImage2D(GL_TEXTURE_2D, 0, GL_R8UI, 512, 1, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, permuTable_);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

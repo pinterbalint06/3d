@@ -39,6 +39,7 @@ public:
     void setSeed(int seed);
     void setSize(int size);
     void setSteepness(float steepness) { perlinNoise_->setSteepness(steepness); }
+    void setContrast(int contrast) { perlinNoise_->setContrast(contrast); }
     void setTextureSpacing(float textureSpacing);
     void setUpNoiseForGPU(GLuint *loc);
 };

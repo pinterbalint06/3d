@@ -58,7 +58,7 @@ void Engine::randomizeLocation()
     calcNewCamLoc();
 }
 
-void Engine::setTerrainParams(int size, int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier)
+void Engine::setTerrainParams(int size, int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier, int contrast)
 {
     terrain_->setFrequency(frequency);
     terrain_->setSeed(seed);
@@ -66,6 +66,7 @@ void Engine::setTerrainParams(int size, int seed, float frequency, float lacunar
     terrain_->setPersistence(persistence);
     terrain_->setOctaves(octaves);
     terrain_->setHeightMultiplier(heightMultiplier);
+    terrain_->setContrast(contrast);
     if (terrain_->getSize() != size)
     {
         terrain_->setSize(size);

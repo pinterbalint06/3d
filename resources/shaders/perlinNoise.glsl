@@ -15,7 +15,8 @@ layout(std140) uniform PerlinData {
     float noiseSize;   // 24
     float scaling;     // 28
     float steepness;   // 32
-                       // total of 32 bytes
+    float contrast;   // 36
+                       // total of 48 bytes
 };
 
 float quintic(float d) {
@@ -27,7 +28,7 @@ int hash(int x, int y) {
     return int(texelFetch(uPermutationTable, ivec2(firstLookup + y, 0), 0).r);
 }
 
-vec2 calculateDerivatives(vec2 pos) {
+vec3 calculateDerivatives(vec2 pos) {
     int x0 = int(floor(pos.x)) & 255;
     int y0 = int(floor(pos.y)) & 255;
     int x1 = (x0 + 1) & 255;
@@ -97,21 +98,49 @@ vec2 calculateDerivatives(vec2 pos) {
     // // v' ((c - a) + u(d - c - b + a))
     // // v' (k1 + u * k3)
     float derivY = dv * (k1 + u * k2) + interpolatedGradientY;
-    return vec2(derivX, derivY);
+
+    float interpolate1 = mix(a, b, u);
+    float interpolate2 = mix(c, d, u);
+
+    float finalInterpolate = mix(interpolate1, interpolate2, v);
+
+    return vec3(finalInterpolate, derivX, derivY);
+}
+
+float power(float base, int exponent) {
+    if(base >= 0.0) {
+        return pow(base, float(exponent));
+    } else {
+        float abs_base_pow = pow(abs(base), float(exponent));
+        if(exponent % 2 == 0) {
+            return abs_base_pow;
+        } else {
+            return -abs_base_pow;
+        }
+    }
 }
 
 vec3 calculateNoiseNormalFBM(vec2 pos) {
     float maxValue = 0.0;
     float amp = amplitude;
     float freq = frequency;
+    float noiseValue = 0.0;
     vec2 derivatives = vec2(0.0);
     for(int i = 0; i < octaveCount; i++) {
-        derivatives += calculateDerivatives(pos * freq) * amp * freq;
+        vec3 perlinResult = calculateDerivatives(pos * freq) * amp;
+        noiseValue += perlinResult.x;
+        derivatives += perlinResult.yz * freq;
         maxValue += amp;
         amp *= persistence;
         freq *= lacunarity;
     }
-    derivatives *= scaling * noiseSize;
     derivatives /= maxValue;
+    noiseValue /= maxValue;
+    // (f(g(x)))'=f'(g(x))*g'(x)
+    // magassag(x,y)=zaj(x, y)^C
+    // magassag'(x, y)=C*(zaj(x, y))^(C-1)*zaj'(x, y)
+    float derivalas = contrast * power(noiseValue, int(contrast) - 1);
+    derivatives *= derivalas;
+    derivatives *= scaling * noiseSize;
     return normalize(vec3(-derivatives.x, steepness, -derivatives.y));
 }

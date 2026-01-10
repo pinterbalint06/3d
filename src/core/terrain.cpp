@@ -15,10 +15,25 @@ Terrain::Terrain(int size) : Mesh(size * size, (size - 1) * (size - 1) * 6)
     parameters.seed = 0;
     parameters.noiseSize = 150.0f;
     parameters.scaling = 1.0f / 128.0f;
-    parameters.contrast = 1.0f;
+    parameters.contrast = 1;
     parameters.steepness = 1.0f;
     textureSpacing_ = 1.0f;
     perlinNoise_ = new PerlinNoise::Perlin(parameters);
+
+    PerlinNoise::PerlinParameters warpParameters;
+    warpParameters.amplitude = 2.0f;
+    warpParameters.lacunarity = 1.95f;
+    warpParameters.persistence = 0.375f;
+    warpParameters.octaveCount = 3;
+    warpParameters.frequency = 1.0f;
+    warpParameters.seed = 0;
+    warpParameters.noiseSize = 1.0f;
+    warpParameters.scaling = 1.0f / 128.0f;
+    warpParameters.contrast = 1.0f;
+    warpParameters.steepness = 1.0f;
+    textureSpacing_ = 1.0f;
+    warpNoise_ = new PerlinNoise::Perlin(warpParameters);
+    domainWarp_ = 0;
 }
 
 Terrain::~Terrain()
@@ -26,6 +41,10 @@ Terrain::~Terrain()
     if (perlinNoise_)
     {
         delete perlinNoise_;
+    }
+    if (warpNoise_)
+    {
+        delete warpNoise_;
     }
 }
 
@@ -61,10 +80,33 @@ void Terrain::regenerate()
     setUpOpenGL();
 }
 
+float Terrain::calculateHeight(float x, float y)
+{
+    float scale = 1.0f / 128.0f;
+    float noiseX = x * scale;
+    float noiseY = y * scale;
+
+    float noiseValue;
+    if (domainWarp_ == 1)
+    {
+
+        float qx = warpNoise_->fbm(noiseX + 1.1, noiseY + 3.5);
+        float qy = warpNoise_->fbm(noiseX + 2.4, noiseY + 4.5);
+
+        float rx = warpNoise_->fbm(noiseX + 2.0f * qx, noiseY + 2.0f * qy);
+        float ry = warpNoise_->fbm(noiseX + 2.0f * qx, noiseY + 2.0f * qy);
+
+        float warpStrength = 1.5f;
+
+        noiseX += rx * warpStrength;
+        noiseY += ry * warpStrength;
+    }
+    return perlinNoise_->fbm(noiseX, noiseY);
+}
+
 void Terrain::buildTerrain()
 {
     int i;
-    float scale = 1.0f / 128.0f;
     // generate heightmap
     for (int y = 0; y < size_; y++)
     {
@@ -72,7 +114,7 @@ void Terrain::buildTerrain()
         {
             i = y * size_ + x;
             vertices_[i].x = x;
-            vertices_[i].y = perlinNoise_->fbm(x * scale, y * scale);
+            vertices_[i].y = calculateHeight(x, y);
             vertices_[i].z = -y;
             vertices_[i].w = 1.0f;
             vertices_[i].u = (float)x * textureSpacing_;
@@ -87,13 +129,13 @@ void Terrain::buildTerrain()
         {
             i = y * size_ + x;
             // if it is already calculated get it from the heightmap if not calculate it
-            float prevValueX = x - 1 < 0 ? perlinNoise_->fbm(x * scale, y * scale) : vertices_[y * size_ + x - 1].y;
-            float nxtValueX = x + 1 > size_ - 1 ? perlinNoise_->fbm(x * scale, y * scale) : vertices_[y * size_ + x + 1].y;
+            float prevValueX = x - 1 < 0 ? calculateHeight(x, y) : vertices_[y * size_ + x - 1].y;
+            float nxtValueX = x + 1 > size_ - 1 ? calculateHeight(x, y) : vertices_[y * size_ + x + 1].y;
             float centralDifferenceX = (nxtValueX - prevValueX) * 0.5f;
 
             // if it is already calculated get it from the heightmap if not calculate it
-            float prevValueY = y - 1 < 0 ? perlinNoise_->fbm(x * scale, y * scale) : vertices_[(y - 1) * size_ + x].y;
-            float nxtValueY = y + 1 > size_ - 1 ? perlinNoise_->fbm(x * scale, y * scale) : vertices_[(y + 1) * size_ + x].y;
+            float prevValueY = y - 1 < 0 ? calculateHeight(x, y) : vertices_[(y - 1) * size_ + x].y;
+            float nxtValueY = y + 1 > size_ - 1 ? calculateHeight(x, y) : vertices_[(y + 1) * size_ + x].y;
             float centralDifferenceY = (nxtValueY - prevValueY) * 0.5f;
 
             vertices_[i].nx = -centralDifferenceX;
@@ -144,7 +186,17 @@ void Terrain::setTextureSpacing(float textureSpacing)
     setUpOpenGL();
 }
 
-void Terrain::setUpNoiseForGPU(GLuint *loc)
+void Terrain::setUpNoiseForGPU(GLuint *perlinLoc, GLuint *warpLoc)
 {
-    perlinNoise_->setUpGPU(loc);
+    perlinNoise_->setUpGPU(perlinLoc);
+    warpNoise_->setUpGPU(warpLoc);
+}
+
+void Terrain::setDomainWarp(bool domainWarp)
+{
+    if (domainWarp != domainWarp_)
+    {
+        domainWarp_ = domainWarp;
+        regenerate();
+    }
 }

@@ -2,30 +2,49 @@ precision highp float;
 precision highp int;
 precision mediump usampler2D;
 
-uniform usampler2D uPermutationTable;
-uniform sampler2D uGradients;
+uniform usampler2D uNoisePermutationTable;
+uniform sampler2D uNoiseGradients;
+
+uniform usampler2D uWarpPermutationTable;
+uniform sampler2D uWarpGradients;
 
 layout(std140) uniform PerlinData {
-    int seed;          // 0
-    int octaveCount;   // 4
-    float frequency;   // 8
-    float amplitude;   // 12
-    float persistence; // 16
-    float lacunarity;  // 20
-    float noiseSize;   // 24
-    float scaling;     // 28
-    float steepness;   // 32
-    float contrast;   // 36
-                       // total of 48 bytes
+    int uNoiseSeed;             // 0
+    int uNoiseOctaveCount;      // 4
+    float uNoiseFrequency;      // 8
+    float uNoiseAmplitude;      // 12
+    float uNoisePersistence;    // 16
+    float uNoiseLacunarity;     // 20
+    float uNoiseSize;           // 24
+    float uNoiseScaling;        // 28
+    float uNoiseSteepness;      // 32
+    int uNoiseContrast;         // 36
+                                // total of 48 bytes
 };
+
+layout(std140) uniform PerlinWarpData {
+    int uWarpSeed;             // 0
+    int uWarpOctaveCount;      // 4
+    float uWarpFrequency;      // 8
+    float uWarpAmplitude;      // 12
+    float uWarpPersistence;    // 16
+    float uWarpLacunarity;     // 20
+    float uWarpSize;           // 24
+    float uWarpScaling;        // 28
+    float uWarpSteepness;      // 32
+    int uWarpContrast;         // 36
+                               // total of 48 bytes
+};
+
+uniform int uUseDomainWarp;
 
 float quintic(float d) {
     return d * d * d * (d * (d * 6.0 - 15.0) + 10.0);
 }
 
 int hash(int x, int y) {
-    int firstLookup = int(texelFetch(uPermutationTable, ivec2(x, 0), 0).r);
-    return int(texelFetch(uPermutationTable, ivec2(firstLookup + y, 0), 0).r);
+    int firstLookup = int(texelFetch(uNoisePermutationTable, ivec2(x, 0), 0).r);
+    return int(texelFetch(uNoisePermutationTable, ivec2(firstLookup + y, 0), 0).r);
 }
 
 vec3 calculateDerivatives(vec2 pos) {
@@ -43,10 +62,10 @@ vec3 calculateDerivatives(vec2 pos) {
     float dv = 30.0 * py * py * (py * py - 2.0 * py + 1.0);
 
     // Get Gradients
-    vec2 g00 = texelFetch(uGradients, ivec2(hash(x0, y0), 0), 0).rg;
-    vec2 g10 = texelFetch(uGradients, ivec2(hash(x1, y0), 0), 0).rg;
-    vec2 g01 = texelFetch(uGradients, ivec2(hash(x0, y1), 0), 0).rg;
-    vec2 g11 = texelFetch(uGradients, ivec2(hash(x1, y1), 0), 0).rg;
+    vec2 g00 = texelFetch(uNoiseGradients, ivec2(hash(x0, y0), 0), 0).rg;
+    vec2 g10 = texelFetch(uNoiseGradients, ivec2(hash(x1, y0), 0), 0).rg;
+    vec2 g01 = texelFetch(uNoiseGradients, ivec2(hash(x0, y1), 0), 0).rg;
+    vec2 g11 = texelFetch(uNoiseGradients, ivec2(hash(x1, y1), 0), 0).rg;
 
     // to point in grid vector components
     float leftToPoint = px;
@@ -119,28 +138,48 @@ float power(float base, int exponent) {
         }
     }
 }
+float fbm(vec2 pos) {
+    float maxValue = 0.0;
+    float amp = uNoiseAmplitude;
+    float freq = uNoiseFrequency;
+    float noiseValue = 0.0;
+    for(int i = 0; i < uNoiseOctaveCount; i++) {
+        vec3 perlinResult = calculateDerivatives(pos * freq) * amp;
+        noiseValue += perlinResult.x;
+        maxValue += amp;
+        amp *= uNoisePersistence;
+        freq *= uNoiseLacunarity;
+    }
+    noiseValue /= maxValue;
+    return power(noiseValue, uNoiseContrast);
+}
 
 vec3 calculateNoiseNormalFBM(vec2 pos) {
     float maxValue = 0.0;
-    float amp = amplitude;
-    float freq = frequency;
+    float amp = uNoiseAmplitude;
+    float freq = uNoiseFrequency;
     float noiseValue = 0.0;
     vec2 derivatives = vec2(0.0);
-    for(int i = 0; i < octaveCount; i++) {
-        vec3 perlinResult = calculateDerivatives(pos * freq) * amp;
+    vec2 noisePos = pos;
+    if(uUseDomainWarp == 1) {
+        vec2 q = vec2(fbm(noisePos + vec2(1.1, 3.5)), fbm(noisePos + vec2(2.4, 4.5)));
+        vec2 r = vec2(fbm(noisePos + 2.0 * q), fbm(noisePos + 2.0 * q));
+        float warpStrength = 1.5;
+
+        noisePos += r * warpStrength;
+    }
+    for(int i = 0; i < uNoiseOctaveCount; i++) {
+        vec3 perlinResult = calculateDerivatives(noisePos * freq) * amp;
         noiseValue += perlinResult.x;
         derivatives += perlinResult.yz * freq;
         maxValue += amp;
-        amp *= persistence;
-        freq *= lacunarity;
+        amp *= uNoisePersistence;
+        freq *= uNoiseLacunarity;
     }
     derivatives /= maxValue;
     noiseValue /= maxValue;
-    // (f(g(x)))'=f'(g(x))*g'(x)
-    // magassag(x,y)=zaj(x, y)^C
-    // magassag'(x, y)=C*(zaj(x, y))^(C-1)*zaj'(x, y)
-    float derivalas = contrast * power(noiseValue, int(contrast) - 1);
+    float derivalas = float(uNoiseContrast) * power(noiseValue, uNoiseContrast - 1);
     derivatives *= derivalas;
-    derivatives *= scaling * noiseSize;
-    return normalize(vec3(-derivatives.x, steepness, -derivatives.y));
+    derivatives *= uNoiseScaling * uNoiseSize;
+    return normalize(vec3(-derivatives.x, uNoiseSteepness, -derivatives.y));
 }

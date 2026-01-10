@@ -19,7 +19,7 @@ namespace PerlinNoise
         float noiseSize;   // 24
         float scaling;     // 28
         float steepness;   // 32
-        float contrast;    // 36
+        int contrast;      // 36
         float padding[2];  // 40-48
     };
 

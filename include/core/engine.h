@@ -37,6 +37,7 @@ public:
     void setFocalLength(float focal);
     void setTextureSpacing(float textureSpacing);
     void setSteepness(float steepness);
+    void setDomainWarp(bool domainWarp);
 
     void moveCamera(int x, int z);
     void rotateCamera(float dPitch, float dYaw);

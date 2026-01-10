@@ -178,6 +178,10 @@
                 <input type="range" id="contrast" min="1" max="5" value="1" step="1"
                     oninput="this.nextElementSibling.value = this.value;UjPerlinParam();">
                 <output>1</output>
+                <div>
+                    <label for="domainWarp">Domain warp:</label>
+                    <input type="checkbox" name="domainWarp" id="domainWarp" oninput="UjDomainWarp();">
+                </div>
             </div>
             <div class="col gap">
                 <h2>Környezet:</h2>

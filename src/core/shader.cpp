@@ -123,11 +123,16 @@ namespace Shaders
         {
             glUniformBlockBinding(programID_, uniformBlockIndexPerlin, 2);
         }
+        GLuint uniformBlockIndexWarp = glGetUniformBlockIndex(programID_, "PerlinWarpData");
+        if (uniformBlockIndexWarp != GL_INVALID_INDEX)
+        {
+            glUniformBlockBinding(programID_, uniformBlockIndexWarp, 3);
+        }
 
         GLuint uniformBlockIndexMesh = glGetUniformBlockIndex(programID_, "MeshData");
         if (uniformBlockIndexMesh != GL_INVALID_INDEX)
         {
-            glUniformBlockBinding(programID_, uniformBlockIndexMesh, 3);
+            glUniformBlockBinding(programID_, uniformBlockIndexMesh, 4);
         }
     }
 

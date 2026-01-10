@@ -13,7 +13,7 @@ Engine::Engine(int size)
     std::string canvID = "canvas";
     renderer_ = new Renderer(canvID);
     terrain_ = new Terrain(size);
-    terrain_->setUpNoiseForGPU(renderer_->getPerlinUBOloc());
+    terrain_->setUpNoiseForGPU(renderer_->getPerlinUBOloc(), renderer_->getWarpUBOloc());
     terrain_->setMaterial(Materials::Material::Grass());
     scene_->addMesh(terrain_);
     renderer_->setDefaultColor(135.0f, 206.0f, 235.0f);
@@ -133,6 +133,11 @@ void Engine::setTextureSpacing(float textureSpacing)
 void Engine::setSteepness(float steepness)
 {
     terrain_->setSteepness(steepness);
+};
+
+void Engine::setDomainWarp(bool domainWarp)
+{
+    terrain_->setDomainWarp(domainWarp);
 };
 
 void Engine::moveCamera(int x, int z)

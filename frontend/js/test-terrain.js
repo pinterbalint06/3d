@@ -312,6 +312,11 @@ function UjMeredekseg() {
     Module.setSteepness(parseFloat(steepness.value));
 }
 
+function UjDomainWarp() {
+    let domainWarp = document.getElementById("domainWarp");
+    Module.setDomainWarp(domainWarp.checked);
+}
+
 window.UjPerlinParam = UjPerlinParam;
 window.ujKameraMagassag = ujKameraMagassag;
 window.ujhely = ujhely;
@@ -332,3 +337,4 @@ window.ujUrlbol = ujUrlbol;
 window.texturaTorles = texturaTorles;
 window.setTexturaMeret = setTexturaMeret;
 window.UjMeredekseg = UjMeredekseg;
+window.UjDomainWarp = UjDomainWarp;

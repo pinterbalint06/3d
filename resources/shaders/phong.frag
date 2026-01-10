@@ -46,7 +46,7 @@ out vec4 outColor;
 void main() {
     vec3 normal;
     if(uIsTerrain == 1) {
-        normal = calculateNoiseNormalFBM(vec2(vPosition.x * scaling, -vPosition.z * scaling));
+        normal = calculateNoiseNormalFBM(vec2(vPosition.x * uNoiseScaling, -vPosition.z * uNoiseScaling));
     } else {
         normal = normalize(vNormal);
     }

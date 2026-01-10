@@ -58,12 +58,19 @@ Renderer::Renderer(std::string &canvasID)
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     glBindBufferRange(GL_UNIFORM_BUFFER, 2, uboPerlin_, 0, sizeof(PerlinNoise::PerlinParameters));
 
+    // warp ubo
+    glGenBuffers(1, &uboWarp_);
+    glBindBuffer(GL_UNIFORM_BUFFER, uboWarp_);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(PerlinNoise::PerlinParameters), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 3, uboWarp_, 0, sizeof(PerlinNoise::PerlinParameters));
+
     // mesh ubo
     glGenBuffers(1, &uboMesh_);
     glBindBuffer(GL_UNIFORM_BUFFER, uboMesh_);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(MeshData), NULL, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    glBindBufferRange(GL_UNIFORM_BUFFER, 3, uboMesh_, 0, sizeof(MeshData));
+    glBindBufferRange(GL_UNIFORM_BUFFER, 4, uboMesh_, 0, sizeof(MeshData));
 
     createShadingPrograms();
     shaderPrograms_[currShadingMode_]->use();
@@ -86,6 +93,10 @@ Renderer::~Renderer()
     if (uboPerlin_ != 0)
     {
         glDeleteBuffers(1, &uboPerlin_);
+    }
+    if (uboWarp_ != 0)
+    {
+        glDeleteBuffers(1, &uboWarp_);
     }
     if (uboMesh_ != 0)
     {
@@ -207,11 +218,20 @@ void Renderer::updateMeshUBO(Mesh *mesh)
     {
         isTerrain = 1;
         glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_2D, terrain->getPermGPULoc());
-        shaderPrograms_[currShadingMode_]->setUniformInt("uPermutationTable", 5);
+        glBindTexture(GL_TEXTURE_2D, terrain->getNoisePermGPULoc());
+        shaderPrograms_[currShadingMode_]->setUniformInt("uNoisePermutationTable", 5);
         glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_2D, terrain->getGradGPULoc());
-        shaderPrograms_[currShadingMode_]->setUniformInt("uGradients", 6);
+        glBindTexture(GL_TEXTURE_2D, terrain->getNoiseGradGPULoc());
+        shaderPrograms_[currShadingMode_]->setUniformInt("uNoiseGradients", 6);
+
+        glActiveTexture(GL_TEXTURE7);
+        glBindTexture(GL_TEXTURE_2D, terrain->getWarpPermGPULoc());
+        shaderPrograms_[currShadingMode_]->setUniformInt("uWarpPermutationTable", 7);
+        glActiveTexture(GL_TEXTURE8);
+        glBindTexture(GL_TEXTURE_2D, terrain->getWarpGradGPULoc());
+        shaderPrograms_[currShadingMode_]->setUniformInt("uWarpGradients", 8);
+
+        shaderPrograms_[currShadingMode_]->setUniformInt("uUseDomainWarp", terrain->getIsDomainWarp());
     }
 
     shaderPrograms_[currShadingMode_]->setUniformInt("uIsTerrain", isTerrain);

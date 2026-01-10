@@ -223,6 +223,14 @@ void setSteepness(float steepness)
     }
 }
 
+void setDomainWarp(bool domainWarp)
+{
+    if (gEngine)
+    {
+        gEngine->setDomainWarp(domainWarp);
+    }
+}
+
 EMSCRIPTEN_BINDINGS(my_module)
 {
     emscripten::function("init", &init);
@@ -251,4 +259,5 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("deleteTexture", &deleteTexture);
     emscripten::function("setTextureSpacing", &setTextureSpacing);
     emscripten::function("setSteepness", &setSteepness);
+    emscripten::function("setDomainWarp", &setDomainWarp);
 }

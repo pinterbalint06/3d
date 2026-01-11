@@ -48,23 +48,33 @@ Terrain::~Terrain()
     }
 }
 
-void Terrain::setSeed(int seed)
+void Terrain::updateNoiseSeed(int seed, PerlinNoise::Perlin *&noise)
 {
-    PerlinNoise::PerlinParameters parameters = perlinNoise_->getParameters();
-    if (parameters.seed != seed)
+    if (noise)
     {
-        parameters.seed = seed;
-        GLuint *uboLoc = perlinNoise_->getUBOloc();
-        if (perlinNoise_)
+        PerlinNoise::PerlinParameters parameters = noise->getParameters();
+        if (parameters.seed != seed)
         {
-            delete perlinNoise_;
-        }
-        perlinNoise_ = new PerlinNoise::Perlin(parameters);
-        if (uboLoc)
-        {
-            perlinNoise_->setUpGPU(uboLoc);
+            parameters.seed = seed;
+            GLuint *uboLoc = noise->getUBOloc();
+            delete noise;
+            noise = new PerlinNoise::Perlin(parameters);
+            if (uboLoc)
+            {
+                noise->setUpGPU(uboLoc);
+            }
         }
     }
+}
+
+void Terrain::setSeedNoise(int seed)
+{
+    updateNoiseSeed(seed, perlinNoise_);
+}
+
+void Terrain::setSeedWarp(int seed)
+{
+    updateNoiseSeed(seed, warpNoise_);
 }
 
 void Terrain::setSize(int size)
@@ -84,9 +94,16 @@ void Terrain::regenerate()
 
 void Terrain::setParams(int size, PerlinNoise::PerlinParameters &params)
 {
-    setSeed(params.seed);
+    setSeedNoise(params.seed);
     setSize(size);
     perlinNoise_->setParams(params);
+    regenerate();
+}
+void Terrain::setWarpParams(int size, PerlinNoise::PerlinParameters &params)
+{
+    setSeedWarp(params.seed);
+    setSize(size);
+    warpNoise_->setParams(params);
     regenerate();
 }
 

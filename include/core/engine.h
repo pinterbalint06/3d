@@ -7,8 +7,8 @@
 #include "core/renderer.h"
 #include "core/material.h"
 #include "utils/perlin.h"
+#include "core/terrain.h"
 
-class Terrain;
 class Mesh;
 
 class Engine
@@ -26,10 +26,14 @@ public:
     Engine(int size);
     ~Engine();
 
+    PerlinNoise::PerlinParameters getNoiseParameters() { return terrain_->getNoiseParameters(); };
+    PerlinNoise::PerlinParameters getWarpParameters() { return terrain_->getWarpParameters(); };
+
     void setGroundMaterial(Materials::Material material);
     void setCameraHeight(float cameraHeight);
     void setLightDirection(float x, float y, float z);
     void setTerrainParams(int size, PerlinNoise::PerlinParameters &params);
+    void setWarpParams(int size, PerlinNoise::PerlinParameters &params);
     void setLightIntensity(float intensity);
     void setShadingMode(Shaders::SHADINGMODE shadingmode);
     void setFrustum(float focal, float filmW, float filmH, int imageW, int imageH, float n, float f);

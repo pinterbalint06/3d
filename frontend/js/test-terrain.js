@@ -113,14 +113,39 @@ function UjPerlinParam(e) {
     }
 }
 
+function ZajParamValt() {
+    let curr = document.querySelector('input[name="noiseSettings"]:checked').value;
+    let params = {};
+    if (curr == "noise") {
+        params = Module.getNoiseParameters();
+    } else {
+        if (curr == "warp") {
+            params = Module.getWarpParameters();
+        }
+    }
+    for (const key in params) {
+        let element = document.getElementById(key);
+        if (element) {
+            element.value = params[key];
+            if (element.nextElementSibling) {
+                let ertek = params[key];
+                if (ertek % 1 != 0) {
+                    ertek = Math.round(1000 * ertek) / 1000;
+                }
+                element.nextElementSibling.value = ertek;
+            }
+        }
+    }
+}
+
 function general() {
     let size = parseInt(document.getElementById("mapSize").value);
     let seed = parseInt(document.getElementById("seed").value);
     let persistence = parseFloat(document.getElementById("persistence").value);
     let lacunarity = parseFloat(document.getElementById("lacunarity").value);
-    let oktav = parseInt(document.getElementById("oktav").value);
+    let oktav = parseInt(document.getElementById("octaveCount").value);
     let frequency = parseFloat(document.getElementById("frequency").value);
-    let mult = parseFloat(document.getElementById("multiplier").value);
+    let mult = parseFloat(document.getElementById("noiseSize").value);
     let contrast = parseInt(document.getElementById("contrast").value);
     let amplitude = parseInt(document.getElementById("amplitude").value);
     let steepness = parseFloat(document.getElementById("steepness").value);
@@ -137,8 +162,16 @@ function general() {
         "steepness": steepness,
         "contrast": contrast
     };
-    Module.newPerlinMap(size, parameters);
-    UjDomainWarp();
+    let curr = document.querySelector('input[name="noiseSettings"]:checked').value;
+    if (curr == "noise") {
+        Module.setTerrainParams(size, parameters);
+        UjDomainWarp();
+    } else {
+        if (curr == "warp") {
+            Module.setWarpParams(size, parameters);
+            UjDomainWarp();
+        }
+    }
 }
 
 function UjFenyIntenzitas() {
@@ -358,3 +391,4 @@ window.ujAnyag = ujAnyag;
 window.ujUrlbol = ujUrlbol;
 window.texturaTorles = texturaTorles;
 window.setTexturaMeret = setTexturaMeret;
+window.ZajParamValt = ZajParamValt;

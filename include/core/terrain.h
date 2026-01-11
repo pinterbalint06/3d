@@ -21,6 +21,7 @@ private:
 
     void buildTerrain();
     float calculateHeight(float x, float y);
+    void updateNoiseSeed(int seed, PerlinNoise::Perlin *&noise);
 
 public:
     Terrain(int size);
@@ -35,6 +36,8 @@ public:
     GLuint getWarpPermGPULoc() { return warpNoise_->getPermutationGPULoc(); }
     GLuint getWarpGradGPULoc() { return warpNoise_->getGradientsGPULoc(); }
     int getIsDomainWarp() { return domainWarp_; }
+    PerlinNoise::PerlinParameters getNoiseParameters() { return perlinNoise_->getParameters(); };
+    PerlinNoise::PerlinParameters getWarpParameters() { return warpNoise_->getParameters(); };
 
     // setters
     void setLacunarity(float lacunarity) { perlinNoise_->setLacunarity(lacunarity); }
@@ -43,7 +46,9 @@ public:
     void setHeightMultiplier(float heightMultiplier) { perlinNoise_->setNoiseSize(heightMultiplier); }
     void setOctaves(int octaves) { perlinNoise_->setOctaves(octaves); }
     void setParams(int size, PerlinNoise::PerlinParameters &params);
-    void setSeed(int seed);
+    void setWarpParams(int size, PerlinNoise::PerlinParameters &params);
+    void setSeedNoise(int seed);
+    void setSeedWarp(int seed);
     void setSize(int size);
     void setSteepness(float steepness) { perlinNoise_->setSteepness(steepness); }
     void setContrast(int contrast) { perlinNoise_->setContrast(contrast); }

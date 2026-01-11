@@ -27,6 +27,14 @@ void setTerrainParams(int size, PerlinNoise::PerlinParameters params)
     }
 }
 
+void setWarpParams(int size, PerlinNoise::PerlinParameters params)
+{
+    if (gEngine)
+    {
+        gEngine->setWarpParams(size, params);
+    }
+}
+
 void randomizeLocation()
 {
     if (gEngine)
@@ -231,6 +239,26 @@ void setDomainWarp(bool domainWarp)
     }
 }
 
+PerlinNoise::PerlinParameters getNoiseParameters()
+{
+    PerlinNoise::PerlinParameters params;
+    if (gEngine)
+    {
+        params = gEngine->getNoiseParameters();
+    }
+    return params;
+}
+
+PerlinNoise::PerlinParameters getWarpParameters()
+{
+    PerlinNoise::PerlinParameters params;
+    if (gEngine)
+    {
+        params = gEngine->getWarpParameters();
+    }
+    return params;
+}
+
 EMSCRIPTEN_BINDINGS(structs)
 {
     emscripten::value_object<PerlinNoise::PerlinParameters>("PerlinParameters")
@@ -267,8 +295,11 @@ EMSCRIPTEN_BINDINGS(camera_controls)
 EMSCRIPTEN_BINDINGS(terrainGeneration)
 {
     emscripten::function("ujHely", &randomizeLocation);
-    emscripten::function("newPerlinMap", &setTerrainParams);
+    emscripten::function("setTerrainParams", &setTerrainParams);
+    emscripten::function("setWarpParams", &setWarpParams);
     emscripten::function("setDomainWarp", &setDomainWarp);
+    emscripten::function("getNoiseParameters", &getNoiseParameters);
+    emscripten::function("getWarpParameters", &getWarpParameters);
 }
 
 EMSCRIPTEN_BINDINGS(visuals)

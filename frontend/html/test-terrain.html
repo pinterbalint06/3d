@@ -126,14 +126,22 @@
             <div class="col gap">
                 <h2>Térkép:</h2>
                 <div class="perlinParam">
+                    <label for="noise">Zaj:</label>
+                    <input type="radio" name="noiseSettings" id="noise" value="noise" oninput="ZajParamValt();" checked>
+                </div>
+                <div class="perlinParam">
+                    <label for="warp">Warp:</label>
+                    <input type="radio" name="noiseSettings" id="warp" value="warp" oninput="ZajParamValt();">
+                </div>
+                <div class="perlinParam">
                     <label for="seed">Seed:</label>
                     <input type="range" id="seed" min="1" max="1000000000"
                         oninput="this.nextElementSibling.value = this.value;UjPerlinParam(this);">
                     <output>40</output>
                 </div>
                 <div class="perlinParam">
-                    <label for="multiplier">Magasság szorzó:</label>
-                    <input type="range" id="multiplier" min="1" max="300" value="150"
+                    <label for="noiseSize">Magasság szorzó:</label>
+                    <input type="range" id="noiseSize" min="1" max="300" value="150"
                         oninput="this.nextElementSibling.value = this.value;UjPerlinParam(this);">
                     <output>150</output>
                 </div>
@@ -150,8 +158,8 @@
                     <output>0.375</output>
                 </div>
                 <div class="perlinParam">
-                    <label for="oktav">Octaves:</label>
-                    <select name="meret" id="oktav" onchange="UjPerlinParam(this);">
+                    <label for="octaveCount">Octaves:</label>
+                    <select name="meret" id="octaveCount" onchange="UjPerlinParam(this);">
                         <option value="1">1</option>
                         <option value="2">2</option>
                         <option value="3">3</option>

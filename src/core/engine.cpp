@@ -64,6 +64,12 @@ void Engine::setTerrainParams(int size, PerlinNoise::PerlinParameters &params)
     calcNewCamLoc();
 }
 
+void Engine::setWarpParams(int size, PerlinNoise::PerlinParameters &params)
+{
+    terrain_->setWarpParams(size, params);
+    calcNewCamLoc();
+}
+
 void Engine::setLightIntensity(float intensity)
 {
     scene_->getLight()->setIntensity(intensity);

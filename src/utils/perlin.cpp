@@ -152,6 +152,15 @@ namespace PerlinNoise
         }
     }
 
+    void Perlin::setParams(PerlinParameters &params)
+    {
+        params_ = params;
+        if (isGPUSet_)
+        {
+            uploadParametersToGPU();
+        }
+    }
+
     float Perlin::noise(float x, float y)
     {
         // wrap to 0-255

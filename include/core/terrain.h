@@ -42,6 +42,7 @@ public:
     void setFrequency(float frequency) { perlinNoise_->setFrequency(frequency); }
     void setHeightMultiplier(float heightMultiplier) { perlinNoise_->setNoiseSize(heightMultiplier); }
     void setOctaves(int octaves) { perlinNoise_->setOctaves(octaves); }
+    void setParams(int size, PerlinNoise::PerlinParameters &params);
     void setSeed(int seed);
     void setSize(int size);
     void setSteepness(float steepness) { perlinNoise_->setSteepness(steepness); }

@@ -56,6 +56,7 @@ namespace PerlinNoise
         void setOctaves(int octaves);
         void setSteepness(float steepness);
         void setContrast(int contrast);
+        void setParams(PerlinParameters &params);
 
         // one octave noise
         float noise(float x, float y);

@@ -51,16 +51,19 @@ Terrain::~Terrain()
 void Terrain::setSeed(int seed)
 {
     PerlinNoise::PerlinParameters parameters = perlinNoise_->getParameters();
-    parameters.seed = seed;
-    GLuint *uboLoc = perlinNoise_->getUBOloc();
-    if (perlinNoise_)
+    if (parameters.seed != seed)
     {
-        delete perlinNoise_;
-    }
-    perlinNoise_ = new PerlinNoise::Perlin(parameters);
-    if (uboLoc)
-    {
-        perlinNoise_->setUpGPU(uboLoc);
+        parameters.seed = seed;
+        GLuint *uboLoc = perlinNoise_->getUBOloc();
+        if (perlinNoise_)
+        {
+            delete perlinNoise_;
+        }
+        perlinNoise_ = new PerlinNoise::Perlin(parameters);
+        if (uboLoc)
+        {
+            perlinNoise_->setUpGPU(uboLoc);
+        }
     }
 }
 
@@ -70,7 +73,6 @@ void Terrain::setSize(int size)
     {
         size_ = size;
         resize(size_ * size_, (size_ - 1) * (size_ - 1) * 6);
-        regenerate();
     }
 }
 
@@ -78,6 +80,14 @@ void Terrain::regenerate()
 {
     buildTerrain();
     setUpOpenGL();
+}
+
+void Terrain::setParams(int size, PerlinNoise::PerlinParameters &params)
+{
+    setSeed(params.seed);
+    setSize(size);
+    perlinNoise_->setParams(params);
+    regenerate();
 }
 
 float Terrain::calculateHeight(float x, float y)

@@ -58,23 +58,9 @@ void Engine::randomizeLocation()
     calcNewCamLoc();
 }
 
-void Engine::setTerrainParams(int size, int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier, int contrast)
+void Engine::setTerrainParams(int size, PerlinNoise::PerlinParameters &params)
 {
-    terrain_->setFrequency(frequency);
-    terrain_->setSeed(seed);
-    terrain_->setLacunarity(lacunarity);
-    terrain_->setPersistence(persistence);
-    terrain_->setOctaves(octaves);
-    terrain_->setHeightMultiplier(heightMultiplier);
-    terrain_->setContrast(contrast);
-    if (terrain_->getSize() != size)
-    {
-        terrain_->setSize(size);
-    }
-    else
-    {
-        terrain_->regenerate();
-    }
+    terrain_->setParams(size, params);
     calcNewCamLoc();
 }
 
@@ -150,7 +136,6 @@ void Engine::moveCamera(int x, int z)
     {
         cameraLocation_ += z * size + x;
         calcNewCamLoc();
-        renderer_->render(scene_);
     }
 }
 

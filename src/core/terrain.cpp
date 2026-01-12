@@ -133,11 +133,13 @@ float Terrain::calculateHeight(float x, float y)
 void Terrain::buildTerrain()
 {
     int i;
-    // generate heightmap
+    float epsilon = 0.01f;
+    // generate heightmap and calculate normals
     for (int y = 0; y < size_; y++)
     {
         for (int x = 0; x < size_; x++)
         {
+            // generate heightmap
             i = y * size_ + x;
             vertices_[i].x = x;
             vertices_[i].y = calculateHeight(x, y);
@@ -145,16 +147,8 @@ void Terrain::buildTerrain()
             vertices_[i].w = 1.0f;
             vertices_[i].u = (float)x * textureSpacing_;
             vertices_[i].v = (float)y * textureSpacing_;
-        }
-    }
 
-    // calculate normals
-    float epsilon = 0.01f;
-    for (int y = 0; y < size_; y++)
-    {
-        for (int x = 0; x < size_; x++)
-        {
-            i = y * size_ + x;
+            // calculate normals
             float prevValueX = calculateHeight((float)x - epsilon, y);
             float nxtValueX = calculateHeight((float)x + epsilon, y);
             float centralDifferenceX = (nxtValueX - prevValueX) / (2.0f * epsilon);

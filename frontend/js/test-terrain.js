@@ -118,9 +118,18 @@ function ZajParamValt() {
     let params = {};
     if (curr == "noise") {
         params = Module.getNoiseParameters();
+        let noiseSize = document.getElementById("noiseSize");
+        noiseSize.setAttribute("max", 500.0);
+        noiseSize.setAttribute("min", 1.0);
+        noiseSize.setAttribute("step", 1.0);
     } else {
         if (curr == "warp") {
             params = Module.getWarpParameters();
+            let noiseSize = document.getElementById("noiseSize");
+            noiseSize.setAttribute("max", 4.0);
+            noiseSize.setAttribute("min", 0.1);
+            noiseSize.setAttribute("step", 0.1);
+
         }
     }
     for (const key in params) {

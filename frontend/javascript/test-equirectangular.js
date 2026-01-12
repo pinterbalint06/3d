@@ -15,7 +15,7 @@ const canvasId = "canvas";
 function initModule() {
     console.log("module betoltve");
     Module.init(256, fokuszTavolsag, filmSzel, filmMag, jsCanvasSzelesseg, jsCanvasMagassag, n, f);
-    imgFromUrl("../imgs/cathedral.jpg");
+    imgFromUrl("../images/cathedral.jpg");
 
     let canvas = document.getElementById(canvasId);
     let inputControls = new CanvasInput(canvas, {

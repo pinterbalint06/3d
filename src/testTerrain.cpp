@@ -19,11 +19,19 @@ void init(int size, float focal, float filmW, float filmH, int imageW, int image
     setFrustum(focal, filmW, filmH, imageW, imageH, n, f);
 }
 
-void setTerrainParams(int size, int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier)
+void setTerrainParams(int size, PerlinNoise::PerlinParameters params)
 {
     if (gEngine)
     {
-        gEngine->setTerrainParams(size, seed, frequency, lacunarity, persistence, octaves, heightMultiplier);
+        gEngine->setTerrainParams(size, params);
+    }
+}
+
+void setWarpParams(int size, PerlinNoise::PerlinParameters params)
+{
+    if (gEngine)
+    {
+        gEngine->setWarpParams(size, params);
     }
 }
 
@@ -223,32 +231,93 @@ void setSteepness(float steepness)
     }
 }
 
-EMSCRIPTEN_BINDINGS(my_module)
+void setDomainWarp(bool domainWarp)
+{
+    if (gEngine)
+    {
+        gEngine->setDomainWarp(domainWarp);
+    }
+}
+
+PerlinNoise::PerlinParameters getNoiseParameters()
+{
+    PerlinNoise::PerlinParameters params;
+    if (gEngine)
+    {
+        params = gEngine->getNoiseParameters();
+    }
+    return params;
+}
+
+PerlinNoise::PerlinParameters getWarpParameters()
+{
+    PerlinNoise::PerlinParameters params;
+    if (gEngine)
+    {
+        params = gEngine->getWarpParameters();
+    }
+    return params;
+}
+
+EMSCRIPTEN_BINDINGS(structs)
+{
+    emscripten::value_object<PerlinNoise::PerlinParameters>("PerlinParameters")
+        .field("seed", &PerlinNoise::PerlinParameters::seed)
+        .field("octaveCount", &PerlinNoise::PerlinParameters::octaveCount)
+        .field("frequency", &PerlinNoise::PerlinParameters::frequency)
+        .field("amplitude", &PerlinNoise::PerlinParameters::amplitude)
+        .field("persistence", &PerlinNoise::PerlinParameters::persistence)
+        .field("lacunarity", &PerlinNoise::PerlinParameters::lacunarity)
+        .field("noiseSize", &PerlinNoise::PerlinParameters::noiseSize)
+        .field("scaling", &PerlinNoise::PerlinParameters::scaling)
+        .field("steepness", &PerlinNoise::PerlinParameters::steepness)
+        .field("contrast", &PerlinNoise::PerlinParameters::contrast);
+}
+
+EMSCRIPTEN_BINDINGS(core)
 {
     emscripten::function("init", &init);
-    emscripten::function("ujHely", &randomizeLocation);
+    emscripten::function("startRenderingLoop", &startRenderingLoop);
+}
+
+EMSCRIPTEN_BINDINGS(camera_controls)
+{
     emscripten::function("setFrustum", &setFrustum);
     emscripten::function("xyForog", &rotateCamera);
     emscripten::function("setRotate", &setRotate);
     emscripten::function("getXForog", &getPitch);
     emscripten::function("getYForog", &getYaw);
     emscripten::function("newCameraHeight", &newCameraHeight);
-    emscripten::function("newPerlinMap", &setTerrainParams);
+    emscripten::function("mozgas", &moveCamera);
+    emscripten::function("changeFocalLength", &changeFocalLength);
+}
+
+EMSCRIPTEN_BINDINGS(terrainGeneration)
+{
+    emscripten::function("ujHely", &randomizeLocation);
+    emscripten::function("setTerrainParams", &setTerrainParams);
+    emscripten::function("setWarpParams", &setWarpParams);
+    emscripten::function("setDomainWarp", &setDomainWarp);
+    emscripten::function("getNoiseParameters", &getNoiseParameters);
+    emscripten::function("getWarpParameters", &getWarpParameters);
+}
+
+EMSCRIPTEN_BINDINGS(visuals)
+{
     emscripten::function("newLightIntensity", &setLightIntensity);
     emscripten::function("newLightDirection", &setLightDirection);
-    emscripten::function("mozgas", &moveCamera);
-    emscripten::function("setGroundMaterial", &setGroundMaterial);
-    emscripten::function("setMaterialGrass", &setMaterialGrass);
-    emscripten::function("setMaterialDirt", &setMaterialDirt);
     emscripten::function("setLightColor", &setLightColor);
     emscripten::function("setAmbientLight", &setAmbientLight);
     emscripten::function("setShadingTechnique", &setShadingMode);
-    emscripten::function("render", &render);
-    emscripten::function("changeFocalLength", &changeFocalLength);
-    emscripten::function("startRenderingLoop", &startRenderingLoop);
+}
+
+EMSCRIPTEN_BINDINGS(material)
+{
+    emscripten::function("setGroundMaterial", &setGroundMaterial);
+    emscripten::function("setMaterialGrass", &setMaterialGrass);
+    emscripten::function("setMaterialDirt", &setMaterialDirt);
     emscripten::function("initTexture", &initTexture);
     emscripten::function("uploadTextureToGPU", &uploadTextureToGPU);
     emscripten::function("deleteTexture", &deleteTexture);
     emscripten::function("setTextureSpacing", &setTextureSpacing);
-    emscripten::function("setSteepness", &setSteepness);
 }

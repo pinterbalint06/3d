@@ -50,7 +50,7 @@ int main()
     renderer = new Renderer(canvID);
     renderer->setImageDimensions(width, height);
     terrain = new Terrain(2048);
-    terrain->setUpNoiseForGPU(renderer->getPerlinUBOloc());
+    terrain->setUpNoiseForGPU(renderer->getPerlinUBOloc(), renderer->getWarpUBOloc());
     terrain->regenerate();
     scene->addMesh(terrain);
     terrain->setMaterial(Materials::Material::Grass());

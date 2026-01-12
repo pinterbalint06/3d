@@ -13,7 +13,7 @@ Engine::Engine(int size)
     std::string canvID = "canvas";
     renderer_ = new Renderer(canvID);
     terrain_ = new Terrain(size);
-    terrain_->setUpNoiseForGPU(renderer_->getPerlinUBOloc());
+    terrain_->setUpNoiseForGPU(renderer_->getPerlinUBOloc(), renderer_->getWarpUBOloc());
     terrain_->setMaterial(Materials::Material::Grass());
     scene_->addMesh(terrain_);
     renderer_->setDefaultColor(135.0f, 206.0f, 235.0f);
@@ -58,22 +58,15 @@ void Engine::randomizeLocation()
     calcNewCamLoc();
 }
 
-void Engine::setTerrainParams(int size, int seed, float frequency, float lacunarity, float persistence, int octaves, float heightMultiplier)
+void Engine::setTerrainParams(int size, PerlinNoise::PerlinParameters &params)
 {
-    terrain_->setFrequency(frequency);
-    terrain_->setSeed(seed);
-    terrain_->setLacunarity(lacunarity);
-    terrain_->setPersistence(persistence);
-    terrain_->setOctaves(octaves);
-    terrain_->setHeightMultiplier(heightMultiplier);
-    if (terrain_->getSize() != size)
-    {
-        terrain_->setSize(size);
-    }
-    else
-    {
-        terrain_->regenerate();
-    }
+    terrain_->setParams(size, params);
+    calcNewCamLoc();
+}
+
+void Engine::setWarpParams(int size, PerlinNoise::PerlinParameters &params)
+{
+    terrain_->setWarpParams(size, params);
     calcNewCamLoc();
 }
 
@@ -132,6 +125,13 @@ void Engine::setTextureSpacing(float textureSpacing)
 void Engine::setSteepness(float steepness)
 {
     terrain_->setSteepness(steepness);
+    terrain_->regenerate();
+};
+
+void Engine::setDomainWarp(bool domainWarp)
+{
+    terrain_->setDomainWarp(domainWarp);
+    calcNewCamLoc();
 };
 
 void Engine::moveCamera(int x, int z)
@@ -142,7 +142,6 @@ void Engine::moveCamera(int x, int z)
     {
         cameraLocation_ += z * size + x;
         calcNewCamLoc();
-        renderer_->render(scene_);
     }
 }
 

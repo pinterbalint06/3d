@@ -7065,10 +7065,10 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var ASM_CONSTS = {
-  101120: () => { throw('A böngésződ nem támogatja a WebGL-t!'); },  
- 101171: ($0) => { throw("Sikertelen shader fordítás: " + UTF8ToString($0)); },  
- 101235: ($0) => { throw("Sikertelen shader összekapcsolás: " + UTF8ToString($0)); },  
- 101305: ($0) => { console.log('FPS: ' + $0); }
+  108128: () => { throw('A böngésződ nem támogatja a WebGL-t!'); },  
+ 108179: ($0) => { throw("Sikertelen shader fordítás: " + UTF8ToString($0)); },  
+ 108243: ($0) => { throw("Sikertelen shader összekapcsolás: " + UTF8ToString($0)); },  
+ 108313: ($0, $1) => { let fps = document.getElementById(UTF8ToString($1)); if (fps) { fps.innerText = $0; } }
 };
 function getWindowWidth() { return window.innerWidth; }
 function getWindowHeight() { return window.innerHeight; }

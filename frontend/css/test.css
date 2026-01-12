@@ -32,6 +32,21 @@ body {
     align-items: center;
 }
 
+.perlinParam {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.perlinParam label,
+.perlinParam output,
+.perlinParam input  {
+    width: 33%;
+}
+.perlinParam select  {
+    width: 66%;
+}
+
 .forog {
     transform: rotate(90deg);
 }

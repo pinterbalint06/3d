@@ -15,9 +15,25 @@ Terrain::Terrain(int size) : Mesh(size * size, (size - 1) * (size - 1) * 6)
     parameters.seed = 0;
     parameters.noiseSize = 150.0f;
     parameters.scaling = 1.0f / 128.0f;
-    parameters.steepness = 2.25f;
+    parameters.contrast = 1;
+    parameters.steepness = 1.0f;
     textureSpacing_ = 1.0f;
     perlinNoise_ = new PerlinNoise::Perlin(parameters);
+
+    PerlinNoise::PerlinParameters warpParameters;
+    warpParameters.amplitude = 2.0f;
+    warpParameters.lacunarity = 1.95f;
+    warpParameters.persistence = 0.375f;
+    warpParameters.octaveCount = 3;
+    warpParameters.frequency = 1.0f;
+    warpParameters.seed = 0;
+    warpParameters.noiseSize = 1.0f;
+    warpParameters.scaling = 1.0f / 128.0f;
+    warpParameters.contrast = 1.0f;
+    warpParameters.steepness = 1.0f;
+    textureSpacing_ = 1.0f;
+    warpNoise_ = new PerlinNoise::Perlin(warpParameters);
+    domainWarp_ = 0;
 }
 
 Terrain::~Terrain()
@@ -26,22 +42,39 @@ Terrain::~Terrain()
     {
         delete perlinNoise_;
     }
+    if (warpNoise_)
+    {
+        delete warpNoise_;
+    }
 }
 
-void Terrain::setSeed(int seed)
+void Terrain::updateNoiseSeed(int seed, PerlinNoise::Perlin *&noise)
 {
-    PerlinNoise::PerlinParameters parameters = perlinNoise_->getParameters();
-    parameters.seed = seed;
-    GLuint *uboLoc = perlinNoise_->getUBOloc();
-    if (perlinNoise_)
+    if (noise)
     {
-        delete perlinNoise_;
+        PerlinNoise::PerlinParameters parameters = noise->getParameters();
+        if (parameters.seed != seed)
+        {
+            parameters.seed = seed;
+            GLuint *uboLoc = noise->getUBOloc();
+            delete noise;
+            noise = new PerlinNoise::Perlin(parameters);
+            if (uboLoc)
+            {
+                noise->setUpGPU(uboLoc);
+            }
+        }
     }
-    perlinNoise_ = new PerlinNoise::Perlin(parameters);
-    if (uboLoc)
-    {
-        perlinNoise_->setUpGPU(uboLoc);
-    }
+}
+
+void Terrain::setSeedNoise(int seed)
+{
+    updateNoiseSeed(seed, perlinNoise_);
+}
+
+void Terrain::setSeedWarp(int seed)
+{
+    updateNoiseSeed(seed, warpNoise_);
 }
 
 void Terrain::setSize(int size)
@@ -50,7 +83,6 @@ void Terrain::setSize(int size)
     {
         size_ = size;
         resize(size_ * size_, (size_ - 1) * (size_ - 1) * 6);
-        regenerate();
     }
 }
 
@@ -60,43 +92,73 @@ void Terrain::regenerate()
     setUpOpenGL();
 }
 
+void Terrain::setParams(int size, PerlinNoise::PerlinParameters &params)
+{
+    setSeedNoise(params.seed);
+    setSize(size);
+    perlinNoise_->setParams(params);
+    regenerate();
+}
+void Terrain::setWarpParams(int size, PerlinNoise::PerlinParameters &params)
+{
+    setSeedWarp(params.seed);
+    setSize(size);
+    warpNoise_->setParams(params);
+    regenerate();
+}
+
+float Terrain::calculateHeight(float x, float y)
+{
+    float scale = perlinNoise_->getParameters().scaling;
+    float noiseX = x * scale;
+    float noiseY = y * scale;
+
+    if (domainWarp_ == 1)
+    {
+
+        float qx = warpNoise_->fbm(noiseX, noiseY);
+        float qy = warpNoise_->fbm(noiseX + 5.2, noiseY + 1.3);
+
+        // float rx = warpNoise_->fbm(noiseX + 2.0f * qx, noiseY + 2.0f * qy);
+        // float ry = warpNoise_->fbm(noiseX + 2.0f * qx, noiseY + 2.0f * qy);
+
+        float turbulence = 0.5f;
+
+        noiseX += qx * turbulence;
+        noiseY += qy * turbulence;
+    }
+    return perlinNoise_->fbm(noiseX, noiseY);
+}
+
 void Terrain::buildTerrain()
 {
     int i;
-    float scale = 1.0f / 128.0f;
-    // generate heightmap
+    float epsilon = 0.01f;
+    // generate heightmap and calculate normals
     for (int y = 0; y < size_; y++)
     {
         for (int x = 0; x < size_; x++)
         {
+            // generate heightmap
             i = y * size_ + x;
             vertices_[i].x = x;
-            vertices_[i].y = perlinNoise_->fbm(x * scale, y * scale);
+            vertices_[i].y = calculateHeight(x, y);
             vertices_[i].z = -y;
             vertices_[i].w = 1.0f;
             vertices_[i].u = (float)x * textureSpacing_;
             vertices_[i].v = (float)y * textureSpacing_;
-        }
-    }
 
-    // calculate normals
-    for (int y = 0; y < size_; y++)
-    {
-        for (int x = 0; x < size_; x++)
-        {
-            i = y * size_ + x;
-            // if it is already calculated get it from the heightmap if not calculate it
-            float prevValueX = x - 1 < 0 ? perlinNoise_->fbm(x * scale, y * scale) : vertices_[y * size_ + x - 1].y;
-            float nxtValueX = x + 1 > size_ - 1 ? perlinNoise_->fbm(x * scale, y * scale) : vertices_[y * size_ + x + 1].y;
-            float centralDifferenceX = (nxtValueX - prevValueX) * 0.5f;
+            // calculate normals
+            float prevValueX = calculateHeight((float)x - epsilon, y);
+            float nxtValueX = calculateHeight((float)x + epsilon, y);
+            float centralDifferenceX = (nxtValueX - prevValueX) / (2.0f * epsilon);
 
-            // if it is already calculated get it from the heightmap if not calculate it
-            float prevValueY = y - 1 < 0 ? perlinNoise_->fbm(x * scale, y * scale) : vertices_[(y - 1) * size_ + x].y;
-            float nxtValueY = y + 1 > size_ - 1 ? perlinNoise_->fbm(x * scale, y * scale) : vertices_[(y + 1) * size_ + x].y;
-            float centralDifferenceY = (nxtValueY - prevValueY) * 0.5f;
+            float prevValueY = calculateHeight(x, (float)y - epsilon);
+            float nxtValueY = calculateHeight(x, (float)y + epsilon);
+            float centralDifferenceY = (nxtValueY - prevValueY) / (2.0f * epsilon);
 
             vertices_[i].nx = -centralDifferenceX;
-            vertices_[i].ny = 1.0f;
+            vertices_[i].ny = perlinNoise_->getParameters().steepness;
             vertices_[i].nz = centralDifferenceY;
 
             float normLen = std::sqrt(vertices_[i].nx * vertices_[i].nx + vertices_[i].ny * vertices_[i].ny + vertices_[i].nz * vertices_[i].nz);
@@ -143,7 +205,17 @@ void Terrain::setTextureSpacing(float textureSpacing)
     setUpOpenGL();
 }
 
-void Terrain::setUpNoiseForGPU(GLuint *loc)
+void Terrain::setUpNoiseForGPU(GLuint *perlinLoc, GLuint *warpLoc)
 {
-    perlinNoise_->setUpGPU(loc);
+    perlinNoise_->setUpGPU(perlinLoc);
+    warpNoise_->setUpGPU(warpLoc);
+}
+
+void Terrain::setDomainWarp(bool domainWarp)
+{
+    if (domainWarp != domainWarp_)
+    {
+        domainWarp_ = domainWarp;
+        regenerate();
+    }
 }

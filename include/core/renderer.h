@@ -21,7 +21,7 @@ private:
     Shaders::SHADINGMODE currShadingMode_;
     std::map<Shaders::SHADINGMODE, std::unique_ptr<Shaders::Shader>> shaderPrograms_;
     fpsCounter *fps;
-    GLuint uboScene_, uboMat_, uboPerlin_, uboMesh_;
+    GLuint uboScene_, uboMat_, uboPerlin_, uboWarp_, uboMesh_;
     float rBuffer_, gBuffer_, bBuffer_;
 
     void createShadingPrograms();
@@ -34,6 +34,7 @@ public:
     ~Renderer();
 
     GLuint *getPerlinUBOloc() { return &uboPerlin_; };
+    GLuint *getWarpUBOloc() { return &uboWarp_; };
     void setShadingMode(Shaders::SHADINGMODE shadingMode);
     void setDefaultColor(float r, float g, float b)
     {

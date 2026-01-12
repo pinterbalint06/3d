@@ -93,7 +93,7 @@ function teszt() {
 function ujTerkep() {
     // 45-75ms
     let eleje = performance.now()
-    UjPerlinParam();
+    general();
     console.log("Új térkép idő:", performance.now() - eleje)
 }
 
@@ -102,15 +102,85 @@ function ujKameraMagassag() {
     Module.newCameraHeight(parseFloat(cHeight.value));
 }
 
-function UjPerlinParam() {
-    let size = document.getElementById("mapSize");
-    let seed = document.getElementById("seed");
-    let persistence = document.getElementById("persistence");
-    let lacunarity = document.getElementById("lacunarity");
-    let oktav = document.getElementById("oktav");
-    let frequency = document.getElementById("frequency");
-    let mult = document.getElementById("multiplier");
-    Module.newPerlinMap(parseInt(size.value), parseInt(seed.value), parseFloat(frequency.value), parseFloat(lacunarity.value), parseFloat(persistence.value), parseInt(oktav.value), parseFloat(mult.value));
+function UjPerlinParam(e) {
+    let id = "";
+    if (e) {
+        id = e.id;
+    }
+    let auto = document.getElementById("autoUpdate").checked;
+    if (id == "gomb" || auto) {
+        general();
+    }
+}
+
+function ZajParamValt() {
+    let curr = document.querySelector('input[name="noiseSettings"]:checked').value;
+    let params = {};
+    if (curr == "noise") {
+        params = Module.getNoiseParameters();
+        let noiseSize = document.getElementById("noiseSize");
+        noiseSize.setAttribute("max", 500.0);
+        noiseSize.setAttribute("min", 1.0);
+        noiseSize.setAttribute("step", 1.0);
+    } else {
+        if (curr == "warp") {
+            params = Module.getWarpParameters();
+            let noiseSize = document.getElementById("noiseSize");
+            noiseSize.setAttribute("max", 4.0);
+            noiseSize.setAttribute("min", 0.1);
+            noiseSize.setAttribute("step", 0.1);
+
+        }
+    }
+    for (const key in params) {
+        let element = document.getElementById(key);
+        if (element) {
+            element.value = params[key];
+            if (element.nextElementSibling) {
+                let ertek = params[key];
+                if (ertek % 1 != 0) {
+                    ertek = Math.round(1000 * ertek) / 1000;
+                }
+                element.nextElementSibling.value = ertek;
+            }
+        }
+    }
+}
+
+function general() {
+    let size = parseInt(document.getElementById("mapSize").value);
+    let seed = parseInt(document.getElementById("seed").value);
+    let persistence = parseFloat(document.getElementById("persistence").value);
+    let lacunarity = parseFloat(document.getElementById("lacunarity").value);
+    let oktav = parseInt(document.getElementById("octaveCount").value);
+    let frequency = parseFloat(document.getElementById("frequency").value);
+    let mult = parseFloat(document.getElementById("noiseSize").value);
+    let contrast = parseInt(document.getElementById("contrast").value);
+    let amplitude = parseInt(document.getElementById("amplitude").value);
+    let steepness = parseFloat(document.getElementById("steepness").value);
+
+    let parameters = {
+        "seed": seed,
+        "octaveCount": oktav,
+        "frequency": frequency,
+        "amplitude": amplitude,
+        "persistence": persistence,
+        "lacunarity": lacunarity,
+        "noiseSize": mult,
+        "scaling": 1.0 / 128.0,
+        "steepness": steepness,
+        "contrast": contrast
+    };
+    let curr = document.querySelector('input[name="noiseSettings"]:checked').value;
+    if (curr == "noise") {
+        Module.setTerrainParams(size, parameters);
+        UjDomainWarp();
+    } else {
+        if (curr == "warp") {
+            Module.setWarpParams(size, parameters);
+            UjDomainWarp();
+        }
+    }
 }
 
 function UjFenyIntenzitas() {
@@ -306,9 +376,9 @@ function setTexturaMeret() {
     Module.setTextureSpacing(1.0 / parseFloat(textureSpacing.value));
 }
 
-function UjMeredekseg() {
-    let steepness = document.getElementById("steepness");
-    Module.setSteepness(parseFloat(steepness.value));
+function UjDomainWarp() {
+    let domainWarp = document.getElementById("domainWarp");
+    Module.setDomainWarp(domainWarp.checked);
 }
 
 window.UjPerlinParam = UjPerlinParam;
@@ -330,4 +400,4 @@ window.ujAnyag = ujAnyag;
 window.ujUrlbol = ujUrlbol;
 window.texturaTorles = texturaTorles;
 window.setTexturaMeret = setTexturaMeret;
-window.UjMeredekseg = UjMeredekseg;
+window.ZajParamValt = ZajParamValt;

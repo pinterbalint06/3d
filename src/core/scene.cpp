@@ -31,6 +31,7 @@ void Scene::setAmbientLight(float ambientLightIntensity)
 
 void Scene::addMesh(Mesh *mesh)
 {
+    mesh->setUpOpenGL();
     meshes_.push_back(mesh);
 }
 

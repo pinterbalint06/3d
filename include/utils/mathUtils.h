@@ -62,14 +62,6 @@ namespace MathUtils
         m[10] = 1.0f;
         m[15] = 1.0f;
     }
-
-    inline void normalizeVector(float *vector)
-    {
-        float vectorLengthInv = 1 / std::sqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
-        vector[0] *= vectorLengthInv;
-        vector[1] *= vectorLengthInv;
-        vector[2] *= vectorLengthInv;
-    }
 }
 
 #endif

@@ -1,5 +1,4 @@
 #include <emscripten/emscripten.h>
-#include <emscripten/bind.h>
 #include <emscripten/html5.h>
 #include <emscripten/html5_webgl.h>
 #include <GLES3/gl3.h>
@@ -10,17 +9,15 @@
 #include "core/camera.h"
 #include "core/distantLight.h"
 #include "core/mesh.h"
-#include "core/terrain.h"
 #include "utils/mathUtils.h"
 #include "utils/fpsCounter.h"
+#include "utils/perlin.h"
 #include "core/vertex.h"
 #include <cstring>
 #include <map>
 
 Renderer::Renderer(std::string &canvasID)
 {
-    imageWidth_ = 100;
-    imageHeight_ = 100;
     rBuffer_ = 0.0f;
     gBuffer_ = 0.0f;
     bBuffer_ = 0.0f;
@@ -130,8 +127,7 @@ void Renderer::setShadingMode(Shaders::SHADINGMODE shadingMode)
 
 void Renderer::setImageDimensions(int imageW, int imageH)
 {
-    imageWidth_ = imageW;
-    imageHeight_ = imageH;
+    glViewport(0, 0, imageW, imageH);
 }
 
 void Renderer::updateSceneUBO(const Scene *scene)
@@ -187,7 +183,6 @@ void Renderer::updateMaterialUBO(const Materials::Material meshMat)
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, meshMat.texture->getGPULoc());
-        shaderPrograms_[currShadingMode_]->setUniformInt("uTexture0", 0);
         useTexture = 1;
     }
 
@@ -211,30 +206,7 @@ void Renderer::updateMeshUBO(Mesh *mesh)
     // update material
     updateMaterialUBO(mesh->getMaterial());
 
-    // if terrain upload perlin noise data for analytical normal calculation
-    int isTerrain = 0;
-    Terrain *terrain = dynamic_cast<Terrain *>(mesh);
-    if (terrain != nullptr)
-    {
-        isTerrain = 1;
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_2D, terrain->getNoisePermGPULoc());
-        shaderPrograms_[currShadingMode_]->setUniformInt("uNoisePermutationTable", 5);
-        glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_2D, terrain->getNoiseGradGPULoc());
-        shaderPrograms_[currShadingMode_]->setUniformInt("uNoiseGradients", 6);
-
-        glActiveTexture(GL_TEXTURE7);
-        glBindTexture(GL_TEXTURE_2D, terrain->getWarpPermGPULoc());
-        shaderPrograms_[currShadingMode_]->setUniformInt("uWarpPermutationTable", 7);
-        glActiveTexture(GL_TEXTURE8);
-        glBindTexture(GL_TEXTURE_2D, terrain->getWarpGradGPULoc());
-        shaderPrograms_[currShadingMode_]->setUniformInt("uWarpGradients", 8);
-
-        shaderPrograms_[currShadingMode_]->setUniformInt("uUseDomainWarp", terrain->getIsDomainWarp());
-    }
-
-    shaderPrograms_[currShadingMode_]->setUniformInt("uIsTerrain", isTerrain);
+    mesh->prepareRender(shaderPrograms_[currShadingMode_].get());
 }
 
 void Renderer::render(const Scene *scene)

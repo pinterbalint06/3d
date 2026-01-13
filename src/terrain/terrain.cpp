@@ -1,6 +1,8 @@
 #include "core/mesh.h"
-#include "core/terrain.h"
+#include "core/shader.h"
+#include "terrain/terrain.h"
 #include <cstring>
+#include <cmath>
 #include "utils/perlin.h"
 
 Terrain::Terrain(int size) : Mesh(size * size, (size - 1) * (size - 1) * 6)
@@ -218,4 +220,22 @@ void Terrain::setDomainWarp(bool domainWarp)
         domainWarp_ = domainWarp;
         regenerate();
     }
+}
+
+void Terrain::prepareRender(Shaders::Shader *shader)
+{
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, getNoisePermGPULoc());
+
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, getNoiseGradGPULoc());
+
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_2D, getWarpPermGPULoc());
+
+    glActiveTexture(GL_TEXTURE8);
+    glBindTexture(GL_TEXTURE_2D, getWarpGradGPULoc());
+
+    shader->setUniformInt("uUseDomainWarp", domainWarp_);
+    shader->setUniformInt("uIsTerrain", 1);
 }

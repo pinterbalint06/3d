@@ -1,6 +1,7 @@
 #include "core/mesh.h"
 #include "core/vertex.h"
 #include "utils/mathUtils.h"
+#include "core/shader.h"
 #include <cstdint>
 #include <GLES3/gl3.h>
 
@@ -100,4 +101,9 @@ void Mesh::resize(int vertexCount, int indexCount)
     indexCount_ = indexCount;
     vertices_ = (Vertex *)malloc(vertexCount_ * sizeof(Vertex));
     indices_ = (uint32_t *)malloc(indexCount_ * sizeof(uint32_t));
+}
+
+void Mesh::prepareRender(Shaders::Shader *shader)
+{
+    shader->setUniformInt("uIsTerrain", 0);
 }

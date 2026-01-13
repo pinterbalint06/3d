@@ -2,24 +2,17 @@
 #include "core/mesh.h"
 #include "core/scene.h"
 #include "core/renderer.h"
-#include "core/terrain.h"
 #include "core/vertex.h"
 #include "core/texture.h"
 #include <string>
+#include <emscripten/html5.h>
 
-Engine::Engine(int size)
+Engine::Engine(std::string canvID)
 {
+    canvas_ = canvID;
     scene_ = new Scene();
-    std::string canvID = "canvas";
-    renderer_ = new Renderer(canvID);
-    terrain_ = new Terrain(size);
-    terrain_->setUpNoiseForGPU(renderer_->getPerlinUBOloc(), renderer_->getWarpUBOloc());
-    terrain_->setMaterial(Materials::Material::Grass());
-    scene_->addMesh(terrain_);
-    renderer_->setDefaultColor(135.0f, 206.0f, 235.0f);
-    cameraHeight_ = 3.8;
-    cameraLocation_ = 0;
-    calcNewCamLoc();
+    renderer_ = new Renderer(canvas_);
+    setFrustum(18.0f, 25.4f, 25.4f, 1000, 1000, 0.1f, 1000.0f);
 }
 
 Engine::~Engine()
@@ -28,46 +21,10 @@ Engine::~Engine()
     {
         delete scene_;
     }
-    if (terrain_)
-    {
-        delete terrain_;
-    }
     if (renderer_)
     {
         delete renderer_;
     }
-}
-
-void Engine::calcNewCamLoc()
-{
-    Vertex vertex = terrain_->getVertices()[cameraLocation_];
-    Vertex worldSpaceVert;
-    worldSpaceVert.x = vertex.x;
-    worldSpaceVert.y = vertex.y;
-    worldSpaceVert.z = vertex.z;
-    worldSpaceVert.w = vertex.w;
-
-    float *modelMatrix = terrain_->getModelMatrix();
-    worldSpaceVert.multWithMatrix(modelMatrix);
-    scene_->getCamera()->setPosition(worldSpaceVert.x, worldSpaceVert.y + cameraHeight_, worldSpaceVert.z);
-}
-
-void Engine::randomizeLocation()
-{
-    cameraLocation_ = rand() % (terrain_->getVertexCount());
-    calcNewCamLoc();
-}
-
-void Engine::setTerrainParams(int size, PerlinNoise::PerlinParameters &params)
-{
-    terrain_->setParams(size, params);
-    calcNewCamLoc();
-}
-
-void Engine::setWarpParams(int size, PerlinNoise::PerlinParameters &params)
-{
-    terrain_->setWarpParams(size, params);
-    calcNewCamLoc();
 }
 
 void Engine::setLightIntensity(float intensity)
@@ -75,20 +32,9 @@ void Engine::setLightIntensity(float intensity)
     scene_->getLight()->setIntensity(intensity);
 }
 
-void Engine::setCameraHeight(float cameraHeight)
-{
-    cameraHeight_ = cameraHeight;
-    calcNewCamLoc();
-}
-
 void Engine::setLightDirection(float x, float y, float z)
 {
     scene_->getLight()->setDirection(x, y, z);
-}
-
-void Engine::setGroundMaterial(Materials::Material material)
-{
-    terrain_->setMaterial(material);
 }
 
 void Engine::setShadingMode(Shaders::SHADINGMODE shadingmode)
@@ -117,32 +63,12 @@ void Engine::setFocalLength(float focal)
     scene_->getCamera()->setFocalLength(focal);
 }
 
-void Engine::setTextureSpacing(float textureSpacing)
+void Engine::setCanvasSize(int width, int height)
 {
-    terrain_->setTextureSpacing(textureSpacing);
-}
-
-void Engine::setSteepness(float steepness)
-{
-    terrain_->setSteepness(steepness);
-    terrain_->regenerate();
-};
-
-void Engine::setDomainWarp(bool domainWarp)
-{
-    terrain_->setDomainWarp(domainWarp);
-    calcNewCamLoc();
-};
-
-void Engine::moveCamera(int x, int z)
-{
-    int size = terrain_->getSize();
-    int newLocation = cameraLocation_ + z * size + x;
-    if (!((x == -1 && newLocation % size == size - 1) || (x == 1 && newLocation % size == 0) || (newLocation < 0) || (newLocation >= size * size)))
-    {
-        cameraLocation_ += z * size + x;
-        calcNewCamLoc();
-    }
+    scene_->getCamera()->setImageDimensions(width, height);
+    std::string canvID = "#" + canvas_;
+    emscripten_set_canvas_element_size(canvID.c_str(), width, height);
+    renderer_->setImageDimensions(width, height);
 }
 
 void Engine::rotateCamera(float dPitch, float dYaw)

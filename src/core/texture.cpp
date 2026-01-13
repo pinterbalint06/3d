@@ -1,7 +1,4 @@
 #include "core/texture.h"
-#include <vector>
-#include <algorithm>
-#include <cmath>
 #include <cstdint>
 #include <GLES3/gl3.h>
 
@@ -28,7 +25,10 @@ Texture::~Texture()
 
 void Texture::uploadToGPU()
 {
-    glGenTextures(1, &textureGL_);
+    if (textureGL_ == 0)
+    {
+        glGenTextures(1, &textureGL_);
+    }
     glBindTexture(GL_TEXTURE_2D, textureGL_);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_, height_, 0, GL_RGB, GL_UNSIGNED_BYTE, imgData_);
     glGenerateMipmap(GL_TEXTURE_2D);

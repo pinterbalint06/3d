@@ -51,16 +51,19 @@ namespace Materials
         Texture *texture;
 
         /**
-         * @brief Creates a basic material with a specific color.
+         * @brief Creates a basic material with specific attributes.
          * @param r Red component.
          * @param g Green component.
          * @param b Blue component.
-         * @return Material A default material with the specified albedo.
+         * @return Material A default material with the specified attributes.
          */
-        static Material createMaterial(float r, float g, float b)
+        static Material createMaterial(Color albedo, float diffuseness, float specularity, float shininess)
         {
             Material returnMat;
-            returnMat.albedo = Color::fromRGB(r, g, b);
+            returnMat.albedo = albedo;
+            returnMat.diffuseness = diffuseness;
+            returnMat.specularity = specularity;
+            returnMat.shininess = shininess;
             returnMat.texture = nullptr;
             return returnMat;
         }

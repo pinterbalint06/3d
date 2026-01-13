@@ -1,53 +1,37 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
+#include <cstdint>
 #include "core/scene.h"
 #include "core/camera.h"
 #include "core/shader.h"
 #include "core/renderer.h"
-#include "core/material.h"
-#include "utils/perlin.h"
-#include "core/terrain.h"
 
 class Mesh;
 
 class Engine
 {
-private:
+protected:
     Scene *scene_;
-    Terrain *terrain_;
     Renderer *renderer_;
-    float cameraHeight_;
-    int cameraLocation_;
-
-    void calcNewCamLoc();
+    std::string canvas_;
 
 public:
-    Engine(int size);
-    ~Engine();
+    Engine(std::string canvID);
+    virtual ~Engine();
 
-    PerlinNoise::PerlinParameters getNoiseParameters() { return terrain_->getNoiseParameters(); };
-    PerlinNoise::PerlinParameters getWarpParameters() { return terrain_->getWarpParameters(); };
-
-    void setGroundMaterial(Materials::Material material);
-    void setCameraHeight(float cameraHeight);
     void setLightDirection(float x, float y, float z);
-    void setTerrainParams(int size, PerlinNoise::PerlinParameters &params);
-    void setWarpParams(int size, PerlinNoise::PerlinParameters &params);
+
     void setLightIntensity(float intensity);
     void setShadingMode(Shaders::SHADINGMODE shadingmode);
     void setFrustum(float focal, float filmW, float filmH, int imageW, int imageH, float n, float f);
     void setLightColor(float r, float g, float b);
     void setAmbientLight(float ambientLightIntensity);
     void setFocalLength(float focal);
-    void setTextureSpacing(float textureSpacing);
-    void setSteepness(float steepness);
-    void setDomainWarp(bool domainWarp);
+    void setCanvasSize(int width, int height);
 
-    void moveCamera(int x, int z);
     void rotateCamera(float dPitch, float dYaw);
     void setCameraRotation(float pitch, float yaw);
-    void randomizeLocation();
     void render() { renderer_->render(scene_); };
     uint8_t *initTexture(int width, int height);
     void uploadTextureToGPU();

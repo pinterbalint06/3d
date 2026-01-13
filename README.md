@@ -24,7 +24,7 @@
     emcmake cmake ..
     ```
 
-    Ha azt szeretnénk, hogy a build fájlokat átmásolja a frontend/js mappába.
+    Ha azt szeretnénk, hogy a build fájlokat átmásolja a frontend/javascript mappába.
 
     ```bash
     emcmake cmake -DCOPYFILES=ON ..

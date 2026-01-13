@@ -1,30 +1,45 @@
 import { CanvasInput } from './CanvasInput.js';
 
+// |------------------|
+// | GLOBAL VARIABLES |
+// |------------------|
 // kamera tulajdonsagai
-let fokuszTavolsag = 18.0; // mm focalLength
-const filmSzel = 25.4;
-const filmMag = 25.4;
+let fokuszTavolsag = 18.0;
+const canvasId = "canvas";
 const jsCanvasSzelesseg = 1000;
 const jsCanvasMagassag = 1000;
-// near clipping plane - kozel vagasi sik
-const n = 0.1;
-// far clipping plane - tavol vagasi sik
-const f = 1000;
-const canvasId = "canvas";
+let equirectangularEngine;
+
+// |--------------------|
+// | UTILITIES AND MATH |
+// |--------------------|
+
+function degToRad(angle) {
+    return angle * (Math.PI / 180.0);
+}
+
+// |------------------------------|
+// | MAIN LOOP AND INITIALIZATION |
+// |------------------------------|
+
+function mainLoop() {
+    equirectangularEngine.render();
+    requestAnimationFrame(mainLoop);
+}
 
 function initModule() {
     console.log("module betoltve");
-    Module.init(256, fokuszTavolsag, filmSzel, filmMag, jsCanvasSzelesseg, jsCanvasMagassag, n, f);
+    equirectangularEngine = new Module.EquirectangularEngine(canvasId);
     imgFromUrl("../images/cathedral.jpg");
 
     let canvas = document.getElementById(canvasId);
     let inputControls = new CanvasInput(canvas, {
         focalLength: fokuszTavolsag,
         onRotate: (x, y) => {
-            xyForgas(x, y);
+            rotateCamera(x, y);
         },
         onZoom: (ujFokuszTavolsag) => {
-            Module.changeFocalLength(ujFokuszTavolsag);
+            equirectangularEngine.setFocalLength(ujFokuszTavolsag);
         }
     });
 }
@@ -43,14 +58,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 });
 
+// |------------------------|
+// | MATERIALS AND TEXTURES |
+// |------------------------|
+
 function ujUrlbol() {
     imgFromUrl(document.getElementById("url").value);
-}
-
-function ujElsmitas() {
-    let elsimitas = document.getElementById("antialias");
-    Module.setAntialias(parseInt(elsimitas.value));
-    drawImage();
 }
 
 function imgFromUrl(url) {
@@ -65,7 +78,7 @@ function imgFromUrl(url) {
         let imgData = ctx.getImageData(0, 0, this.width, this.height);
         let rgbaData = imgData.data;
 
-        const ptr = Module.initTexture(this.width, this.height);
+        const ptr = equirectangularEngine.initTexture(this.width, this.height);
         let rgbData = new Uint8Array(
             Module.HEAPU8.buffer,
             ptr,
@@ -80,16 +93,21 @@ function imgFromUrl(url) {
             rgbData[index] = rgbaData[i + 2];
             index++;
         }
-        Module.uploadTextureToGPU();
-        Module.startRenderingLoop();
+        equirectangularEngine.uploadTextureToGPU();
+        requestAnimationFrame(mainLoop);
     };
     img.src = url;
 }
 
-function xyForgas(xszoggel, yszoggel) {
-    Module.xyForog(xszoggel * (Math.PI / 180), yszoggel * (Math.PI / 180));
+window.ujUrlbol = ujUrlbol;
+
+// |---------------------|
+// | CAMERA AND MOVEMENT |
+// |---------------------|
+
+// rotate camera by degree
+function rotateCamera(pitch, yaw) {
+    equirectangularEngine.rotateCamera(degToRad(pitch), degToRad(yaw))
 }
 
-window.xyForgas = xyForgas;
-window.ujUrlbol = ujUrlbol;
-window.ujElsmitas = ujElsmitas;
+window.xyForgas = rotateCamera;

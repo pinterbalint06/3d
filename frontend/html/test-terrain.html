@@ -7,7 +7,7 @@
     <title>Test terrain</title>
     <link rel="stylesheet" href="../css/test.css">
     <script type="module" src="../javascript/test-terrain.js"></script>
-    <script src="../javascript/testTerrainWASM.js"></script>
+    <script src="../javascript/terrain.js"></script>
 </head>
 
 <body>
@@ -94,13 +94,13 @@
             <div class="col gap">
                 <h2>Renderelés:</h2>
                 <p>FPS: <span id="fps"></span></p>
-                <label for="antialias">Élsimítás:</label>
+                <!-- <label for="antialias">Élsimítás:</label>
                 <select name="antialias" id="antialias" onchange="ujElsmitas();">
                     <option value="1" selected>1x</option>
                     <option value="4">4x</option>
                     <option value="9">9x</option>
                     <option value="16">16x</option>
-                </select>
+                </select> -->
                 <h2>Cubemap gyorsaság:</h2>
                 <button type="button" onclick="teszt();">Teszt</button>
                 <p>Idő:<span id="ido"></span> ms</p>

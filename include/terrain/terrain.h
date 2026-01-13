@@ -3,6 +3,7 @@
 
 #include "utils/perlin.h"
 #include "core/mesh.h"
+#include "core/shader.h"
 
 typedef unsigned int GLuint;
 
@@ -55,6 +56,8 @@ public:
     void setTextureSpacing(float textureSpacing);
     void setUpNoiseForGPU(GLuint *perlinLoc, GLuint *warpLoc);
     void setDomainWarp(bool domainWarp);
+
+    void prepareRender(Shaders::Shader *shader) override;
 };
 
 #endif

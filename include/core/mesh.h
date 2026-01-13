@@ -2,6 +2,7 @@
 #define MESH_H
 #include <emscripten/emscripten.h>
 #include "core/material.h"
+#include "core/shader.h"
 #include "core/vertex.h"
 #include <cstdint>
 #include <GLES3/gl3.h>
@@ -58,6 +59,8 @@ public:
 
     // setters
     void setMaterial(Materials::Material material) { material_ = material; }
+
+    virtual void prepareRender(Shaders::Shader *shader);
 
     Mesh(const Mesh &) = delete;
     Mesh &operator=(const Mesh &) = delete;

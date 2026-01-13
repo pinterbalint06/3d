@@ -49,27 +49,6 @@ EMSCRIPTEN_BINDINGS(structs)
 
 EMSCRIPTEN_BINDINGS(terrainEngineBinding)
 {
-    emscripten::class_<Engine>("Engine")
-        .function("setLightDirection", &TerrainEngine::setLightDirection)
-        .function("setLightIntensity", &TerrainEngine::setLightIntensity)
-        .function("setShadingMode", &TerrainEngine::setShadingMode)
-        .function("setFrustum", &TerrainEngine::setFrustum)
-        .function("setLightColor", &TerrainEngine::setLightColor)
-        .function("setAmbientLight", &TerrainEngine::setAmbientLight)
-        .function("setFocalLength", &TerrainEngine::setFocalLength)
-        .function("rotateCamera", &TerrainEngine::rotateCamera)
-        .function("setCameraRotation", &TerrainEngine::setCameraRotation)
-        .function("render", &TerrainEngine::render)
-        .function("initTexture", emscripten::optional_override(
-                                     [](TerrainEngine &self, int width, int height) -> int
-                                     {
-                                         return (int)self.initTexture(width, height);
-                                     }))
-        .function("uploadTextureToGPU", &TerrainEngine::uploadTextureToGPU)
-        .function("deleteTexture", &TerrainEngine::deleteTexture)
-        .function("getPitch", &TerrainEngine::getPitch)
-        .function("getYaw", &TerrainEngine::getYaw);
-
     emscripten::class_<TerrainEngine, emscripten::base<Engine>>("TerrainEngine")
         .constructor<std::string, int>()
         .function("getNoiseParameters", &TerrainEngine::getNoiseParameters)

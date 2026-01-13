@@ -18,8 +18,6 @@
 
 Renderer::Renderer(std::string &canvasID)
 {
-    imageWidth_ = 100;
-    imageHeight_ = 100;
     rBuffer_ = 0.0f;
     gBuffer_ = 0.0f;
     bBuffer_ = 0.0f;
@@ -129,8 +127,7 @@ void Renderer::setShadingMode(Shaders::SHADINGMODE shadingMode)
 
 void Renderer::setImageDimensions(int imageW, int imageH)
 {
-    imageWidth_ = imageW;
-    imageHeight_ = imageH;
+    glViewport(0, 0, imageW, imageH);
 }
 
 void Renderer::updateSceneUBO(const Scene *scene)

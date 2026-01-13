@@ -5,9 +5,7 @@
 
 EMSCRIPTEN_BINDINGS(equirectangularEngineBinding)
 {
-    emscripten::class_<Engine>("Engine");
-    emscripten::class_<EquirectangularEngine, emscripten::base<Engine>>("EquirectangularEngine")
-        .constructor<std::string>()
+    emscripten::class_<Engine>("Engine")
         .function("setLightDirection", &EquirectangularEngine::setLightDirection)
         .function("setLightIntensity", &EquirectangularEngine::setLightIntensity)
         .function("setShadingMode", &EquirectangularEngine::setShadingMode)
@@ -27,4 +25,7 @@ EMSCRIPTEN_BINDINGS(equirectangularEngineBinding)
         .function("deleteTexture", &EquirectangularEngine::deleteTexture)
         .function("getPitch", &EquirectangularEngine::getPitch)
         .function("getYaw", &EquirectangularEngine::getYaw);
+
+    emscripten::class_<EquirectangularEngine, emscripten::base<Engine>>("EquirectangularEngine")
+        .constructor<std::string>();
 }

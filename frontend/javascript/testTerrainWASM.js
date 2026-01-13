@@ -7323,6 +7323,9 @@ async function createWasm() {
     };
   var _glVertexAttribPointer = _emscripten_glVertexAttribPointer;
 
+  var _emscripten_glViewport = (x0, x1, x2, x3) => GLctx.viewport(x0, x1, x2, x3);
+  var _glViewport = _emscripten_glViewport;
+
 
 
   var FS_createPath = (...args) => FS.createPath(...args);
@@ -7897,10 +7900,10 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var ASM_CONSTS = {
-  110752: () => { throw('A böngésződ nem támogatja a WebGL-t!'); },  
- 110803: ($0) => { throw("Sikertelen shader fordítás: " + UTF8ToString($0)); },  
- 110867: ($0) => { throw("Sikertelen shader összekapcsolás: " + UTF8ToString($0)); },  
- 110937: ($0, $1) => { let fps = document.getElementById(UTF8ToString($1)); if (fps) { fps.innerText = $0; } }
+  110768: () => { throw('A böngésződ nem támogatja a WebGL-t!'); },  
+ 110819: ($0) => { throw("Sikertelen shader fordítás: " + UTF8ToString($0)); },  
+ 110883: ($0) => { throw("Sikertelen shader összekapcsolás: " + UTF8ToString($0)); },  
+ 110953: ($0, $1) => { let fps = document.getElementById(UTF8ToString($1)); if (fps) { fps.innerText = $0; } }
 };
 
 // Imports from the Wasm binary.
@@ -8117,6 +8120,8 @@ var wasmImports = {
   glUseProgram: _glUseProgram,
   /** @export */
   glVertexAttribPointer: _glVertexAttribPointer,
+  /** @export */
+  glViewport: _glViewport,
   /** @export */
   proc_exit: _proc_exit
 };

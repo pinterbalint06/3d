@@ -5683,6 +5683,11 @@ async function createWasm() {
     };
   var _emscripten_webgl_create_context = _emscripten_webgl_do_create_context;
 
+  var _emscripten_webgl_destroy_context = (contextHandle) => {
+      if (GL.currentContext == contextHandle) GL.currentContext = 0;
+      GL.deleteContext(contextHandle);
+    };
+
   var _emscripten_webgl_make_context_current = (contextHandle) => {
       var success = GL.makeContextCurrent(contextHandle);
       return success ? 0 : -5;
@@ -7065,10 +7070,10 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var ASM_CONSTS = {
-  108128: () => { throw('A böngésződ nem támogatja a WebGL-t!'); },  
- 108179: ($0) => { throw("Sikertelen shader fordítás: " + UTF8ToString($0)); },  
- 108243: ($0) => { throw("Sikertelen shader összekapcsolás: " + UTF8ToString($0)); },  
- 108313: ($0, $1) => { let fps = document.getElementById(UTF8ToString($1)); if (fps) { fps.innerText = $0; } }
+  108192: () => { throw('A böngésződ nem támogatja a WebGL-t!'); },  
+ 108243: ($0) => { throw("Sikertelen shader fordítás: " + UTF8ToString($0)); },  
+ 108307: ($0) => { throw("Sikertelen shader összekapcsolás: " + UTF8ToString($0)); },  
+ 108377: ($0, $1) => { let fps = document.getElementById(UTF8ToString($1)); if (fps) { fps.innerText = $0; } }
 };
 function getWindowWidth() { return window.innerWidth; }
 function getWindowHeight() { return window.innerHeight; }
@@ -7182,6 +7187,8 @@ var wasmImports = {
   emscripten_set_main_loop: _emscripten_set_main_loop,
   /** @export */
   emscripten_webgl_create_context: _emscripten_webgl_create_context,
+  /** @export */
+  emscripten_webgl_destroy_context: _emscripten_webgl_destroy_context,
   /** @export */
   emscripten_webgl_make_context_current: _emscripten_webgl_make_context_current,
   /** @export */

@@ -14,6 +14,7 @@ class Engine
 protected:
     Scene *scene_;
     Renderer *renderer_;
+    std::string canvas_;
 
 public:
     Engine(std::string canvID);
@@ -27,6 +28,7 @@ public:
     void setLightColor(float r, float g, float b);
     void setAmbientLight(float ambientLightIntensity);
     void setFocalLength(float focal);
+    void setCanvasSize(int width, int height);
 
     void rotateCamera(float dPitch, float dYaw);
     void setCameraRotation(float pitch, float yaw);

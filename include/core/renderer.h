@@ -16,7 +16,6 @@ class Mesh;
 class Renderer
 {
 private:
-    int imageWidth_, imageHeight_;
     int ctx_;
     Shaders::SHADINGMODE currShadingMode_;
     std::map<Shaders::SHADINGMODE, std::unique_ptr<Shaders::Shader>> shaderPrograms_;

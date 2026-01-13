@@ -10,6 +10,7 @@ TerrainEngine::TerrainEngine(std::string canvID, int size) : Engine(canvID)
     terrain_ = new Terrain(size);
     terrain_->setUpNoiseForGPU(renderer_->getPerlinUBOloc(), renderer_->getWarpUBOloc());
     terrain_->setMaterial(Materials::Material::Grass());
+    terrain_->regenerate();
     scene_->addMesh(terrain_);
     renderer_->setDefaultColor(135.0f, 206.0f, 235.0f);
     cameraHeight_ = 3.8;

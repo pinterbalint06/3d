@@ -49,19 +49,7 @@ EMSCRIPTEN_BINDINGS(structs)
 
 EMSCRIPTEN_BINDINGS(terrainEngineBinding)
 {
-    emscripten::class_<Engine>("Engine");
-    emscripten::class_<TerrainEngine, emscripten::base<Engine>>("TerrainEngine")
-        .constructor<std::string, int>()
-        .function("getNoiseParameters", &TerrainEngine::getNoiseParameters)
-        .function("setTerrainParams", &TerrainEngine::setTerrainParams)
-        .function("getWarpParameters", &TerrainEngine::getWarpParameters)
-        .function("setWarpParams", &TerrainEngine::setWarpParams)
-        .function("setCameraHeight", &TerrainEngine::setCameraHeight)
-        .function("setTextureSpacing", &TerrainEngine::setTextureSpacing)
-        .function("setDomainWarp", &TerrainEngine::setDomainWarp)
-        .function("setGroundMaterial", &TerrainEngine::setGroundMaterial)
-        .function("randomizeLocation", &TerrainEngine::randomizeLocation)
-        .function("moveCamera", &TerrainEngine::moveCamera)
+    emscripten::class_<Engine>("Engine")
         .function("setLightDirection", &TerrainEngine::setLightDirection)
         .function("setLightIntensity", &TerrainEngine::setLightIntensity)
         .function("setShadingMode", &TerrainEngine::setShadingMode)
@@ -81,4 +69,17 @@ EMSCRIPTEN_BINDINGS(terrainEngineBinding)
         .function("deleteTexture", &TerrainEngine::deleteTexture)
         .function("getPitch", &TerrainEngine::getPitch)
         .function("getYaw", &TerrainEngine::getYaw);
+
+    emscripten::class_<TerrainEngine, emscripten::base<Engine>>("TerrainEngine")
+        .constructor<std::string, int>()
+        .function("getNoiseParameters", &TerrainEngine::getNoiseParameters)
+        .function("setTerrainParams", &TerrainEngine::setTerrainParams)
+        .function("getWarpParameters", &TerrainEngine::getWarpParameters)
+        .function("setWarpParams", &TerrainEngine::setWarpParams)
+        .function("setCameraHeight", &TerrainEngine::setCameraHeight)
+        .function("setTextureSpacing", &TerrainEngine::setTextureSpacing)
+        .function("setDomainWarp", &TerrainEngine::setDomainWarp)
+        .function("setGroundMaterial", &TerrainEngine::setGroundMaterial)
+        .function("randomizeLocation", &TerrainEngine::randomizeLocation)
+        .function("moveCamera", &TerrainEngine::moveCamera);
 }

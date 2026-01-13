@@ -5,11 +5,13 @@
 #include "core/vertex.h"
 #include "core/texture.h"
 #include <string>
+#include <emscripten/html5.h>
 
 Engine::Engine(std::string canvID)
 {
+    canvas_ = canvID;
     scene_ = new Scene();
-    renderer_ = new Renderer(canvID);
+    renderer_ = new Renderer(canvas_);
     setFrustum(18.0f, 25.4f, 25.4f, 1000, 1000, 0.1f, 1000.0f);
 }
 
@@ -59,6 +61,14 @@ void Engine::setAmbientLight(float ambientLightIntensity)
 void Engine::setFocalLength(float focal)
 {
     scene_->getCamera()->setFocalLength(focal);
+}
+
+void Engine::setCanvasSize(int width, int height)
+{
+    scene_->getCamera()->setImageDimensions(width, height);
+    std::string canvID = "#" + canvas_;
+    emscripten_set_canvas_element_size(canvID.c_str(), width, height);
+    renderer_->setImageDimensions(width, height);
 }
 
 void Engine::rotateCamera(float dPitch, float dYaw)

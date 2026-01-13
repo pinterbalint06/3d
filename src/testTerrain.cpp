@@ -4,22 +4,7 @@
 #include "core/shader.h"
 #include "utils/perlin.h"
 #include "core/terrainEngine.h"
-
-// void setMaterialGrass()
-// {
-//     if (gEngine)
-//     {
-//         gEngine->setGroundMaterial(Materials::Material::Grass());
-//     }
-// }
-
-// void setMaterialDirt()
-// {
-//     if (gEngine)
-//     {
-//         gEngine->setGroundMaterial(Materials::Material::Dirt());
-//     }
-// }
+#include "core/material.h"
 
 EMSCRIPTEN_BINDINGS(enums)
 {
@@ -42,6 +27,24 @@ EMSCRIPTEN_BINDINGS(structs)
         .field("scaling", &PerlinNoise::PerlinParameters::scaling)
         .field("steepness", &PerlinNoise::PerlinParameters::steepness)
         .field("contrast", &PerlinNoise::PerlinParameters::contrast);
+
+    emscripten::class_<Materials::Color>("Color")
+        .constructor<>()
+        .property("r", &Materials::Color::r)
+        .property("g", &Materials::Color::g)
+        .property("b", &Materials::Color::b)
+        .class_function("fromRGB", &Materials::Color::fromRGB);
+
+    emscripten::class_<Materials::Material>("Material")
+        .constructor<>()
+        .property("albedo", &Materials::Material::albedo)
+        .property("diffuseness", &Materials::Material::diffuseness)
+        .property("specularity", &Materials::Material::specularity)
+        .property("shininess", &Materials::Material::shininess)
+        .property("texture", &Materials::Material::texture, emscripten::allow_raw_pointers())
+        .class_function("Grass", &Materials::Material::Grass)
+        .class_function("Dirt", &Materials::Material::Dirt)
+        .class_function("createMaterial", &Materials::Material::createMaterial);
 }
 
 EMSCRIPTEN_BINDINGS(terrainEngineBinding)

@@ -41,7 +41,7 @@ function initModule() {
     console.log("module betoltve");
     terrainEngine = new Module.TerrainEngine("canvas", meret);
     requestAnimationFrame(mainLoop);
-    ujTerkep();
+    generalDomborzat();
 
     let canvas = document.getElementById(canvasId);
     let inputControls = new CanvasInput(canvas, {
@@ -89,38 +89,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 });
 
-function irany(pitch, yaw) {
-    terrainEngine.setCameraRotation(degToRad(pitch), degToRad(yaw));
-}
-
-// mennyi idő lenne lerenderelni a cubemapet
-function teszt() {
-    let tempX = terrainEngine.getPitch() * (180 / Math.PI);
-    let tempY = terrainEngine.getYaw() * (180 / Math.PI);
-    let most = performance.now();
-    irany(90, 0);
-    terrainEngine.render();
-    irany(-90, 0);
-    terrainEngine.render();
-    irany(0, 0);
-    terrainEngine.render();
-    irany(0, 180);
-    terrainEngine.render();
-    irany(0, 90);
-    terrainEngine.render();
-    irany(0, -90);
-    terrainEngine.render();
-    document.getElementById("ido").innerText = Math.round(performance.now() - most);
-    irany(tempX, tempY);
-}
-
-function ujTerkep() {
-    // 45-75ms
-    let eleje = performance.now()
-    general();
-    console.log("Új térkép idő:", performance.now() - eleje)
-}
-
 function setDomainWarp() {
     let domainWarp = document.getElementById("domainWarp");
     if (domainWarp) {
@@ -128,7 +96,7 @@ function setDomainWarp() {
     }
 }
 
-function general() {
+function generalDomborzat() {
     let size = parseInt(document.getElementById("mapSize").value);
     let seed = parseInt(document.getElementById("seed").value);
     let persistence = parseFloat(document.getElementById("persistence").value);
@@ -214,54 +182,6 @@ function fromHexaToDec(num) {
     return returnVal;
 }
 
-function ujAnyag() {
-    let color = document.getElementById("groundColor");
-    let red = fromHexaToDec(color.value[1]) * 16 + fromHexaToDec(color.value[2]);
-    let green = fromHexaToDec(color.value[3]) * 16 + fromHexaToDec(color.value[4]);
-    let blue = fromHexaToDec(color.value[5]) * 16 + fromHexaToDec(color.value[6]);
-    let diff = document.getElementById("diffuseness");
-    let spec = document.getElementById("specularity");
-    let shin = document.getElementById("shininess");
-    terrainEngine.setGroundMaterial(red, green, blue, parseFloat(diff.value), parseFloat(spec.value), parseFloat(shin.value));
-}
-
-function talajFu() {
-    document.getElementById("groundColor").value = "#41980a";
-    let diff = document.getElementById("diffuseness");
-    let spec = document.getElementById("specularity");
-    let shin = document.getElementById("shininess");
-    diff.value = 1.0;
-    diff.nextElementSibling.value = 1.0;
-    spec.value = 0.02;
-    spec.nextElementSibling.value = 0.02;
-    shin.value = 10.0;
-    shin.nextElementSibling.value = 10.0;
-    terrainEngine.setMaterialGrass();
-}
-
-function talajFold() {
-    document.getElementById("groundColor").value = "#9b7653";
-    let diff = document.getElementById("diffuseness");
-    let spec = document.getElementById("specularity");
-    let shin = document.getElementById("shininess");
-    diff.value = 1.0;
-    diff.nextElementSibling.value = 1.0;
-    spec.value = 0.01;
-    spec.nextElementSibling.value = 0.01;
-    shin.value = 10.0;
-    shin.nextElementSibling.value = 10.0;
-    terrainEngine.setMaterialDirt();
-}
-
-function ujKornyezetiFeny() {
-    let ambient = document.getElementById("ambientLight");
-    terrainEngine.setAmbientLight(parseFloat(ambient.value));
-}
-
-function ujUrlbol() {
-    imgFromUrl(document.getElementById("url").value);
-}
-
 function imgFromUrl(url) {
     let img = new Image;
     img.crossOrigin = "anonymous";
@@ -294,10 +214,6 @@ function imgFromUrl(url) {
     img.src = url;
 }
 
-function texturaTorles() {
-    terrainEngine.deleteTexture();
-}
-
 window.UjPerlinParam = function (e) {
     let id = "";
     if (e) {
@@ -305,7 +221,7 @@ window.UjPerlinParam = function (e) {
     }
     let auto = document.getElementById("autoUpdate").checked;
     if (id == "gomb" || auto) {
-        general();
+        generalDomborzat();
     }
 };
 
@@ -320,14 +236,36 @@ window.ujhely = function () {
     terrainEngine.randomizeLocation();
 };
 
-window.irany = irany;
+window.irany = function (pitch, yaw) {
+    terrainEngine.setCameraRotation(degToRad(pitch), degToRad(yaw));
+};
 
 window.xyForgas = function (pitch, yaw) {
     rotateCamera(pitch, yaw);
 };
 
 window.mozgas = mozgas;
-window.teszt = teszt;
+
+window.teszt = function () {
+    // mennyi idő lenne lerenderelni egy cubemapet
+    let tempX = terrainEngine.getPitch() * (180 / Math.PI);
+    let tempY = terrainEngine.getYaw() * (180 / Math.PI);
+    let most = performance.now();
+    irany(90, 0);
+    terrainEngine.render();
+    irany(-90, 0);
+    terrainEngine.render();
+    irany(0, 0);
+    terrainEngine.render();
+    irany(0, 180);
+    terrainEngine.render();
+    irany(0, 90);
+    terrainEngine.render();
+    irany(0, -90);
+    terrainEngine.render();
+    document.getElementById("ido").innerText = Math.round(performance.now() - most);
+    irany(tempX, tempY);
+};
 
 window.ujArnyalas = function () {
     let typeShad = document.querySelector('input[name="shading"]:checked');
@@ -372,12 +310,71 @@ window.ujFenyszin = function () {
     terrainEngine.setLightColor(red / 255.0, green / 255.0, blue / 255.0);
 };
 
-window.ujKornyezetiFeny = ujKornyezetiFeny;
-window.talajFu = talajFu;
-window.talajFold = talajFold;
-window.ujAnyag = ujAnyag;
-window.ujUrlbol = ujUrlbol;
-window.texturaTorles = texturaTorles;
+window.ujKornyezetiFeny = function () {
+    let ambient = document.getElementById("ambientLight");
+    terrainEngine.setAmbientLight(parseFloat(ambient.value));
+};
+
+window.talajFu = function () {
+    let grass = Module.Material.Grass();
+    document.getElementById("groundColor").value = "#9b7653";
+    let diff = document.getElementById("diffuseness");
+    let spec = document.getElementById("specularity");
+    let shin = document.getElementById("shininess");
+    let diffuseness = Math.round(1000 * grass.diffuseness) / 1000;
+    diff.value = diffuseness;
+    diff.nextElementSibling.value = diffuseness;
+
+    let specularity = Math.round(1000 * grass.specularity) / 1000;
+    spec.value = specularity;
+    spec.nextElementSibling.value = specularity;
+
+    let shininess = Math.round(1000 * grass.shininess) / 1000;
+    shin.value = shininess;
+    shin.nextElementSibling.value = shininess;
+    terrainEngine.setGroundMaterial(grass);
+};
+
+window.talajFold = function () {
+    let dirt = Module.Material.Dirt();
+    document.getElementById("groundColor").value = "#9b7653";
+    let diff = document.getElementById("diffuseness");
+    let spec = document.getElementById("specularity");
+    let shin = document.getElementById("shininess");
+    let diffuseness = Math.round(1000 * dirt.diffuseness) / 1000;
+    diff.value = diffuseness;
+    diff.nextElementSibling.value = diffuseness;
+
+    let specularity = Math.round(1000 * dirt.specularity) / 1000;
+    spec.value = specularity;
+    spec.nextElementSibling.value = specularity;
+
+    let shininess = Math.round(1000 * dirt.shininess) / 1000;
+    shin.value = shininess;
+    shin.nextElementSibling.value = shininess;
+    terrainEngine.setGroundMaterial(dirt);
+};
+
+window.ujAnyag = function () {
+    let color = document.getElementById("groundColor");
+    let red = fromHexaToDec(color.value[1]) * 16 + fromHexaToDec(color.value[2]);
+    let green = fromHexaToDec(color.value[3]) * 16 + fromHexaToDec(color.value[4]);
+    let blue = fromHexaToDec(color.value[5]) * 16 + fromHexaToDec(color.value[6]);
+    let albedo = Module.Color.fromRGB(red, green, blue);
+    let diff = parseFloat(document.getElementById("diffuseness").value);
+    let spec = parseFloat(document.getElementById("specularity").value);
+    let shin = parseFloat(document.getElementById("shininess").value);
+    let material = Module.Material.createMaterial(albedo, diff, spec, shin);
+    terrainEngine.setGroundMaterial(material);
+};
+
+window.ujUrlbol = function () {
+    imgFromUrl(document.getElementById("url").value);
+};
+
+window.texturaTorles = function () {
+    terrainEngine.deleteTexture();
+};
 
 window.setTexturaMeret = function () {
     let textureSpacing = document.getElementById("textureSpacing");

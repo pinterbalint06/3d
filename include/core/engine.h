@@ -16,7 +16,7 @@ protected:
 
 public:
     Engine(std::string canvID);
-    ~Engine();
+    virtual ~Engine();
 
     void setLightDirection(float x, float y, float z);
 

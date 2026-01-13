@@ -5481,6 +5481,11 @@ async function createWasm() {
     };
   var _emscripten_webgl_create_context = _emscripten_webgl_do_create_context;
 
+  var _emscripten_webgl_destroy_context = (contextHandle) => {
+      if (GL.currentContext == contextHandle) GL.currentContext = 0;
+      GL.deleteContext(contextHandle);
+    };
+
   var _emscripten_webgl_make_context_current = (contextHandle) => {
       var success = GL.makeContextCurrent(contextHandle);
       return success ? 0 : -5;
@@ -5795,6 +5800,20 @@ async function createWasm() {
       GL.shaders[id] = null;
     };
   var _glDeleteShader = _emscripten_glDeleteShader;
+
+  var _emscripten_glDeleteTextures = (n, textures) => {
+      for (var i = 0; i < n; i++) {
+        var id = HEAP32[(((textures)+(i*4))>>2)];
+        var texture = GL.textures[id];
+        // GL spec: "glDeleteTextures silently ignores 0s and names that do not
+        // correspond to existing textures".
+        if (!texture) continue;
+        GLctx.deleteTexture(texture);
+        texture.name = 0;
+        GL.textures[id] = null;
+      }
+    };
+  var _glDeleteTextures = _emscripten_glDeleteTextures;
 
   var _emscripten_glDeleteVertexArrays = (n, vaos) => {
       for (var i = 0; i < n; i++) {
@@ -6767,10 +6786,10 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var ASM_CONSTS = {
-  102808: () => { throw('A böngésződ nem támogatja a WebGL-t!'); },  
- 102859: ($0) => { throw("Sikertelen shader fordítás: " + UTF8ToString($0)); },  
- 102923: ($0) => { throw("Sikertelen shader összekapcsolás: " + UTF8ToString($0)); },  
- 102993: ($0, $1) => { let fps = document.getElementById(UTF8ToString($1)); if (fps) { fps.innerText = $0; } }
+  102840: () => { throw('A böngésződ nem támogatja a WebGL-t!'); },  
+ 102891: ($0) => { throw("Sikertelen shader fordítás: " + UTF8ToString($0)); },  
+ 102955: ($0) => { throw("Sikertelen shader összekapcsolás: " + UTF8ToString($0)); },  
+ 103025: ($0, $1) => { let fps = document.getElementById(UTF8ToString($1)); if (fps) { fps.innerText = $0; } }
 };
 
 // Imports from the Wasm binary.
@@ -6868,6 +6887,8 @@ var wasmImports = {
   /** @export */
   emscripten_webgl_create_context: _emscripten_webgl_create_context,
   /** @export */
+  emscripten_webgl_destroy_context: _emscripten_webgl_destroy_context,
+  /** @export */
   emscripten_webgl_make_context_current: _emscripten_webgl_make_context_current,
   /** @export */
   environ_get: _environ_get,
@@ -6913,6 +6934,8 @@ var wasmImports = {
   glDeleteProgram: _glDeleteProgram,
   /** @export */
   glDeleteShader: _glDeleteShader,
+  /** @export */
+  glDeleteTextures: _glDeleteTextures,
   /** @export */
   glDeleteVertexArrays: _glDeleteVertexArrays,
   /** @export */

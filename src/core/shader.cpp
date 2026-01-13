@@ -134,6 +134,13 @@ namespace Shaders
         {
             glUniformBlockBinding(programID_, uniformBlockIndexMesh, 4);
         }
+
+        use();
+        setUniformInt("uTexture0", 0);
+        setUniformInt("uNoisePermutationTable", 5);
+        setUniformInt("uNoiseGradients", 6);
+        setUniformInt("uWarpPermutationTable", 7);
+        setUniformInt("uWarpGradients", 8);
     }
 
     Shader::~Shader()

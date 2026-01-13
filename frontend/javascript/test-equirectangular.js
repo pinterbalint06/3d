@@ -1,16 +1,10 @@
 import { CanvasInput } from './CanvasInput.js';
 
 // kamera tulajdonsagai
-let fokuszTavolsag = 18.0; // mm focalLength
-const filmSzel = 25.4;
-const filmMag = 25.4;
+let fokuszTavolsag = 18.0;
+const canvasId = "canvas";
 const jsCanvasSzelesseg = 1000;
 const jsCanvasMagassag = 1000;
-// near clipping plane - kozel vagasi sik
-const n = 0.1;
-// far clipping plane - tavol vagasi sik
-const f = 1000;
-const canvasId = "canvas";
 
 function initModule() {
     console.log("module betoltve");
@@ -45,12 +39,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 function ujUrlbol() {
     imgFromUrl(document.getElementById("url").value);
-}
-
-function ujElsmitas() {
-    let elsimitas = document.getElementById("antialias");
-    Module.setAntialias(parseInt(elsimitas.value));
-    drawImage();
 }
 
 function imgFromUrl(url) {
@@ -92,4 +80,3 @@ function xyForgas(xszoggel, yszoggel) {
 
 window.xyForgas = xyForgas;
 window.ujUrlbol = ujUrlbol;
-window.ujElsmitas = ujElsmitas;

@@ -187,7 +187,6 @@ void Renderer::updateMaterialUBO(const Materials::Material meshMat)
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, meshMat.texture->getGPULoc());
-        shaderPrograms_[currShadingMode_]->setUniformInt("uTexture0", 0);
         useTexture = 1;
     }
 
@@ -219,17 +218,15 @@ void Renderer::updateMeshUBO(Mesh *mesh)
         isTerrain = 1;
         glActiveTexture(GL_TEXTURE5);
         glBindTexture(GL_TEXTURE_2D, terrain->getNoisePermGPULoc());
-        shaderPrograms_[currShadingMode_]->setUniformInt("uNoisePermutationTable", 5);
+
         glActiveTexture(GL_TEXTURE6);
         glBindTexture(GL_TEXTURE_2D, terrain->getNoiseGradGPULoc());
-        shaderPrograms_[currShadingMode_]->setUniformInt("uNoiseGradients", 6);
 
         glActiveTexture(GL_TEXTURE7);
         glBindTexture(GL_TEXTURE_2D, terrain->getWarpPermGPULoc());
-        shaderPrograms_[currShadingMode_]->setUniformInt("uWarpPermutationTable", 7);
+
         glActiveTexture(GL_TEXTURE8);
         glBindTexture(GL_TEXTURE_2D, terrain->getWarpGradGPULoc());
-        shaderPrograms_[currShadingMode_]->setUniformInt("uWarpGradients", 8);
 
         shaderPrograms_[currShadingMode_]->setUniformInt("uUseDomainWarp", terrain->getIsDomainWarp());
     }

@@ -7243,10 +7243,10 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
 }
 var ASM_CONSTS = {
-  103736: () => { throw('A böngésződ nem támogatja a WebGL-t!'); },  
- 103787: ($0) => { throw("Sikertelen shader fordítás: " + UTF8ToString($0)); },  
- 103851: ($0) => { throw("Sikertelen shader összekapcsolás: " + UTF8ToString($0)); },  
- 103921: ($0, $1) => { let fps = document.getElementById(UTF8ToString($1)); if (fps) { fps.innerText = $0; } }
+  103768: () => { throw('A böngésződ nem támogatja a WebGL-t!'); },  
+ 103819: ($0) => { throw("Sikertelen shader fordítás: " + UTF8ToString($0)); },  
+ 103883: ($0) => { throw("Sikertelen shader összekapcsolás: " + UTF8ToString($0)); },  
+ 103953: ($0, $1) => { let fps = document.getElementById(UTF8ToString($1)); if (fps) { fps.innerText = $0; } }
 };
 function textureFromURL(textureID,url,ctxId) { let gl = GL.contexts[ctxId].GLctx; let img = new Image(); let imgUrl = UTF8ToString(url); img.onload = function() { let texture = GL.textures[textureID]; if (texture) { gl.bindTexture(gl.TEXTURE_2D, texture); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img); gl.generateMipmap(gl.TEXTURE_2D); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.bindTexture(gl.TEXTURE_2D, null); } else { console.error("Texture failed to load (it no longer exists):\t" + imgUrl); } }; img.onerror = function() { console.error("Texture failed to load:\t" + imgUrl); }; img.src = imgUrl; }
 

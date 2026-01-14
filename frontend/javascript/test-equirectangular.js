@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 // |------------------------|
 
 function imgFromURL(url) {
-    equirectangularEngine.loadTextureFromUrl(url);
+    equirectangularEngine.loadTextureFromUrl(url, 0);
 }
 
 window.ujUrlbol = function () {

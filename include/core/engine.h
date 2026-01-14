@@ -33,10 +33,10 @@ public:
     void rotateCamera(float dPitch, float dYaw);
     void setCameraRotation(float pitch, float yaw);
     void render() { renderer_->render(scene_); };
-    uint8_t *initTexture(int width, int height);
-    void uploadTextureToGPU();
-    void deleteTexture();
-    void loadTextureFromUrl(const std::string &url);
+    uint8_t *initTexture(int width, int height, int meshIndex);
+    void uploadTextureToGPU(int meshIndex);
+    void deleteTexture(int meshIndex);
+    void loadTextureFromUrl(const std::string &url, int meshIndex);
 
     float getPitch() { return scene_->getCamera()->getPitch(); }
     float getYaw() { return scene_->getCamera()->getYaw(); }

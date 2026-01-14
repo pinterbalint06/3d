@@ -417,7 +417,7 @@ window.ujAnyag = function () {
 
 // get the url from the input and load from url inside engine
 window.ujUrlbol = function () {
-    terrainEngine.loadTextureFromUrl(document.getElementById("url").value);
+    terrainEngine.loadTextureFromUrl(document.getElementById("url").value, 0);
 };
 
 // delete texture

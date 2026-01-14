@@ -67,8 +67,6 @@ Mesh *EquirectangularEngine::generateSphere(int rings, int segments, float radiu
         }
     }
 
-    mesh->setMaterial(Materials::Material::Error());
-
     return mesh;
 }
 

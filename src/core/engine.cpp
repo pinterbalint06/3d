@@ -82,41 +82,59 @@ void Engine::setCameraRotation(float pitch, float yaw)
     scene_->getCamera()->setRotation(pitch, yaw);
 }
 
-uint8_t *Engine::initTexture(int width, int height)
+uint8_t *Engine::initTexture(int width, int height, int meshIndex)
 {
-    deleteTexture();
-    Texture *texture = new Texture(width, height);
-    Materials::Material newTexMat = scene_->getMesh(0)->getMaterial();
-    newTexMat.texture = texture;
-    scene_->getMesh(0)->setMaterial(newTexMat);
-    return texture->getImgData();
-}
-
-void Engine::uploadTextureToGPU()
-{
-    scene_->getMesh(0)->getMaterial().texture->uploadToGPU();
-}
-
-void Engine::deleteTexture()
-{
-    if (scene_->getMesh(0)->getMaterial().texture != nullptr)
+    uint8_t *retPtr = nullptr;
+    Mesh *mesh = scene_->getMesh(meshIndex);
+    if (mesh != nullptr)
     {
-        delete scene_->getMesh(0)->getMaterial().texture;
-        Materials::Material newTexMat = scene_->getMesh(0)->getMaterial();
-        newTexMat.texture = nullptr;
-        scene_->getMesh(0)->setMaterial(newTexMat);
+        deleteTexture(meshIndex);
+        Texture *texture = new Texture(width, height);
+        Materials::Material newTexMat = mesh->getMaterial();
+        newTexMat.texture = texture;
+        mesh->setMaterial(newTexMat);
+        retPtr = texture->getImgData();
+    }
+    return retPtr;
+}
+
+void Engine::uploadTextureToGPU(int meshIndex)
+{
+    Mesh *mesh = scene_->getMesh(meshIndex);
+    if (mesh != nullptr)
+    {
+        mesh->getMaterial().texture->uploadToGPU();
     }
 }
 
-void Engine::loadTextureFromUrl(const std::string &url)
+void Engine::deleteTexture(int meshIndex)
 {
-    deleteTexture();
+    Mesh *mesh = scene_->getMesh(meshIndex);
+    if (mesh != nullptr)
+    {
+        if (mesh->getMaterial().texture != nullptr)
+        {
+            delete mesh->getMaterial().texture;
+            Materials::Material newTexMat = mesh->getMaterial();
+            newTexMat.texture = nullptr;
+            mesh->setMaterial(newTexMat);
+        }
+    }
+}
 
-    Texture *texture = new Texture();
+void Engine::loadTextureFromUrl(const std::string &url, int meshIndex)
+{
+    Mesh *mesh = scene_->getMesh(meshIndex);
+    if (mesh != nullptr)
+    {
+        deleteTexture(meshIndex);
 
-    texture->loadFromUrl(url);
+        Texture *texture = new Texture();
 
-    Materials::Material newTexMat = scene_->getMesh(0)->getMaterial();
-    newTexMat.texture = texture;
-    scene_->getMesh(0)->setMaterial(newTexMat);
+        texture->loadFromUrl(url);
+
+        Materials::Material newTexMat = mesh->getMaterial();
+        newTexMat.texture = texture;
+        mesh->setMaterial(newTexMat);
+    }
 }

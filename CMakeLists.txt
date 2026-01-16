@@ -30,11 +30,14 @@ set(COMMON_WASM_FLAGS
     -sINITIAL_MEMORY=268435456
     -sALLOW_MEMORY_GROWTH
     -msimd128
+    -sMODULARIZE=1
+    -sEXPORT_NAME="createModule"
     -sENVIRONMENT=["web"]
     -sEXPORTED_RUNTIME_METHODS=["HEAPU8"]
     -sMAX_WEBGL_VERSION=2
     -sMIN_WEBGL_VERSION=2
     --embed-file ${CMAKE_SOURCE_DIR}/resources/shaders@shaders
+    --closure=1
 )
 
 set(COMMON_WASM_COMPILATION

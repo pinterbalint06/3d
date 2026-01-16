@@ -20,7 +20,7 @@ private:
     void calcNewCamLoc();
 
 public:
-    TerrainEngine(std::string canvID, int size);
+    TerrainEngine(const std::string &canvID, int size);
     ~TerrainEngine();
 
     PerlinNoise::PerlinParameters getNoiseParameters() const { return terrain_->getNoiseParameters(); };

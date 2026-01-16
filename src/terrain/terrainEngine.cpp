@@ -5,7 +5,7 @@
 #include <terrain/terrain.h>
 #include <string>
 
-TerrainEngine::TerrainEngine(std::string canvID, int size) : Engine(canvID)
+TerrainEngine::TerrainEngine(const std::string &canvID, int size) : Engine(canvID)
 {
     terrain_ = new Terrain(size);
     terrain_->setUpNoiseForGPU(renderer_->getPerlinUBOloc(), renderer_->getWarpUBOloc());

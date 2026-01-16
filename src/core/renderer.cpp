@@ -16,7 +16,7 @@
 #include <cstring>
 #include <map>
 
-Renderer::Renderer(std::string &canvasID)
+Renderer::Renderer(const std::string &canvasID)
 {
     rBuffer_ = 0.0f;
     gBuffer_ = 0.0f;
@@ -181,8 +181,7 @@ void Renderer::updateMaterialUBO(const Materials::Material meshMat)
 
     if (meshMat.texture != nullptr)
     {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, meshMat.texture->getGPULoc());
+        meshMat.texture->bind(0);
         useTexture = 1;
     }
 

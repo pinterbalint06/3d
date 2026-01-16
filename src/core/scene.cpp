@@ -39,3 +39,11 @@ void Scene::removeMesh(int index)
 {
     meshes_.erase(meshes_.begin() + index);
 }
+
+void Scene::clearMeshes()
+{
+    for (int i = 0; i < meshes_.size(); i++)
+    {
+        delete meshes_[i];
+    }
+}

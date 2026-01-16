@@ -16,6 +16,7 @@ const meret = 256;
 
 // The engine
 let terrainEngine;
+let Module;
 
 
 // |--------------------|
@@ -98,13 +99,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     sd.value = seed;
     sd.nextElementSibling.value = sd.value;
 
-    if (Module.calledRun) {
-        // If webassembly is ready initialize
+    createModule().then((modu) => {
+        Module = modu;
         initModule();
-    } else {
-        // Else set a callback function
-        Module.onRuntimeInitialized = initModule;
-    }
+    });
 });
 
 function initModule() {
@@ -415,50 +413,9 @@ window.ujAnyag = function () {
     terrainEngine.setGroundMaterial(material);
 };
 
-// load an img from an url and upload to GPU
-function imgFromUrl(url) {
-    let img = new Image;
-    img.crossOrigin = "anonymous";
-    img.onload = function () {
-        // temporary canvas to get the rgb values of the image
-        let canvas = document.createElement('canvas');
-        canvas.width = this.width;
-        canvas.height = this.height;
-        let ctx = canvas.getContext('2d');
-        // draw the image on the canvas
-        ctx.drawImage(img, 0, 0);
-        let imgData = ctx.getImageData(0, 0, this.width, this.height);
-        // get rgba data
-        let rgbaData = imgData.data;
-
-        // initialize the texture in webassembly
-        const ptr = terrainEngine.initTexture(this.width, this.height);
-        // create the array to the webassembly rgb data array
-        let rgbData = new Uint8Array(
-            Module.HEAPU8.buffer,
-            ptr,
-            this.width * this.height * 3
-        );
-
-        // copy rgb data to webassembly ignore the alpha chanel
-        let index = 0;
-        for (let i = 0; i < rgbaData.length; i += 4) {
-            rgbData[index] = rgbaData[i];
-            index++;
-            rgbData[index] = rgbaData[i + 1];
-            index++;
-            rgbData[index] = rgbaData[i + 2];
-            index++;
-        }
-        // upload to GPU
-        terrainEngine.uploadTextureToGPU();
-    };
-    img.src = url;
-}
-
-// get the url from the input and call imgFromUrl
+// get the url from the input and load from url inside engine
 window.ujUrlbol = function () {
-    imgFromUrl(document.getElementById("url").value);
+    terrainEngine.loadTextureFromUrl(document.getElementById("url").value, 0);
 };
 
 // delete texture

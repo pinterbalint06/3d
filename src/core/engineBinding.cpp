@@ -17,12 +17,13 @@ EMSCRIPTEN_BINDINGS(engineBinding)
         .function("setCameraRotation", &Engine::setCameraRotation)
         .function("render", &Engine::render)
         .function("initTexture", emscripten::optional_override(
-                                     [](Engine &self, int width, int height) -> int
+                                     [](Engine &self, int width, int height, int meshIndex) -> int
                                      {
-                                         return (int)self.initTexture(width, height);
+                                         return (int)self.initTexture(width, height, meshIndex);
                                      }))
         .function("uploadTextureToGPU", &Engine::uploadTextureToGPU)
         .function("deleteTexture", &Engine::deleteTexture)
+        .function("loadTextureFromUrl", &Engine::loadTextureFromUrl)
         .function("getPitch", &Engine::getPitch)
         .function("getYaw", &Engine::getYaw)
         .function("setCanvasSize", &Engine::setCanvasSize);

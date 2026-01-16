@@ -38,12 +38,14 @@ public:
     DistantLight *getLight() const { return light_; }
     float getAmbientLight() const { return ambientLight_; }
     int getMeshCount() const { return meshes_.size(); }
-    Mesh *getMesh(int index) const { return meshes_[index]; }
+    Mesh *getMesh(int index) const { return meshes_.size() > index && index >= 0 ? meshes_[index] : nullptr; }
 
     // setter
     void setAmbientLight(float ambientLightIntensity);
+
     void addMesh(Mesh *mesh);
     void removeMesh(int index);
+    void clearMeshes();
 };
 
 #endif

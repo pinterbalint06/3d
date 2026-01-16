@@ -29,7 +29,7 @@ private:
     void updateMeshUBO(Mesh *mesh);
 
 public:
-    Renderer(std::string &canvasID);
+    Renderer(const std::string &canvasID);
     ~Renderer();
 
     GLuint *getPerlinUBOloc() { return &uboPerlin_; };

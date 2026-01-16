@@ -13,4 +13,3 @@
 13. Strukturálás
 14. Kód átnézése nem használt függvényekre, váltózokra
 15. UBO struktok átdolgozása, hogy ne kelljen mindig bemásolni egy új struktba
-16. Ekvirektanguláris textúrák felosztása 4x4-re vagy 2x2-re

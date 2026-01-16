@@ -42,8 +42,10 @@ public:
 
     // setter
     void setAmbientLight(float ambientLightIntensity);
+
     void addMesh(Mesh *mesh);
     void removeMesh(int index);
+    void clearMeshes();
 };
 
 #endif

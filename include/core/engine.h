@@ -42,6 +42,8 @@ public:
     float getYaw() { return scene_->getCamera()->getYaw(); }
 
     void addMesh(Mesh *mesh) { scene_->addMesh(mesh); }
+    void removeMesh(int index) { scene_->removeMesh(index); }
+    void clearScene() { scene_->clearMeshes(); };
 };
 
 #endif

@@ -2,41 +2,45 @@
 #include <cstdint>
 #include <string>
 #include <emscripten/html5.h>
+#include <emscripten/emscripten.h>
 #include <GLES3/gl3.h>
 
-EM_JS(void, textureFromURL, (int textureID, const char *url, int ctxId), {
-    let gl = GL.contexts[ctxId].GLctx;
-    let img = new Image();
-    let imgUrl = UTF8ToString(url);
+namespace
+{
+    EM_JS(void, textureFromURL, (int textureID, const char *url, int ctxId), {
+        let gl = GL.contexts[ctxId].GLctx;
+        let img = new Image();
+        let imgUrl = UTF8ToString(url);
 
-    img.onload = function()
-    {
-        let texture = GL.textures[textureID];
-        if (texture)
+        img.onload = function()
         {
-            gl.bindTexture(gl.TEXTURE_2D, texture);
+            let texture = GL.textures[textureID];
+            if (texture)
+            {
+                gl.bindTexture(gl.TEXTURE_2D, texture);
 
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-            gl.generateMipmap(gl.TEXTURE_2D);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+                gl.generateMipmap(gl.TEXTURE_2D);
 
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-            gl.bindTexture(gl.TEXTURE_2D, null);
-        }
-        else
+                gl.bindTexture(gl.TEXTURE_2D, null);
+            }
+            else
+            {
+                console.error("Texture failed to load (it no longer exists):\t" + imgUrl);
+            }
+        };
+
+        img.onerror = function()
         {
-            console.error("Texture failed to load (it no longer exists):\t" + imgUrl);
-        }
-    };
+            console.error("Texture failed to load:\t" + imgUrl);
+        };
 
-    img.onerror = function()
-    {
-        console.error("Texture failed to load:\t" + imgUrl);
-    };
-
-    img.src = imgUrl;
-});
+        img.src = imgUrl;
+    });
+}
 
 Texture::Texture()
 {

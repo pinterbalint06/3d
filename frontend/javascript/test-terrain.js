@@ -16,6 +16,7 @@ const meret = 256;
 
 // The engine
 let terrainEngine;
+let Module;
 
 
 // |--------------------|
@@ -98,13 +99,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     sd.value = seed;
     sd.nextElementSibling.value = sd.value;
 
-    if (Module.calledRun) {
-        // If webassembly is ready initialize
+    createModule().then((modu) => {
+        Module = modu;
         initModule();
-    } else {
-        // Else set a callback function
-        Module.onRuntimeInitialized = initModule;
-    }
+    });
 });
 
 function initModule() {

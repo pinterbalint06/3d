@@ -27,6 +27,7 @@ public:
     int getHeight() { return height_; }
 
     uint8_t *getImgData() { return imgData_; }
+    GLuint getTextureIndex() const { return textureGL_; }
 
     void loadFromUrl(const std::string &url);
     void uploadToGPU();

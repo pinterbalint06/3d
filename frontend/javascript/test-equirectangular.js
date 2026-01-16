@@ -10,6 +10,8 @@ const jsCanvasSzelesseg = 1000;
 const jsCanvasMagassag = 1000;
 let equirectangularEngine;
 
+
+
 // |--------------------|
 // | UTILITIES AND MATH |
 // |--------------------|
@@ -27,10 +29,10 @@ function mainLoop() {
     requestAnimationFrame(mainLoop);
 }
 
-function initModule() {
+function initModule(Module) {
     console.log("module betoltve");
     equirectangularEngine = new Module.EquirectangularEngine(canvasId);
-    imgFromURL("http://localhost:3000/images/cathedral.jpg");
+    imgFromURL("/images/cathedral.jpg");
     requestAnimationFrame(mainLoop);
 
     let canvas = document.getElementById(canvasId);
@@ -51,12 +53,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     canvas.height = jsCanvasMagassag;
 
     canvas.style.cursor = "grab";
-
-    if (Module.calledRun) {
-        initModule();
-    } else {
-        Module.onRuntimeInitialized = initModule;
-    }
+    createModule().then((Module) => {
+        initModule(Module);
+    });
 });
 
 // |------------------------|
@@ -64,7 +63,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 // |------------------------|
 
 function imgFromURL(url) {
-    equirectangularEngine.loadTextureFromUrl(url, 0);
+    // get width and height
+    equirectangularEngine.loadEquirectangularImage(url, 10836, 5418);
 }
 
 window.ujUrlbol = function () {
